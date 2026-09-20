@@ -44,11 +44,17 @@ workflows:
 
       - name: Build signed IPA
         # PROJECT_BUILD_NUMBER is Codemagic's own per-project counter, so
-        # every upload gets a build number TestFlight has not seen.
+        # every upload gets a build number TestFlight has not seen. If it is
+        # ever unset, fall back to the +N in pubspec rather than passing an
+        # empty --build-number= flag.
         script: |
+          BUILD_ARG=""
+          if [ -n "$PROJECT_BUILD_NUMBER" ]; then
+            BUILD_ARG="--build-number=$PROJECT_BUILD_NUMBER"
+          fi
           flutter build ipa \
             --release \
-            --build-number=$PROJECT_BUILD_NUMBER \
+            $BUILD_ARG \
             --obfuscate \
             --split-debug-info=build/ios_symbols \
             --tree-shake-icons \
