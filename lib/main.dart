@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'screens/debrief_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/session_screen.dart';
+import 'services/alerts.dart';
 import 'services/persistence.dart';
 import 'state/guild_controller.dart';
 import 'theme/telos_theme.dart';
@@ -17,7 +18,7 @@ Future<void> main() async {
     systemNavigationBarColor: T.black,
   ));
 
-  final controller = GuildController(Persistence());
+  final controller = GuildController(Persistence(), alerts: LocalAlerts());
   await controller.boot();
 
   runApp(

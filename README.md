@@ -29,7 +29,8 @@ INTENT -> DURATION -> SECTOR -> SQUAD -> [put the phone down] -> DEBRIEF -> SPEN
 2. **Session** — a countdown and nothing else. No taps, no collectibles, no
    progress ticking up on screen.
 3. **Debrief** — everything the run produced, delivered at once when you come
-   back.
+   back. One notification fires when the run ends; that is the only thing the
+   app will ever interrupt you for.
 4. **Outpost** — spend what you earned: gear, recruits, facilities, new sectors.
    This is what makes you want to start the next session.
 
@@ -106,6 +107,31 @@ Both need a platform channel and entitlements; neither belongs in V1.
 
 ---
 
+## The one notification
+
+`lib/services/alerts.dart`. Exactly one alert exists: *"KAEL returned from
+Mosswood Verge."* No streak nagging, no daily reminders, nothing the user did
+not personally start.
+
+- Scheduled at dispatch, cancelled the moment a run is recalled or received
+- Permission is requested **at the first dispatch**, not at launch, so the
+  prompt arrives with an obvious reason attached
+- Re-armed on cold start for any run still in progress, in case the OS dropped
+  the alarm
+- Android uses `exactAllowWhileIdle` with `USE_EXACT_ALARM`. Telos is a timer,
+  so the alert has to land on the second the run ends — an inexact alarm can
+  drift by minutes. Boot receivers are declared so a run survives a reboot.
+- iOS uses `timeSensitive` interruption level, so it can break through Focus
+  modes — which the user is plausibly in, given what this app is for
+- Scheduling uses `TZDateTime.from(at, tz.UTC)`. For a one-shot timer only the
+  absolute instant matters, and that conversion is exact, which avoids a
+  device-timezone plugin
+
+The `Alerts` interface has a `NoopAlerts` implementation, so tests and the
+desktop/web preview targets never touch a platform channel.
+
+---
+
 ## Timing correctness
 
 The session is stored as `startedAt + plannedMinutes` and every read derives
@@ -132,11 +158,15 @@ lib/
   services/
     expedition_engine.dart       resolves a finished run into loot
     persistence.dart             JSON blob in SharedPreferences
+    alerts.dart                  the one local notification (+ a no-op impl)
   state/guild_controller.dart    ChangeNotifier; owns save, run, lifecycle hooks
   screens/                       home, dispatch, session, debrief, roster,
                                  outpost, log
   widgets/terminal.dart          Panel, Meter, TButton, TChip, KV, scaffold
-test/engine_test.dart            integrity math, yields, determinism, save
+test/
+  engine_test.dart               integrity math, yields, determinism, save
+  flow_test.dart                 home -> dispatch -> session -> debrief
+  alerts_test.dart               scheduling, cancelling and re-arming
 ```
 
 Adding a sector, class or item is an edit to `data/content.dart` — no code
@@ -173,8 +203,6 @@ flutter test
 
 ## Not in V1 (deliberately)
 
-- Local notification when an expedition completes — **the most valuable next
-  addition**; right now you have to come back and look
 - App blocking / distraction detection (see V2 path above)
 - IAP: Guildmaster one-time unlock, sector packs, cosmetic terminal themes.
   The one rule from the design notes stands: money expands and customises the

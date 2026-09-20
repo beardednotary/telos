@@ -6,14 +6,17 @@ import 'package:flutter/widgets.dart';
 import '../data/content.dart';
 import '../models/guild_state.dart';
 import '../models/models.dart';
+import '../services/alerts.dart';
 import '../services/expedition_engine.dart';
 import '../services/persistence.dart';
 
 /// Owns the save file, the live run, and every mutation the UI can make.
 class GuildController extends ChangeNotifier with WidgetsBindingObserver {
-  GuildController(this._store);
+  GuildController(this._store, {Alerts? alerts})
+      : _alerts = alerts ?? NoopAlerts();
 
   final Persistence _store;
+  final Alerts _alerts;
 
   GuildState _g = GuildState.fresh();
   GuildState get g => _g;
@@ -28,11 +31,22 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
 
   Future<void> boot() async {
     _g = await _store.load();
+    await _alerts.init();
     WidgetsBinding.instance.addObserver(this);
     // The app is in the foreground right now; if a run survived a cold start,
     // resume its watch clock.
     if (_g.active != null && _g.active!.watchingSince == null) {
       _g.active!.watchingSince = DateTime.now();
+    }
+    // A scheduled alert can be lost to a reboot or a force stop. Re-arm it for
+    // any run that survived the restart.
+    final restored = _g.active;
+    if (restored != null && !restored.isComplete(DateTime.now())) {
+      await _alerts.scheduleReturn(
+        at: restored.endsAt,
+        sector: sectorById(restored.sectorId).name,
+        squad: _squadLabel(restored.squad),
+      );
     }
     _ready = true;
     _syncTicker();
@@ -97,12 +111,29 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
   ActiveRun? get active => _g.active;
   RunRecord? get pendingDebrief => _g.pendingDebrief;
 
+  /// "KAEL" / "KAEL and MIRA" / "The squad" - for notification copy.
+  String _squadLabel(List<String> ids) {
+    final names = ids
+        .map((id) => _g.memberById(id))
+        .whereType<Adventurer>()
+        .map((m) => m.name)
+        .toList();
+    if (names.isEmpty) return 'The squad';
+    if (names.length == 1) return names.single;
+    if (names.length == 2) return '${names[0]} and ${names[1]}';
+    return '${names.first} and ${names.length - 1} others';
+  }
+
   Future<void> startRun({
     required String sectorId,
     required String intent,
     required List<String> squad,
     required int minutes,
   }) async {
+    // Ask before the clock starts, so a permission dialog never eats into the
+    // session the user just committed to.
+    await _alerts.requestPermission();
+
     final t = DateTime.now();
     _g.runCounter++;
     _g.active = ActiveRun(
@@ -117,6 +148,11 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
     _g.onboarded = true;
     now = t;
     _syncTicker();
+    await _alerts.scheduleReturn(
+      at: _g.active!.endsAt,
+      sector: sectorById(sectorId).name,
+      squad: _squadLabel(squad),
+    );
     await _save();
     notifyListeners();
   }
@@ -134,6 +170,8 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
       if (d > 0) run.watchSeconds += d;
       run.watchingSince = null;
     }
+
+    await _alerts.cancel();
 
     final res = ExpeditionEngine.resolve(
       run: run,
@@ -290,6 +328,7 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
   Future<void> hardReset() async {
     _ticker?.cancel();
     _ticker = null;
+    await _alerts.cancel();
     _g = GuildState.fresh();
     await _store.wipe();
     notifyListeners();
