@@ -1,0 +1,231 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:telos/data/content.dart';
+import 'package:telos/models/guild_state.dart';
+import 'package:telos/models/models.dart';
+import 'package:telos/services/expedition_engine.dart';
+
+ActiveRun run({
+  required String id,
+  String sector = 'mosswood',
+  int minutes = 45,
+  List<String> squad = const ['a1'],
+  int watch = 0,
+  int checkIns = 0,
+  DateTime? start,
+}) {
+  return ActiveRun(
+    id: id,
+    sectorId: sector,
+    intent: 'test',
+    squad: squad,
+    startedAt: start ?? DateTime(2026, 1, 1, 9),
+    plannedMinutes: minutes,
+    watchSeconds: watch,
+    checkIns: checkIns,
+  );
+}
+
+void main() {
+  group('integrity', () {
+    test('an untouched run stays at 100%', () {
+      final r = run(id: 'x');
+      expect(r.integrity(r.endsAt), 1.0);
+    });
+
+    test('grace period covers a brief glance', () {
+      final r = run(id: 'x', watch: 25);
+      expect(r.integrity(r.endsAt), 1.0);
+    });
+
+    test('screen time past the grace period costs 1% per 30s', () {
+      final r = run(id: 'x', watch: 30 + 300); // 5 billable minutes
+      expect(r.integrity(r.endsAt), closeTo(0.90, 0.001));
+    });
+
+    test('each reopen costs a flat 4%', () {
+      final r = run(id: 'x', checkIns: 3);
+      expect(r.integrity(r.endsAt), closeTo(0.88, 0.001));
+    });
+
+    test('never falls below 25%', () {
+      final r = run(id: 'x', watch: 99999, checkIns: 99);
+      expect(r.integrity(r.endsAt), 0.25);
+    });
+  });
+
+  group('resolution', () {
+    test('a run under the sector minimum yields scraps and no salvage', () {
+      final g = GuildState.fresh();
+      final r = run(id: 's1', sector: 'mosswood', minutes: 5);
+      final res = ExpeditionEngine.resolve(
+        run: r,
+        guild: g,
+        now: r.endsAt,
+        recalled: false,
+      );
+      expect(res.record.scraps, isTrue);
+      expect(res.record.alloy, 0);
+      expect(res.record.intel, 0);
+      expect(res.gear, isEmpty);
+      expect(res.record.credits, greaterThan(0)); // time still counts for something
+    });
+
+    test('longer protected time yields more than shorter', () {
+      final g = GuildState.fresh();
+      final short = ExpeditionEngine.resolve(
+        run: run(id: 'a', minutes: 15),
+        guild: g,
+        now: DateTime(2026, 1, 1, 9, 15),
+        recalled: false,
+      );
+      final long = ExpeditionEngine.resolve(
+        run: run(id: 'a', minutes: 60),
+        guild: g,
+        now: DateTime(2026, 1, 1, 10),
+        recalled: false,
+      );
+      expect(long.record.credits, greaterThan(short.record.credits));
+      expect(long.record.xpGained['a1']!,
+          greaterThan(short.record.xpGained['a1']!));
+    });
+
+    test('a distracted run of the same length yields less', () {
+      final g = GuildState.fresh();
+      final clean = ExpeditionEngine.resolve(
+        run: run(id: 'same-id', minutes: 45),
+        guild: g,
+        now: DateTime(2026, 1, 1, 9, 45),
+        recalled: false,
+      );
+      final messy = ExpeditionEngine.resolve(
+        run: run(id: 'same-id', minutes: 45, watch: 600, checkIns: 8),
+        guild: g,
+        now: DateTime(2026, 1, 1, 9, 45),
+        recalled: false,
+      );
+      expect(messy.record.integrity, lessThan(clean.record.integrity));
+      expect(messy.record.credits, lessThan(clean.record.credits));
+      // Salvage is punished far harder than raw currency - that is the point.
+      expect(messy.gear.length, lessThanOrEqualTo(clean.gear.length));
+    });
+
+    test('resolution is deterministic for a given run id', () {
+      final g = GuildState.fresh();
+      final a = ExpeditionEngine.resolve(
+        run: run(id: 'fixed', minutes: 45),
+        guild: g,
+        now: DateTime(2026, 1, 1, 9, 45),
+        recalled: false,
+      );
+      final b = ExpeditionEngine.resolve(
+        run: run(id: 'fixed', minutes: 45),
+        guild: g,
+        now: DateTime(2026, 1, 1, 9, 45),
+        recalled: false,
+      );
+      expect(b.record.credits, a.record.credits);
+      expect(b.gear.map((x) => x.defId), a.gear.map((x) => x.defId));
+      expect(b.record.journal, a.record.journal);
+    });
+
+    test('class window matters: RECON beats VANGUARD on a short run', () {
+      final g = GuildState.fresh(); // a1 = vanguard, a2 = recon
+      final now = DateTime(2026, 1, 1, 9, 20);
+      final vanguard = ExpeditionEngine.resolve(
+        run: run(id: 'w', minutes: 20, squad: ['a1']),
+        guild: g,
+        now: now,
+        recalled: false,
+      );
+      final recon = ExpeditionEngine.resolve(
+        run: run(id: 'w', minutes: 20, squad: ['a2']),
+        guild: g,
+        now: now,
+        recalled: false,
+      );
+      expect(recon.record.credits, greaterThan(vanguard.record.credits));
+    });
+
+    test('VANGUARD beats RECON on a long run in an alloy sector', () {
+      final g = GuildState.fresh();
+      g.unlockedSectors.add('blackstone');
+      final now = DateTime(2026, 1, 1, 10, 30);
+      final vanguard = ExpeditionEngine.resolve(
+        run: run(id: 'w2', sector: 'blackstone', minutes: 90, squad: ['a1']),
+        guild: g,
+        now: now,
+        recalled: false,
+      );
+      final recon = ExpeditionEngine.resolve(
+        run: run(id: 'w2', sector: 'blackstone', minutes: 90, squad: ['a2']),
+        guild: g,
+        now: now,
+        recalled: false,
+      );
+      expect(vanguard.record.alloy, greaterThan(recon.record.alloy));
+    });
+
+    test('gear raises yield on an otherwise identical run', () {
+      final base = GuildState.fresh();
+      final kitted = GuildState.fresh();
+      kitted.vault.add(Gear('g0', 'ore_sense')); // +25% alloy
+      kitted.roster.first.equipped.add('g0');
+      kitted.unlockedSectors.add('blackstone');
+      base.unlockedSectors.add('blackstone');
+
+      final now = DateTime(2026, 1, 1, 9, 45);
+      final plain = ExpeditionEngine.resolve(
+        run: run(id: 'g', sector: 'blackstone', minutes: 45),
+        guild: base,
+        now: now,
+        recalled: false,
+      );
+      final better = ExpeditionEngine.resolve(
+        run: run(id: 'g', sector: 'blackstone', minutes: 45),
+        guild: kitted,
+        now: now,
+        recalled: false,
+      );
+      expect(better.record.alloy, greaterThan(plain.record.alloy));
+    });
+  });
+
+  group('save round-trip', () {
+    test('a full state survives JSON', () {
+      final g = GuildState.fresh();
+      g.credits = 1234;
+      g.vault.add(Gear('g0', 'field_optic'));
+      g.roster.first.equipped.add('g0');
+      g.active = run(id: 'live', checkIns: 2, watch: 90);
+
+      final back = GuildState.fromJson(g.toJson());
+      expect(back.credits, 1234);
+      expect(back.roster.first.equipped, ['g0']);
+      expect(back.active!.checkIns, 2);
+      expect(back.active!.watchSeconds, 90);
+      expect(back.active!.id, 'live');
+    });
+
+    test('a corrupt-free fresh state has exactly one open sector', () {
+      expect(GuildState.fresh().unlockedSectors, {'mosswood'});
+      expect(GuildState.fresh().squadSlots, 1);
+    });
+  });
+
+  group('content sanity', () {
+    test('every sector loot pool references real gear', () {
+      for (final s in kSectors) {
+        for (final id in s.lootPool) {
+          expect(kGear.containsKey(id), isTrue, reason: '${s.id} -> $id');
+        }
+      }
+    });
+
+    test('sector minimums increase with tier', () {
+      for (var i = 1; i < kSectors.length; i++) {
+        expect(kSectors[i].minMinutes,
+            greaterThan(kSectors[i - 1].minMinutes));
+      }
+    });
+  });
+}
