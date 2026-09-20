@@ -4,16 +4,13 @@
 #    ios-testflight  - signed release, uploaded to TestFlight (use this one)
 #    ios-unsigned    - no signing, no account needed; proves the build compiles
 #
-#  BEFORE THE FIRST RUN, set up in the Codemagic UI:
-#    1. Teams / Integrations -> App Store Connect: add an API key.
-#       Put its *integration name* in `integrations.app_store_connect` below.
-#    2. An app record for com.dahvio.telos in App Store Connect,
-#       and a matching App ID in the developer portal with no extra
-#       capabilities - Telos needs none (local notifications are not a
-#       capability; only push would be).
+#  App ID and App Store Connect record for com.dahvio.telos: confirmed to exist.
 #
-#  Not verified on a Mac. The build-number and signing keys follow Codemagic's
-#  documented names, but check them against your dashboard on the first run.
+#  `integrations.app_store_connect` below must match the *name* of the App
+#  Store Connect integration in Codemagic (Teams -> Integrations), which is
+#  not necessarily the key ID. If the two differ the build stops immediately
+#  with an error naming the integration it could not find - change the value
+#  to the label shown in the dashboard.
 
 definitions:
   base: &base
@@ -29,7 +26,7 @@ workflows:
     instance_type: mac_mini_m2
 
     integrations:
-      app_store_connect: CHANGE_ME_API_KEY_NAME
+      app_store_connect: VV8RJDSU3W
 
     environment:
       <<: *base
