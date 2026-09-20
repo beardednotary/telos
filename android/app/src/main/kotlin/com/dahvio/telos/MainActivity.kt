@@ -1,4 +1,4 @@
-package com.rayrothwell.telos
+package com.dahvio.telos
 
 import io.flutter.embedding.android.FlutterActivity
 

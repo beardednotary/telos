@@ -7,7 +7,7 @@
 #  BEFORE THE FIRST RUN, set up in the Codemagic UI:
 #    1. Teams / Integrations -> App Store Connect: add an API key.
 #       Put its *integration name* in `integrations.app_store_connect` below.
-#    2. An app record for com.rayrothwell.telos in App Store Connect,
+#    2. An app record for com.dahvio.telos in App Store Connect,
 #       and a matching App ID in the developer portal with no extra
 #       capabilities - Telos needs none (local notifications are not a
 #       capability; only push would be).
@@ -35,7 +35,7 @@ workflows:
       <<: *base
       ios_signing:
         distribution_type: app_store
-        bundle_identifier: com.rayrothwell.telos
+        bundle_identifier: com.dahvio.telos
 
     scripts:
       - name: Dependencies

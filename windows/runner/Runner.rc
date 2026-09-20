@@ -89,11 +89,11 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.rayrothwell" "\0"
+            VALUE "CompanyName", "com.dahvio" "\0"
             VALUE "FileDescription", "telos" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "telos" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 com.rayrothwell. All rights reserved." "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 com.dahvio. All rights reserved." "\0"
             VALUE "OriginalFilename", "telos.exe" "\0"
             VALUE "ProductName", "telos" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
