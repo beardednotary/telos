@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:provider/provider.dart';
 
 import '../data/content.dart';
@@ -70,7 +71,76 @@ class OutpostScreen extends StatelessWidget {
               child: Text('Every charted sector is open.',
                   style: T.label.copyWith(fontSize: 10, letterSpacing: 0.3)),
             ),
+
+          const SizedBox(height: 22),
+          const PanelTitle('ABOUT'),
+          Panel(
+            onTap: () => _showLicence(context),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('TYPEFACE',
+                          style: T.mono.copyWith(letterSpacing: 1.6)),
+                      const SizedBox(height: 3),
+                      Text('JetBrains Mono - SIL Open Font License 1.1',
+                          style: T.label
+                              .copyWith(fontSize: 10, letterSpacing: 0.3)),
+                    ],
+                  ),
+                ),
+                Text('>', style: T.mono.copyWith(color: T.dim)),
+              ],
+            ),
+          ),
         ],
+      ),
+    );
+  }
+
+  Future<void> _showLicence(BuildContext context) async {
+    final text = await rootBundle.loadString('assets/fonts/OFL.txt');
+    if (!context.mounted) return;
+    await showModalBottomSheet(
+      context: context,
+      backgroundColor: T.card,
+      isScrollControlled: true,
+      shape: const Border(top: BorderSide(color: T.line)),
+      builder: (context) => FractionallySizedBox(
+        heightFactor: 0.85,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(18, 18, 18, 10),
+              child: Row(
+                children: [
+                  Text('SIL OPEN FONT LICENSE 1.1', style: T.label),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    behavior: HitTestBehavior.opaque,
+                    child: Text('[ CLOSE ]',
+                        style: T.label.copyWith(color: T.amber)),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(height: 1, color: T.line),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(18, 14, 18, 28),
+                child: SelectableText(
+                  text,
+                  style: T.mono.copyWith(fontSize: 11, height: 1.5),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

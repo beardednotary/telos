@@ -12,9 +12,12 @@ class T {
   static const good = Color(0xFF3DD68C);
   static const bad = Color(0xFFE5484D);
 
-  /// No bundled font yet — fall back through the platform monospace stack.
+  /// Bundled at three weights (300/400/600), so every device renders the same
+  /// thing. The platform stack stays as insurance for any glyph JetBrains Mono
+  /// does not cover.
+  static const String monoFamily = 'JetBrainsMono';
+
   static const monoFallback = <String>[
-    'JetBrains Mono',
     'SF Mono',
     'Menlo',
     'Consolas',
@@ -23,6 +26,7 @@ class T {
   ];
 
   static const TextStyle mono = TextStyle(
+    fontFamily: monoFamily,
     fontFamilyFallback: monoFallback,
     color: text,
     fontSize: 13,

@@ -183,9 +183,13 @@ Tactical terminal / OLED command console.
 - Amber `#F5A623` primary accent, cyan `#00E5FF` for intel, green/red for status
 - Monospace throughout, bracketed actions (`[ DISPATCH SQUAD ]`), 1px borders,
   discrete block meters
-- **No bundled font yet** — it falls through a platform monospace stack
-  (JetBrains Mono → SF Mono → Menlo → Consolas → monospace). Bundling
-  JetBrains Mono is a one-line pubspec change and makes it consistent.
+- **JetBrains Mono, bundled** at three weights — Light 300 (the countdown),
+  Regular 400 (body), SemiBold 600 (headings and actions), which is exactly
+  what the type scale asks for, so nothing is synthesised. ~820KB total. The
+  platform stack (SF Mono → Menlo → Consolas → monospace) remains as a
+  fallback for glyphs it does not cover.
+  It is SIL Open Font License 1.1: `assets/fonts/OFL.txt` ships in the bundle
+  and is readable in-app under FACILITIES → ABOUT → TYPEFACE.
 
 ### Pacing
 
