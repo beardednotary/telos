@@ -6,11 +6,8 @@
 #
 #  App ID and App Store Connect record for com.dahvio.telos: confirmed to exist.
 #
-#  `integrations.app_store_connect` below must match the *name* of the App
-#  Store Connect integration in Codemagic (Teams -> Integrations), which is
-#  not necessarily the key ID. If the two differ the build stops immediately
-#  with an error naming the integration it could not find - change the value
-#  to the label shown in the dashboard.
+#  `integrations.app_store_connect` is the *name* of the integration in
+#  Codemagic (Teams -> Integrations), not the key ID.
 
 definitions:
   base: &base
@@ -26,7 +23,7 @@ workflows:
     instance_type: mac_mini_m2
 
     integrations:
-      app_store_connect: VV8RJDSU3W
+      app_store_connect: codemagic
 
     environment:
       <<: *base
