@@ -312,3 +312,46 @@ class TerminalScaffold extends StatelessWidget {
     );
   }
 }
+
+/// One beat of a staged reveal.
+///
+/// The debrief is the payoff for the work you just did, so it arrives in
+/// sequence rather than all at once. [step] is which beat this belongs to,
+/// [steps] the total. Every beat is driven by one finite controller, so the
+/// whole thing still settles (and stays testable).
+class Staged extends StatelessWidget {
+  const Staged({
+    super.key,
+    required this.animation,
+    required this.step,
+    required this.steps,
+    required this.child,
+  });
+
+  final Animation<double> animation;
+  final int step;
+  final int steps;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: animation,
+      builder: (context, child) {
+        // Beats overlap slightly so it reads as a cascade, not a slideshow.
+        final spread = 1 / (steps + 1);
+        final start = step * spread;
+        final t = ((animation.value - start) / (spread * 2)).clamp(0.0, 1.0);
+        final eased = Curves.easeOutCubic.transform(t);
+        return Opacity(
+          opacity: eased,
+          child: Transform.translate(
+            offset: Offset(0, (1 - eased) * 10),
+            child: child,
+          ),
+        );
+      },
+      child: child,
+    );
+  }
+}

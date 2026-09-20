@@ -62,6 +62,11 @@ class HomeScreen extends StatelessWidget {
             ),
 
             const SizedBox(height: 22),
+            if (g.nextGoal != null) ...[
+              const PanelTitle('NEXT'),
+              _GoalPanel(goal: g.nextGoal!),
+              const SizedBox(height: 22),
+            ],
             const PanelTitle('FIELD RECORD'),
             _StatStrip(g: g),
 
@@ -171,6 +176,44 @@ class _ResourceBar extends StatelessWidget {
         const SizedBox(width: 8),
         cell(Res.intel.label, g.intel, T.cyan),
       ],
+    );
+  }
+}
+
+class _GoalPanel extends StatelessWidget {
+  const _GoalPanel({required this.goal});
+  final NextGoal goal;
+
+  @override
+  Widget build(BuildContext context) {
+    final reachable = goal.blocked == null;
+    return Panel(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(goal.kind, style: T.label.copyWith(color: T.cyan)),
+              const Spacer(),
+              Text(
+                goal.blocked ?? '${(goal.progress * 100).clamp(0, 100).round()}%',
+                style: T.label.copyWith(color: reachable ? T.amber : T.dim),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(goal.label, style: T.mono.copyWith(fontSize: 14, letterSpacing: 1.4)),
+          const SizedBox(height: 10),
+          Meter(
+            value: goal.progress,
+            segments: 22,
+            height: 5,
+            color: reachable ? T.amber : T.dim,
+          ),
+          const SizedBox(height: 6),
+          Text(goal.detail, style: T.label.copyWith(fontSize: 9)),
+        ],
+      ),
     );
   }
 }

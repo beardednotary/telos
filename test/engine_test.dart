@@ -228,4 +228,57 @@ void main() {
       }
     });
   });
+
+  group('next goal', () {
+    test('a fresh guild is pointed at the cheapest locked sector', () {
+      final g = GuildState.fresh();
+      final goal = g.nextGoal!;
+      expect(goal.kind, 'SECTOR');
+      expect(goal.label, 'BLACKSTONE HOLLOW');
+      expect(goal.progress, 0);
+      expect(goal.blocked, isNull);
+    });
+
+    test('a sector gated by guild level is flagged, not hidden', () {
+      final g = GuildState.fresh();
+      g.unlockedSectors.add('blackstone');
+      final goal = g.nextGoal!;
+      expect(goal.label, 'THE CINDER ARCHIVE');
+      expect(goal.blocked, 'NEEDS GUILD LV 3');
+    });
+
+    test('progress tracks the resource actually needed', () {
+      final g = GuildState.fresh();
+      g.intel = 30; // half of Blackstone's 60
+      expect(g.nextGoal!.progress, closeTo(0.5, 0.001));
+      expect(g.nextGoal!.detail, '30 / 60 INTEL');
+    });
+
+    test('with every sector open it suggests a recruit', () {
+      final g = GuildState.fresh();
+      g.level = 2;
+      for (final s in kSectors) {
+        g.unlockedSectors.add(s.id);
+      }
+      final goal = g.nextGoal!;
+      expect(goal.kind, 'RECRUIT');
+      expect(goal.label, 'ARCHIVIST');
+    });
+
+    test('with a full roster it falls back to a facility upgrade', () {
+      final g = GuildState.fresh();
+      g.level = 2;
+      for (final s in kSectors) {
+        g.unlockedSectors.add(s.id);
+      }
+      while (g.roster.length < g.rosterSlots) {
+        g.roster.add(Adventurer(
+          id: 'x${g.roster.length}',
+          name: 'EXTRA',
+          classId: 'recon',
+        ));
+      }
+      expect(g.nextGoal!.kind, 'FACILITY');
+    });
+  });
 }

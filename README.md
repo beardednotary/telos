@@ -187,6 +187,24 @@ Tactical terminal / OLED command console.
   (JetBrains Mono → SF Mono → Menlo → Consolas → monospace). Bundling
   JetBrains Mono is a one-line pubspec change and makes it consistent.
 
+### Pacing
+
+Three deliberate bits of feel, all of them load-bearing rather than decorative:
+
+- **The debrief arrives in beats**, not all at once — header, numbers, journal,
+  yield, *then* salvage, then progression. Salvage lands last because it is the
+  payoff the rest builds to. One finite controller drives it (`Staged` in
+  `widgets/terminal.dart`), tapping anywhere skips to the end, and because it
+  is finite the screen still settles in tests.
+- **The home screen shows one NEXT target** — the nearest sector, recruit or
+  upgrade, with a meter. Incrementals run on *"I'll just get to the next
+  unlock"*, and without this the screen only had the immediate action and the
+  long arc, nothing in between.
+- **Dispatch nudges towards longer blocks** by stating a fact rather than
+  scolding: *"25 min would reach Blackstone Hollow."*
+
+The session screen has no motion at all, on purpose.
+
 ---
 
 ## Running it

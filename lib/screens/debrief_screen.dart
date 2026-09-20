@@ -17,12 +17,23 @@ class DebriefScreen extends StatefulWidget {
   State<DebriefScreen> createState() => _DebriefScreenState();
 }
 
-class _DebriefScreenState extends State<DebriefScreen> {
+class _DebriefScreenState extends State<DebriefScreen>
+    with SingleTickerProviderStateMixin {
   final _note = TextEditingController();
   String? _progress;
 
+  /// Drives the staged reveal. Finite, so the screen still settles; tapping
+  /// anywhere jumps to the end for anyone who does not want the ceremony.
+  late final AnimationController _reveal = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1500),
+  )..forward();
+
+  static const int _beats = 7;
+
   @override
   void dispose() {
+    _reveal.dispose();
     _note.dispose();
     super.dispose();
   }
@@ -37,187 +48,252 @@ class _DebriefScreenState extends State<DebriefScreen> {
 
     return Scaffold(
       body: SafeArea(
-        child: Column(
+        child: GestureDetector(
+          onTap: () => _reveal.value = 1,
+          behavior: HitTestBehavior.deferToChild,
+          child: Column(
           children: [
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
                 children: [
-                  // -- header -------------------------------------------
-                  Row(
-                    children: [
-                      Text('DEBRIEF', style: T.heading),
-                      const SizedBox(width: 12),
-                      Expanded(child: Container(height: 1, color: T.line)),
-                      const SizedBox(width: 12),
-                      Text(sector.designation, style: T.label),
-                    ],
-                  ),
-                  const SizedBox(height: 14),
-                  Text(sector.name,
-                      style: T.heading.copyWith(fontSize: 18, letterSpacing: 2.4)),
-                  const SizedBox(height: 14),
-
-                  Panel(
-                    child: Column(
-                      children: [
-                        KV('ELAPSED', '${mins}m of ${r.plannedMinutes}m',
-                            bold: true),
-                        KV(
-                          'INTEGRITY',
-                          '${(r.integrity * 100).round()}%'
-                          '${r.integrity >= 0.999 ? '  CLEAN RUN' : ''}',
-                          color: r.integrity >= 0.999
-                              ? T.good
-                              : r.integrity >= 0.7
-                                  ? T.amber
-                                  : T.bad,
-                          bold: true,
-                        ),
-                        KV('DEPTH REACHED', '${(depth * 100).round()}%'),
-                        if (r.recalled)
-                          const KV('STATUS', 'RECALLED EARLY', color: T.bad),
-                        if (r.scraps)
-                          const KV('STATUS', 'BELOW SECTOR MINIMUM',
-                              color: T.bad),
-                      ],
-                    ),
-                  ),
-
-                  // -- journal ------------------------------------------
-                  const SizedBox(height: 22),
-                  const PanelTitle('FIELD JOURNAL'),
-                  Panel(
-                    child: Column(
+                  // -- 0. header ----------------------------------------
+                  _beat(
+                    0,
+                    Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        for (final line in r.journal)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('> ',
-                                    style: T.mono.copyWith(color: T.dim)),
-                                Expanded(
-                                  child: Text(line,
-                                      style: T.mono.copyWith(
-                                          fontSize: 12, height: 1.6)),
-                                ),
-                              ],
-                            ),
-                          ),
+                        Row(
+                          children: [
+                            Text('DEBRIEF', style: T.heading),
+                            const SizedBox(width: 12),
+                            Expanded(child: Container(height: 1, color: T.line)),
+                            const SizedBox(width: 12),
+                            Text(sector.designation, style: T.label),
+                          ],
+                        ),
+                        const SizedBox(height: 14),
+                        Text(sector.name,
+                            style: T.heading
+                                .copyWith(fontSize: 18, letterSpacing: 2.4)),
                       ],
                     ),
                   ),
+                  const SizedBox(height: 14),
 
-                  // -- yield --------------------------------------------
-                  const SizedBox(height: 22),
-                  const PanelTitle('RECOVERED'),
-                  Panel(
-                    child: Column(
-                      children: [
-                        _Gain('CREDITS', r.credits, T.amber),
-                        _Gain('ALLOY', r.alloy, T.text),
-                        _Gain('INTEL', r.intel, T.cyan),
-                      ],
-                    ),
-                  ),
-
-                  // -- loot ---------------------------------------------
-                  if (r.loot.isNotEmpty) ...[
-                    const SizedBox(height: 22),
-                    PanelTitle('SALVAGE',
-                        color: T.amber,
-                        trailing: Text('${r.loot.length} FOUND',
-                            style: T.label.copyWith(color: T.amber))),
-                    for (final uid in r.loot) ...[
-                      _LootCard(uid: uid),
-                      const SizedBox(height: 8),
-                    ],
-                  ],
-
-                  // -- progression ---------------------------------------
-                  const SizedBox(height: 22),
-                  const PanelTitle('ROSTER PROGRESSION'),
-                  Panel(
-                    child: Column(
-                      children: [
-                        for (final id in r.squad) _MemberProgress(id: id, rec: r),
-                        const SizedBox(height: 6),
-                        const Divider(height: 18, color: T.line),
-                        KV('GUILD XP', '+${r.guildXp}'),
-                        if (r.guildLevelUps > 0)
-                          KV('GUILD LEVEL',
-                              'UP x${r.guildLevelUps}  ->  LV ${c.g.level}',
-                              color: T.good, bold: true),
-                      ],
-                    ),
-                  ),
-
-                  // -- honour-system self report -------------------------
-                  const SizedBox(height: 22),
-                  if (r.intent.isNotEmpty) ...[
-                    const PanelTitle('YOU SET OUT TO'),
+                  // -- 1. the numbers -----------------------------------
+                  _beat(
+                    1,
                     Panel(
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(r.intent,
-                              style: T.mono.copyWith(fontSize: 14, height: 1.5)),
-                          const SizedBox(height: 14),
-                          Text('DID YOU MAKE PROGRESS?', style: T.label),
-                          const SizedBox(height: 8),
-                          Row(
+                          KV('ELAPSED', '${mins}m of ${r.plannedMinutes}m',
+                              bold: true),
+                          KV(
+                            'INTEGRITY',
+                            '${(r.integrity * 100).round()}%'
+                            '${r.integrity >= 0.999 ? '  CLEAN RUN' : ''}',
+                            color: r.integrity >= 0.999
+                                ? T.good
+                                : r.integrity >= 0.7
+                                    ? T.amber
+                                    : T.bad,
+                            bold: true,
+                          ),
+                          KV('DEPTH REACHED', '${(depth * 100).round()}%'),
+                          if (r.recalled)
+                            const KV('STATUS', 'RECALLED EARLY', color: T.bad),
+                          if (r.scraps)
+                            const KV('STATUS', 'BELOW SECTOR MINIMUM',
+                                color: T.bad),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // -- 2. journal ---------------------------------------
+                  const SizedBox(height: 22),
+                  _beat(
+                    2,
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const PanelTitle('FIELD JOURNAL'),
+                        Panel(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              for (final a in ['YES', 'SOME', 'NO']) ...[
-                                TChip(
-                                  a,
-                                  selected: _progress == a,
-                                  color: a == 'YES'
-                                      ? T.good
-                                      : a == 'SOME'
-                                          ? T.amber
-                                          : T.dim,
-                                  onTap: () {
-                                    setState(() => _progress = a);
-                                    c.recordProgress(a, note: _note.text);
-                                  },
+                              for (final line in r.journal)
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 8),
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text('> ',
+                                          style:
+                                              T.mono.copyWith(color: T.dim)),
+                                      Expanded(
+                                        child: Text(line,
+                                            style: T.mono.copyWith(
+                                                fontSize: 12, height: 1.6)),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                                const SizedBox(width: 8),
-                              ],
                             ],
                           ),
-                          const SizedBox(height: 14),
-                          TextField(
-                            controller: _note,
-                            style: T.mono.copyWith(fontSize: 13),
-                            cursorColor: T.amber,
-                            maxLines: 2,
-                            maxLength: 160,
-                            onChanged: (v) {
-                              if (_progress != null) {
-                                c.recordProgress(_progress!, note: v);
-                              }
-                            },
-                            decoration: InputDecoration(
-                              isDense: true,
-                              counterText: '',
-                              hintText: 'Add a note (optional)',
-                              hintStyle:
-                                  T.mono.copyWith(color: T.dim, fontSize: 13),
-                              border: const UnderlineInputBorder(
-                                  borderSide: BorderSide(color: T.line)),
-                              enabledBorder: const UnderlineInputBorder(
-                                  borderSide: BorderSide(color: T.line)),
-                              focusedBorder: const UnderlineInputBorder(
-                                  borderSide: BorderSide(color: T.amber)),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // -- 3. yield -----------------------------------------
+                  const SizedBox(height: 22),
+                  _beat(
+                    3,
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const PanelTitle('RECOVERED'),
+                        Panel(
+                          child: Column(
+                            children: [
+                              _Gain('CREDITS', r.credits, T.amber),
+                              _Gain('ALLOY', r.alloy, T.text),
+                              _Gain('INTEL', r.intel, T.cyan),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // -- 4. salvage: the beat everything else builds to ----
+                  if (r.loot.isNotEmpty)
+                    _beat(
+                      4,
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 22),
+                          Text('> and something else came back with them',
+                              style: T.label.copyWith(
+                                  fontSize: 10,
+                                  letterSpacing: 0.4,
+                                  color: T.amber)),
+                          const SizedBox(height: 10),
+                          PanelTitle('SALVAGE',
+                              color: T.amber,
+                              trailing: Text('${r.loot.length} FOUND',
+                                  style: T.label.copyWith(color: T.amber))),
+                          for (final uid in r.loot) ...[
+                            _LootCard(uid: uid),
+                            const SizedBox(height: 8),
+                          ],
+                        ],
+                      ),
+                    ),
+
+                  // -- 5. progression -----------------------------------
+                  const SizedBox(height: 22),
+                  _beat(
+                    5,
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const PanelTitle('ROSTER PROGRESSION'),
+                        Panel(
+                          child: Column(
+                            children: [
+                              for (final id in r.squad)
+                                _MemberProgress(id: id, rec: r),
+                              const SizedBox(height: 6),
+                              const Divider(height: 18, color: T.line),
+                              KV('GUILD XP', '+${r.guildXp}'),
+                              if (r.guildLevelUps > 0)
+                                KV('GUILD LEVEL',
+                                    'UP x${r.guildLevelUps}  ->  LV ${c.g.level}',
+                                    color: T.good, bold: true),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // -- 6. honour-system self report ---------------------
+                  if (r.intent.isNotEmpty)
+                    _beat(
+                      6,
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 22),
+                          const PanelTitle('YOU SET OUT TO'),
+                          Panel(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(r.intent,
+                                    style: T.mono
+                                        .copyWith(fontSize: 14, height: 1.5)),
+                                const SizedBox(height: 14),
+                                Text('DID YOU MAKE PROGRESS?', style: T.label),
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    for (final a in ['YES', 'SOME', 'NO']) ...[
+                                      TChip(
+                                        a,
+                                        selected: _progress == a,
+                                        color: a == 'YES'
+                                            ? T.good
+                                            : a == 'SOME'
+                                                ? T.amber
+                                                : T.dim,
+                                        onTap: () {
+                                          setState(() => _progress = a);
+                                          c.recordProgress(a,
+                                              note: _note.text);
+                                        },
+                                      ),
+                                      const SizedBox(width: 8),
+                                    ],
+                                  ],
+                                ),
+                                const SizedBox(height: 14),
+                                TextField(
+                                  controller: _note,
+                                  style: T.mono.copyWith(fontSize: 13),
+                                  cursorColor: T.amber,
+                                  maxLines: 2,
+                                  maxLength: 160,
+                                  onChanged: (v) {
+                                    if (_progress != null) {
+                                      c.recordProgress(_progress!, note: v);
+                                    }
+                                  },
+                                  decoration: InputDecoration(
+                                    isDense: true,
+                                    counterText: '',
+                                    hintText: 'Add a note (optional)',
+                                    hintStyle: T.mono
+                                        .copyWith(color: T.dim, fontSize: 13),
+                                    border: const UnderlineInputBorder(
+                                        borderSide: BorderSide(color: T.line)),
+                                    enabledBorder: const UnderlineInputBorder(
+                                        borderSide: BorderSide(color: T.line)),
+                                    focusedBorder: const UnderlineInputBorder(
+                                        borderSide: BorderSide(color: T.amber)),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
                       ),
                     ),
-                  ],
                 ],
               ),
             ),
@@ -235,10 +311,14 @@ class _DebriefScreenState extends State<DebriefScreen> {
               ),
             ),
           ],
+          ),
         ),
       ),
     );
   }
+
+  Widget _beat(int step, Widget child) =>
+      Staged(animation: _reveal, step: step, steps: _beats, child: child);
 }
 
 class _Gain extends StatelessWidget {

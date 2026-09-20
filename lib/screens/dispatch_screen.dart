@@ -156,6 +156,25 @@ class _DispatchScreenState extends State<DispatchScreen> {
             const SizedBox(height: 8),
           ],
 
+          // The nudge towards a longer block: never a scolding, just the fact
+          // that a bit more time opens somewhere better.
+          Builder(builder: (context) {
+            final outOfReach = kSectors
+                .where((s) =>
+                    g.sectorUnlocked(s.id) && s.minMinutes > _minutes)
+                .toList();
+            if (outOfReach.isEmpty) return const SizedBox.shrink();
+            final next = outOfReach.first;
+            return Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Text(
+                '${next.minMinutes} min would reach ${next.name}.',
+                style: T.label.copyWith(
+                    fontSize: 10, letterSpacing: 0.3, color: T.cyan),
+              ),
+            );
+          }),
+
           const SizedBox(height: 12),
 
           // -- 4. SQUAD --------------------------------------------------

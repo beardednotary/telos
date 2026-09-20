@@ -215,3 +215,78 @@ class GuildState {
 List<ClassDef> recruitableClasses(GuildState g) => kClasses.values
     .where((c) => c.recruitCost > 0 && c.unlockGuildLevel <= g.level)
     .toList();
+
+/// The middle horizon: the nearest thing worth working towards.
+///
+/// Incremental games live on "I'll just get to the next unlock". The home
+/// screen has the immediate action (dispatch) and the long arc (guild level),
+/// but nothing in between - this fills that gap with one concrete target.
+class NextGoal {
+  final String kind; // SECTOR / RECRUIT / FACILITY
+  final String label;
+  final String detail; // '184 / 320 INTEL'
+  final double progress; // 0..1
+  final String? blocked; // e.g. 'NEEDS GUILD LV 3'
+
+  const NextGoal({
+    required this.kind,
+    required this.label,
+    required this.detail,
+    required this.progress,
+    this.blocked,
+  });
+}
+
+extension NextGoalFor on GuildState {
+  NextGoal? get nextGoal {
+    // 1. A new sector is the most interesting unlock, so it wins when one is
+    //    in sight.
+    final locked = kSectors.where((s) => !sectorUnlocked(s.id)).toList()
+      ..sort((a, b) => a.intelToUnlock.compareTo(b.intelToUnlock));
+    if (locked.isNotEmpty) {
+      final s = locked.first;
+      final short = level < s.guildLevelToUnlock;
+      return NextGoal(
+        kind: 'SECTOR',
+        label: s.name,
+        detail: '$intel / ${s.intelToUnlock} INTEL',
+        progress: s.intelToUnlock == 0 ? 1 : intel / s.intelToUnlock,
+        blocked: short ? 'NEEDS GUILD LV ${s.guildLevelToUnlock}' : null,
+      );
+    }
+
+    // 2. Otherwise a new archetype, if there is room for one.
+    if (roster.length < rosterSlots) {
+      final options = recruitableClasses(this)
+        ..sort((a, b) => a.recruitCost.compareTo(b.recruitCost));
+      if (options.isNotEmpty) {
+        final c = options.first;
+        return NextGoal(
+          kind: 'RECRUIT',
+          label: c.name,
+          detail: '$credits / ${c.recruitCost} CREDITS',
+          progress: credits / c.recruitCost,
+        );
+      }
+    }
+
+    // 3. Failing that, the cheapest facility upgrade.
+    Facility? best;
+    var bestCost = 1 << 30;
+    for (final f in Facility.values) {
+      final (c, _) = f.costAt(facilities[f]!);
+      if (c < bestCost) {
+        bestCost = c;
+        best = f;
+      }
+    }
+    if (best == null) return null;
+    final (costC, costA) = best.costAt(facilities[best]!);
+    return NextGoal(
+      kind: 'FACILITY',
+      label: '${best.label} LV ${facilities[best]! + 1}',
+      detail: '$credits / $costC CR  -  $alloy / $costA AL',
+      progress: ((credits / costC) + (alloy / costA)) / 2,
+    );
+  }
+}
