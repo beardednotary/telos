@@ -19,6 +19,20 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.0
+  flutter_launcher_icons: ^0.14.1
+
+flutter_launcher_icons:
+  ios: true
+  android: true
+  image_path: "assets/icon/icon.png"
+  # iOS rejects an icon with an alpha channel outright.
+  remove_alpha_ios: true
+  min_sdk_android: 24
+  # Android masks adaptive icons to a circle or squircle and can crop the
+  # outer quarter, so the foreground is the glyph alone at 62% on a
+  # transparent canvas, over the icon's own black.
+  adaptive_icon_background: "#090B0C"
+  adaptive_icon_foreground: "assets/icon/icon_foreground.png"
 
 flutter:
   uses-material-design: true
