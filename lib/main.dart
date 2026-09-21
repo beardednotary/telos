@@ -20,8 +20,14 @@ Future<void> main() async {
   // which the bundled asset already does; this puts it in Flutter's standard
   // licence registry too, rather than in a screen of the game.
   LicenseRegistry.addLicense(() async* {
-    final text = await rootBundle.loadString('assets/fonts/OFL.txt');
-    yield LicenseEntryWithLineBreaks(const ['JetBrains Mono'], text);
+    yield LicenseEntryWithLineBreaks(
+      const ['JetBrains Mono'],
+      await rootBundle.loadString('assets/fonts/OFL.txt'),
+    );
+    yield LicenseEntryWithLineBreaks(
+      const ['Syne'],
+      await rootBundle.loadString('assets/fonts/OFL-Syne.txt'),
+    );
   });
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,

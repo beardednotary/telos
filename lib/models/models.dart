@@ -233,6 +233,11 @@ class Sector {
 
   final List<String> journal; // flavor lines shown in the debrief
 
+  /// Every sector owns a colour. The app takes it on wherever that sector is
+  /// the subject - dispatch, the live run, the debrief, the log - so the
+  /// screens stop being five views of the same amber.
+  final int accent;
+
   const Sector({
     required this.id,
     required this.name,
@@ -249,6 +254,7 @@ class Sector {
     this.intelToUnlock = 0,
     this.guildLevelToUnlock = 1,
     this.journal = const [],
+    required this.accent,
   });
 }
 

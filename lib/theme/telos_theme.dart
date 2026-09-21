@@ -52,10 +52,9 @@ class T {
   /// is what makes the countdown look carved rather than typed - it is not a
   /// different font, just weight and scale. Below 16px Light goes muddy, so
   /// small labels keep their weight and lean on [micro] instead.
-  static TextStyle heading = mono.copyWith(
-    fontSize: 19,
-    letterSpacing: 3.0,
-    fontWeight: FontWeight.w300,
+  static TextStyle heading = display.copyWith(
+    fontSize: 18,
+    letterSpacing: 2.6,
   );
 
   static TextStyle data = mono.copyWith(fontSize: 13);
@@ -78,18 +77,21 @@ class T {
     letterSpacing: -0.5,
   );
 
-  static TextStyle title = mono.copyWith(
-    fontSize: 22,
-    fontWeight: FontWeight.w300,
-    letterSpacing: 2.2,
-    height: 1.2,
-  );
+  static TextStyle title = display.copyWith(fontSize: 22, letterSpacing: 1.2);
 
   /// A row label in a list: still display-scale, so still Light.
-  static TextStyle row = mono.copyWith(
-    fontSize: 18,
-    fontWeight: FontWeight.w300,
-    letterSpacing: 2.4,
+  static TextStyle row = display.copyWith(fontSize: 18, letterSpacing: 2.0);
+
+  /// Syne, used ONLY for names: sectors, the guild, screen titles. It has no
+  /// Light weight, and that is deliberate - a heavy carved display set against
+  /// thin machine readout is the whole contrast. Numbers stay in the mono.
+  static TextStyle display = const TextStyle(
+    fontFamily: 'Syne',
+    fontVariations: [FontVariation('wght', 700)],
+    color: text,
+    fontSize: 22,
+    letterSpacing: 1.0,
+    height: 1.15,
   );
 
   static TextStyle micro = mono.copyWith(

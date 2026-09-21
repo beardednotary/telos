@@ -5,6 +5,7 @@ import '../data/content.dart';
 import '../models/models.dart';
 import '../state/guild_controller.dart';
 import '../theme/telos_theme.dart';
+import '../widgets/sigil.dart';
 import '../widgets/terminal.dart';
 
 /// The after-action report. This is the reward: everything the run produced is
@@ -46,6 +47,7 @@ class _DebriefScreenState extends State<DebriefScreen>
     final sector = sectorById(r.sectorId);
     final depth =
         (r.elapsedSeconds / 60 / sector.nominalMinutes).clamp(0.0, 1.6);
+    final sc = Color(sector.accent);
     final clean = r.integrity >= 0.999;
     final iColor = clean
         ? T.good
@@ -69,7 +71,7 @@ class _DebriefScreenState extends State<DebriefScreen>
                       0,
                       Container(
                         width: double.infinity,
-                        color: T.band,
+                        color: sc.withValues(alpha: 0.12),
                         padding: const EdgeInsets.fromLTRB(20, 22, 20, 20),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -77,14 +79,24 @@ class _DebriefScreenState extends State<DebriefScreen>
                             Row(
                               children: [
                                 Text('DEBRIEF',
-                                    style: T.micro.copyWith(color: T.cyan)),
+                                    style: T.micro.copyWith(color: sc)),
                                 const Spacer(),
                                 Text(sector.designation, style: T.micro),
                               ],
                             ),
-                            const SizedBox(height: 10),
-                            Text(sector.name,
-                                style: T.title.copyWith(fontSize: 24)),
+                            const SizedBox(height: 14),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(sector.name,
+                                      style: T.title
+                                          .copyWith(fontSize: 24, color: sc)),
+                                ),
+                                const SizedBox(width: 14),
+                                SigilPlate(
+                                    sectorId: sector.id, color: sc, size: 72),
+                              ],
+                            ),
                           ],
                         ),
                       ),

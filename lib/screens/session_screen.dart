@@ -5,6 +5,7 @@ import '../data/content.dart';
 import '../models/models.dart';
 import '../state/guild_controller.dart';
 import '../theme/telos_theme.dart';
+import '../widgets/sigil.dart';
 import '../widgets/terminal.dart';
 
 /// The live run. Deliberately almost empty: there is nothing to tap, nothing
@@ -33,6 +34,7 @@ class SessionScreen extends StatelessWidget {
         .map((m) => m.name)
         .join(' / ');
 
+    final sc = Color(sector.accent);
     final iColor = integrity >= 0.999
         ? T.good
         : integrity >= 0.7
@@ -51,7 +53,8 @@ class SessionScreen extends StatelessWidget {
             // -- destination band ------------------------------------------
             Container(
               width: double.infinity,
-              color: T.band,
+              // The live run belongs to its sector, not to a neutral grey.
+              color: sc.withValues(alpha: 0.10),
               padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -59,7 +62,7 @@ class SessionScreen extends StatelessWidget {
                   Row(
                     children: [
                       Text(sector.designation,
-                          style: T.micro.copyWith(color: T.cyan)),
+                          style: T.micro.copyWith(color: sc)),
                       const Spacer(),
                       Container(
                         width: 6,
@@ -72,11 +75,26 @@ class SessionScreen extends StatelessWidget {
                               T.micro.copyWith(color: done ? T.good : T.amber)),
                     ],
                   ),
-                  const SizedBox(height: 10),
-                  Text(sector.name,
-                      style: T.title.copyWith(fontSize: 19, color: T.cyan)),
-                  const SizedBox(height: 6),
-                  Text(squad, style: T.micro.copyWith(letterSpacing: 1.0)),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(sector.name,
+                                style:
+                                    T.title.copyWith(fontSize: 20, color: sc)),
+                            const SizedBox(height: 7),
+                            Text(squad,
+                                style: T.micro.copyWith(letterSpacing: 1.0)),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      SigilPlate(sectorId: sector.id, color: sc, size: 66),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -94,7 +112,8 @@ class SessionScreen extends StatelessWidget {
             const SizedBox(height: 30),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Meter(value: progress, segments: 34, height: 4),
+              child:
+                  Meter(value: progress, segments: 34, height: 4, color: sc),
             ),
 
             const Spacer(flex: 2),

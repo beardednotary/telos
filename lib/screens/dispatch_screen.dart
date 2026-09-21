@@ -5,6 +5,7 @@ import '../data/content.dart';
 import '../models/models.dart';
 import '../state/guild_controller.dart';
 import '../theme/telos_theme.dart';
+import '../widgets/sigil.dart';
 import '../widgets/terminal.dart';
 
 /// The pre-session decision, in one screen:
@@ -319,14 +320,23 @@ class _SectorBand extends StatelessWidget {
     }
 
     final depth = (minutes / sector.nominalMinutes).clamp(0.0, 1.0);
-    final accent = selected ? T.amber : (blocked ? T.line : T.dim);
+    final sc = Color(sector.accent);
+    final accent =
+        blocked ? T.line : (selected ? sc : sc.withValues(alpha: 0.4));
 
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Container(
         margin: const EdgeInsets.only(bottom: 2),
-        color: selected ? T.amber.withValues(alpha: 0.07) : T.band,
+        decoration: BoxDecoration(
+          // Every unlocked sector carries a wash of its own colour and the
+          // chosen one is properly lit, so the list reads as five different
+          // places rather than five identical rows.
+          color:
+              blocked ? T.band : sc.withValues(alpha: selected ? 0.17 : 0.055),
+          border: selected ? Border.all(color: sc, width: 1.4) : null,
+        ),
         padding: const EdgeInsets.fromLTRB(0, 14, 20, 14),
         child: Opacity(
           opacity: blocked ? 0.45 : 1,
@@ -342,20 +352,29 @@ class _SectorBand extends StatelessWidget {
                     Row(
                       children: [
                         Text('${sector.designation}   //   ${sector.kind}',
-                            style: T.micro.copyWith(
-                                color: selected ? T.amber : T.dim)),
+                            style: T.micro
+                                .copyWith(color: selected ? sc : T.dim)),
                         const Spacer(),
                         Text(
                           reason ?? '${(depth * 100).round()}% DEPTH',
                           style: T.micro.copyWith(
                               color: reason != null
                                   ? T.dim
-                                  : (depth >= 1.0 ? T.good : T.amber)),
+                                  : (depth >= 1.0 ? T.good : sc)),
                         ),
                       ],
                     ),
                     const SizedBox(height: 6),
-                    Text(sector.name, style: T.title.copyWith(fontSize: 18)),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(sector.name,
+                              style: T.title.copyWith(fontSize: 18)),
+                        ),
+                        const SizedBox(width: 12),
+                        Sigil(sectorId: sector.id, color: accent, size: 30),
+                      ],
+                    ),
                     const SizedBox(height: 5),
                     Text(sector.blurb,
                         style: T.micro.copyWith(letterSpacing: 0.4, height: 1.6)),
@@ -365,7 +384,7 @@ class _SectorBand extends StatelessWidget {
                           value: depth,
                           segments: 22,
                           height: 4,
-                          color: selected ? T.amber : T.dim),
+                          color: selected ? sc : T.dim),
                       const SizedBox(height: 9),
                       Row(
                         children: [

@@ -5,6 +5,7 @@ import '../data/content.dart';
 import '../models/models.dart';
 import '../state/guild_controller.dart';
 import '../theme/telos_theme.dart';
+import '../widgets/sigil.dart';
 import '../widgets/terminal.dart';
 
 /// Every session, with what you said you were doing. A focus app produces a
@@ -140,11 +141,21 @@ class _LogBand extends StatelessWidget {
                         children: [
                           Text(stamp, style: T.micro.copyWith(fontSize: 8)),
                           const SizedBox(height: 5),
-                          Text(sector.name,
-                              style: T.mono.copyWith(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w300,
-                                  letterSpacing: 1.6)),
+                          Row(
+                            children: [
+                              Sigil(
+                                  sectorId: sector.id,
+                                  color: Color(sector.accent),
+                                  size: 16),
+                              const SizedBox(width: 8),
+                              Flexible(
+                                child: Text(sector.name,
+                                    style: T.title.copyWith(
+                                        fontSize: 15,
+                                        color: Color(sector.accent))),
+                              ),
+                            ],
+                          ),
                         ],
                       ),
                     ),

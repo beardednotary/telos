@@ -265,11 +265,7 @@ class _GoalBand extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  Text(goal.label,
-                      style: T.mono.copyWith(
-                          fontSize: 19,
-                          letterSpacing: 2.2,
-                          fontWeight: FontWeight.w300)),
+                  Text(goal.label, style: T.title.copyWith(fontSize: 19)),
                   const SizedBox(height: 12),
                   Padding(
                     padding: const EdgeInsets.only(right: 20),

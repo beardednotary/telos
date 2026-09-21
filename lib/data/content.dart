@@ -77,6 +77,7 @@ const Map<String, ClassDef> kClasses = {
 const List<Sector> kSectors = [
   Sector(
     id: 'mosswood',
+    accent: 0xFF8FD694,
     name: 'MOSSWOOD VERGE',
     designation: 'SECTOR 01',
     blurb: 'Overgrown perimeter. Low risk, quick returns.',
@@ -97,6 +98,7 @@ const List<Sector> kSectors = [
   ),
   Sector(
     id: 'blackstone',
+    accent: 0xFFFF8A3D,
     name: 'BLACKSTONE HOLLOW',
     designation: 'SECTOR 02',
     blurb: 'Collapsed extraction works. Alloy-rich, slow going.',
@@ -118,6 +120,7 @@ const List<Sector> kSectors = [
   ),
   Sector(
     id: 'cinder',
+    accent: 0xFFEDE4D3,
     name: 'THE CINDER ARCHIVE',
     designation: 'SECTOR 03',
     blurb: 'A burned library that never finished burning. Dense with INTEL.',
@@ -140,6 +143,7 @@ const List<Sector> kSectors = [
   ),
   Sector(
     id: 'riftline',
+    accent: 0xFFA78BFA,
     name: 'RIFTLINE DESCENT',
     designation: 'SECTOR 04',
     blurb: 'Past the last marked map. Only a long run gets anywhere.',
@@ -162,6 +166,7 @@ const List<Sector> kSectors = [
   ),
   Sector(
     id: 'spire',
+    accent: 0xFFFFD166,
     name: 'THE SPIRE OF TELOS',
     designation: 'SECTOR 05',
     blurb: 'The reason the guild reopened. Bring everything.',
