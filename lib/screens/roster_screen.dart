@@ -5,6 +5,7 @@ import '../data/content.dart';
 import '../models/models.dart';
 import '../state/guild_controller.dart';
 import '../theme/telos_theme.dart';
+import '../widgets/flash.dart';
 import '../widgets/terminal.dart';
 
 class RosterScreen extends StatelessWidget {
@@ -168,7 +169,7 @@ class _MemberBand extends StatelessWidget {
       context: context,
       backgroundColor: T.card,
       shape: const Border(top: BorderSide(color: T.line)),
-      builder: (context) => SafeArea(
+      builder: (sheetCtx) => SafeArea(
         child: ListView(
           shrinkWrap: true,
           padding: const EdgeInsets.fromLTRB(0, 18, 0, 24),
@@ -182,9 +183,18 @@ class _MemberBand extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: GestureDetector(
-                  onTap: () {
-                    c.unequip(m.id, current);
-                    Navigator.pop(context);
+                  onTap: () async {
+                    final name =
+                        gearById(c.g.gearByUid(current)!.defId).name;
+                    Navigator.pop(sheetCtx);
+                    await c.unequip(m.id, current);
+                    if (!context.mounted) return;
+                    showFlash(
+                      context,
+                      kicker: 'RETURNED TO VAULT',
+                      title: name,
+                      color: T.dim,
+                    );
                   },
                   behavior: HitTestBehavior.opaque,
                   child: Padding(
@@ -206,9 +216,18 @@ class _MemberBand extends StatelessWidget {
             else
               for (final gear in spare)
                 GestureDetector(
-                  onTap: () {
-                    c.equip(m.id, gear.uid);
-                    Navigator.pop(context);
+                  onTap: () async {
+                    final def = gearById(gear.defId);
+                    Navigator.pop(sheetCtx);
+                    await c.equip(m.id, gear.uid);
+                    if (!context.mounted) return;
+                    showFlash(
+                      context,
+                      kicker: 'ASSIGNED TO ${m.name}',
+                      title: def.name,
+                      lines: def.bonus.lines,
+                      color: rarityColor(def.rarity),
+                    );
                   },
                   behavior: HitTestBehavior.opaque,
                   child: _GearBand(gear: gear),

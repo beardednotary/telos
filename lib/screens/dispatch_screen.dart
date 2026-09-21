@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../data/content.dart';
@@ -62,6 +63,7 @@ class _DispatchScreenState extends State<DispatchScreen> {
         color: ready ? T.amber : T.dim,
         onTap: ready
             ? () async {
+                HapticFeedback.heavyImpact();
                 await c.startRun(
                   sectorId: _sectorId!,
                   intent: _intent.text,
@@ -139,7 +141,10 @@ class _DispatchScreenState extends State<DispatchScreen> {
                     for (final d in kDurations)
                       TChip('$d MIN',
                           selected: _minutes == d,
-                          onTap: () => setState(() => _minutes = d)),
+                          onTap: () {
+                            HapticFeedback.selectionClick();
+                            setState(() => _minutes = d);
+                          }),
                     TChip('CUSTOM',
                         selected: !kDurations.contains(_minutes),
                         onTap: _pickCustom),
@@ -159,7 +164,10 @@ class _DispatchScreenState extends State<DispatchScreen> {
               unlocked: g.sectorUnlocked(s.id),
               selected: _sectorId == s.id,
               onTap: g.sectorUnlocked(s.id) && s.minMinutes <= _minutes
-                  ? () => setState(() => _sectorId = s.id)
+                  ? () {
+                      HapticFeedback.selectionClick();
+                      setState(() => _sectorId = s.id);
+                    }
                   : null,
             ),
           if (outOfReach.isNotEmpty)
@@ -180,16 +188,19 @@ class _DispatchScreenState extends State<DispatchScreen> {
               member: m,
               minutes: _minutes,
               selected: _squad.contains(m.id),
-              onTap: () => setState(() {
-                if (_squad.contains(m.id)) {
-                  _squad.remove(m.id);
-                } else if (_squad.length < g.squadSlots) {
-                  _squad.add(m.id);
-                } else {
-                  _squad.removeAt(0);
-                  _squad.add(m.id);
-                }
-              }),
+              onTap: () {
+                HapticFeedback.selectionClick();
+                setState(() {
+                  if (_squad.contains(m.id)) {
+                    _squad.remove(m.id);
+                  } else if (_squad.length < g.squadSlots) {
+                    _squad.add(m.id);
+                  } else {
+                    _squad.removeAt(0);
+                    _squad.add(m.id);
+                  }
+                });
+              },
             ),
           if (g.squadSlots < g.roster.length)
             Padding(

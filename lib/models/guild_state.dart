@@ -81,10 +81,11 @@ class GuildState {
   /// How many members can go out on a single run. This is the core tactical
   /// choice early on: two members, one slot - who fits this block of work?
   int get squadSlots {
-    if (level >= 10) return 4;
-    if (level >= 6) return 3;
-    if (level >= 3) return 2;
-    return 1;
+    var slots = 1;
+    for (final l in kSquadSlotLevels) {
+      if (level >= l) slots++;
+    }
+    return slots;
   }
 
   /// Facility bonuses, summed. Applied to every run.
@@ -209,6 +210,33 @@ class GuildState {
       onboarded: j['onboarded'] as bool? ?? false,
     );
   }
+}
+
+/// Guild levels that grant another squad slot. Named so the level-up
+/// acknowledgement and the slot calculation cannot drift apart.
+const List<int> kSquadSlotLevels = [3, 6, 10];
+
+/// What reaching [level] actually opened up.
+///
+/// Derived from the content rather than written out, so adding a class or a
+/// sector keeps this honest by itself. The number going up is not the reward;
+/// knowing what it bought you is.
+List<String> guildLevelUnlocks(int level) {
+  final out = <String>[];
+  if (kSquadSlotLevels.contains(level)) {
+    out.add('SQUAD SLOT +1  -  send another member on every run');
+  }
+  for (final c in kClasses.values) {
+    if (c.recruitCost > 0 && c.unlockGuildLevel == level) {
+      out.add('${c.name} available to recruit');
+    }
+  }
+  for (final s in kSectors) {
+    if (s.guildLevelToUnlock == level) {
+      out.add('${s.name} eligible  -  ${s.intelToUnlock} INTEL to open');
+    }
+  }
+  return out;
 }
 
 /// Classes available to recruit at the current guild level.

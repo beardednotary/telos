@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../data/content.dart';
+import '../models/guild_state.dart';
 import '../models/models.dart';
 import '../state/guild_controller.dart';
 import '../theme/telos_theme.dart';
@@ -28,7 +30,7 @@ class _DebriefScreenState extends State<DebriefScreen>
     duration: const Duration(milliseconds: 1500),
   )..forward();
 
-  static const int _beats = 7;
+  static const int _beats = 8;
 
   @override
   void dispose() {
@@ -268,10 +270,14 @@ class _DebriefScreenState extends State<DebriefScreen>
                         ),
                       ),
 
-                    // -- 5. progression -------------------------------------
+                    // -- 5. crossing a threshold ---------------------------
+                    if (r.guildLevelUps > 0)
+                      _beat(5, _GuildLevelUp(record: r, level: c.g.level)),
+
+                    // -- 6. progression -------------------------------------
                     const SizedBox(height: 28),
                     _beat(
-                      5,
+                      6,
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         child: Column(
@@ -293,17 +299,6 @@ class _DebriefScreenState extends State<DebriefScreen>
                             const SizedBox(height: 14),
                             for (final id in r.squad)
                               _MemberProgress(id: id, rec: r),
-                            if (r.guildLevelUps > 0) ...[
-                              const SizedBox(height: 10),
-                              Text(
-                                  'GUILD LEVEL UP  x${r.guildLevelUps}  ->  '
-                                  'LV ${c.g.level}',
-                                  style: T.mono.copyWith(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w300,
-                                      letterSpacing: 1.6,
-                                      color: T.good)),
-                            ],
                           ],
                         ),
                       ),
@@ -312,7 +307,7 @@ class _DebriefScreenState extends State<DebriefScreen>
                     // -- 6. honour-system self report -----------------------
                     if (r.intent.isNotEmpty)
                       _beat(
-                        6,
+                        7,
                         Column(
                           children: [
                             const SizedBox(height: 28),
@@ -346,6 +341,7 @@ class _DebriefScreenState extends State<DebriefScreen>
                                                   ? T.amber
                                                   : T.dim,
                                           onTap: () {
+                                            HapticFeedback.selectionClick();
                                             setState(() => _progress = a);
                                             c.recordProgress(a,
                                                 note: _note.text);
@@ -529,11 +525,23 @@ class _MemberProgress extends StatelessWidget {
               const SizedBox(width: 10),
               Text('+${rec.xpGained[id] ?? 0} XP', style: T.micro),
               const Spacer(),
-              Text(levelled ? 'LV ${m.level}  UP' : 'LV ${m.level}',
-                  style: T.mono.copyWith(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w300,
-                      color: levelled ? T.good : T.dim)),
+              if (levelled)
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: T.good.withValues(alpha: 0.15),
+                    border: Border.all(color: T.good),
+                  ),
+                  child: Text('LEVEL ${m.level}',
+                      style: T.micro.copyWith(color: T.good)),
+                )
+              else
+                Text('LV ${m.level}',
+                    style: T.mono.copyWith(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w300,
+                        color: T.dim)),
             ],
           ),
           const SizedBox(height: 8),
@@ -544,6 +552,89 @@ class _MemberProgress extends StatelessWidget {
             color: levelled ? T.good : T.amber,
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Crossing a guild level, given the weight it deserves.
+///
+/// The number going up is not the reward - what it bought you is. This lists
+/// the unlocks, which is the thing that actually changes how the next session
+/// plays, and it lands between the salvage and the XP bars so it reads as the
+/// peak of the report rather than a footnote under it.
+class _GuildLevelUp extends StatelessWidget {
+  const _GuildLevelUp({required this.record, required this.level});
+  final RunRecord record;
+  final int level;
+
+  @override
+  Widget build(BuildContext context) {
+    // A multi-level jump should list everything it opened, not just the top.
+    final unlocks = <String>[];
+    for (var l = level - record.guildLevelUps + 1; l <= level; l++) {
+      unlocks.addAll(guildLevelUnlocks(l));
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 28),
+      child: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: T.good.withValues(alpha: 0.10),
+          border: const Border(
+            top: BorderSide(color: T.good, width: 1.4),
+            bottom: BorderSide(color: T.good, width: 1.4),
+          ),
+        ),
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 22),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              record.guildLevelUps > 1
+                  ? 'GUILD LEVEL UP  x${record.guildLevelUps}'
+                  : 'GUILD LEVEL UP',
+              style: T.micro.copyWith(color: T.good),
+            ),
+            const SizedBox(height: 10),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Text('LEVEL', style: T.micro),
+                const SizedBox(width: 10),
+                Text('$level'.padLeft(2, '0'),
+                    style: T.big.copyWith(fontSize: 56, color: T.good)),
+              ],
+            ),
+            if (unlocks.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              Container(height: 1, color: T.good.withValues(alpha: 0.3)),
+              const SizedBox(height: 14),
+              Text('UNLOCKED', style: T.micro),
+              const SizedBox(height: 8),
+              for (final u in unlocks)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('> ', style: T.mono.copyWith(color: T.good)),
+                      Expanded(
+                        child: Text(u,
+                            style: T.mono.copyWith(fontSize: 13, height: 1.5)),
+                      ),
+                    ],
+                  ),
+                ),
+            ] else ...[
+              const SizedBox(height: 12),
+              Text('Progress toward the next unlock.',
+                  style: T.micro.copyWith(letterSpacing: 0.4)),
+            ],
+          ],
+        ),
       ),
     );
   }

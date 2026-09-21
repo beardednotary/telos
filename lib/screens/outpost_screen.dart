@@ -6,6 +6,7 @@ import '../models/guild_state.dart';
 import '../models/models.dart';
 import '../state/guild_controller.dart';
 import '../theme/telos_theme.dart';
+import '../widgets/flash.dart';
 import '../widgets/terminal.dart';
 
 /// Everything you spend resources on. This is the between-sessions layer -
@@ -256,7 +257,22 @@ class _FacilityBand extends StatelessWidget {
       cost: '$costC CR   +   $costA AL',
       action: 'UPGRADE',
       enabled: can,
-      onTap: () => c.upgrade(facility),
+      onTap: () async {
+        await c.upgrade(facility);
+        if (!context.mounted) return;
+        final now = c.g.facilities[facility]!;
+        showFlash(
+          context,
+          kicker: 'FACILITY UPGRADED',
+          title: '${facility.label}  LV ${now.toString().padLeft(2, '0')}',
+          lines: [
+            facility.effect,
+            if (facility == Facility.barracks)
+              'Roster capacity now ${c.g.rosterSlots}',
+          ],
+          color: T.steel,
+        );
+      },
     );
   }
 }
@@ -289,7 +305,17 @@ class _RecruitBand extends StatelessWidget {
       cost: full ? 'ROSTER FULL - UPGRADE BARRACKS' : '${cls.recruitCost} CREDITS',
       action: 'RECRUIT',
       enabled: can,
-      onTap: () => c.recruit(cls),
+      onTap: () async {
+        final hire = await c.recruit(cls);
+        if (!context.mounted || hire == null) return;
+        showFlash(
+          context,
+          kicker: 'RECRUITED',
+          title: '${hire.name}  //  ${cls.name}',
+          lines: [cls.windowText],
+          color: T.amber,
+        );
+      },
     );
   }
 }
@@ -323,7 +349,21 @@ class _SectorBand extends StatelessWidget {
           : 'HAVE ${c.g.intel} OF ${sector.intelToUnlock}',
       action: 'UNLOCK',
       enabled: can,
-      onTap: () => c.unlockSector(sector),
+      onTap: () async {
+        await c.unlockSector(sector);
+        if (!context.mounted) return;
+        showFlash(
+          context,
+          kicker: 'SECTOR OPEN',
+          title: sector.name,
+          lines: [
+            sector.blurb,
+            'Needs ${sector.minMinutes}+ minutes to reach',
+          ],
+          color: Color(sector.accent),
+          heavy: true,
+        );
+      },
     );
   }
 }
