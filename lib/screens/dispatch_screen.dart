@@ -483,7 +483,16 @@ class _MemberBand extends StatelessWidget {
           children: [
             Container(
                 width: 4, height: 40, color: selected ? T.amber : T.line),
-            const SizedBox(width: 16),
+            const SizedBox(width: 14),
+            Padding(
+              padding: const EdgeInsets.only(top: 2, right: 12),
+              child: ClassEmblem(
+                classId: member.classId,
+                // Selected wins, then whether they suit this block of time.
+                color: selected ? T.amber : (inWindow ? T.good : T.dim),
+                size: 30,
+              ),
+            ),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

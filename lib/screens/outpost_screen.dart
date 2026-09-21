@@ -362,6 +362,7 @@ class _SectorBand extends StatelessWidget {
           ],
           color: Color(sector.accent),
           heavy: true,
+          sigilSectorId: sector.id,
         );
       },
     );

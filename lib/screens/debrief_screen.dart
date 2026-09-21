@@ -96,7 +96,10 @@ class _DebriefScreenState extends State<DebriefScreen>
                                 ),
                                 const SizedBox(width: 14),
                                 SigilPlate(
-                                    sectorId: sector.id, color: sc, size: 72),
+                                    sectorId: sector.id,
+                                    color: sc,
+                                    size: 72,
+                                    animate: true),
                               ],
                             ),
                           ],
@@ -517,6 +520,11 @@ class _MemberProgress extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
+              ClassEmblem(
+                  classId: m.classId,
+                  color: levelled ? T.good : T.dim,
+                  size: 18),
+              const SizedBox(width: 10),
               Text(m.name,
                   style: T.mono.copyWith(
                       fontSize: 17,

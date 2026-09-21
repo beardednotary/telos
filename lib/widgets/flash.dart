@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../theme/telos_theme.dart';
+import 'sigil.dart';
 
 /// An acknowledgement.
 ///
@@ -16,6 +17,7 @@ void showFlash(
   List<String> lines = const [],
   Color color = T.amber,
   bool heavy = false,
+  String? sigilSectorId,
 }) {
   // On a phone this is most of the feeling.
   if (heavy) {
@@ -47,6 +49,15 @@ void showFlash(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Container(width: 4, color: color),
+                if (sigilSectorId != null)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(14, 14, 0, 14),
+                    child: Sigil(
+                        sectorId: sigilSectorId,
+                        color: color,
+                        size: 34,
+                        animate: true),
+                  ),
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(14, 12, 14, 13),

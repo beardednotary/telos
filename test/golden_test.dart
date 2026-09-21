@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:telos/data/content.dart';
 import 'package:telos/models/models.dart';
 import 'package:telos/screens/debrief_screen.dart';
 import 'package:telos/screens/dispatch_screen.dart';
@@ -13,6 +14,7 @@ import 'package:telos/screens/session_screen.dart';
 import 'package:telos/services/persistence.dart';
 import 'package:telos/state/guild_controller.dart';
 import 'package:telos/theme/telos_theme.dart';
+import 'package:telos/widgets/sigil.dart';
 
 /// Renders screens to PNG so the look can be checked without a device.
 ///
@@ -138,5 +140,68 @@ void main() {
       matchesGoldenFile('goldens/debrief.png'),
     );
     c.dispose();
+  });
+
+  // Every mark at the sizes it actually has to survive.
+  testWidgets('marks', (t) async {
+    await frame(t);
+    Widget row(String label, List<Widget> marks) => Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          child: Row(
+            children: [
+              SizedBox(
+                width: 96,
+                child: Text(label, style: T.micro),
+              ),
+              for (final m in marks)
+                Padding(padding: const EdgeInsets.only(right: 16), child: m),
+            ],
+          ),
+        );
+
+    await t.pumpWidget(MaterialApp(
+      theme: T.theme(),
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: ListView(
+              children: [
+                Text('SECTOR SIGILS', style: T.micro.copyWith(color: T.steel)),
+                for (final sec in kSectors)
+                  row(sec.name.replaceAll('THE ', ''), [
+                    Sigil(
+                        sectorId: sec.id,
+                        color: Color(sec.accent),
+                        size: 40),
+                    Sigil(
+                        sectorId: sec.id,
+                        color: Color(sec.accent),
+                        size: 24),
+                    Sigil(
+                        sectorId: sec.id,
+                        color: Color(sec.accent),
+                        size: 16),
+                  ]),
+                const SizedBox(height: 18),
+                Text('CLASS EMBLEMS', style: T.micro.copyWith(color: T.steel)),
+                for (final cls in kClasses.values)
+                  row(cls.name, [
+                    ClassEmblem(classId: cls.id, color: T.steel, size: 34),
+                    ClassEmblem(classId: cls.id, color: T.good, size: 24),
+                    ClassEmblem(classId: cls.id, color: T.dim, size: 16),
+                  ]),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ));
+    await t.pumpAndSettle();
+    await expectLater(
+      find.byType(Scaffold),
+      matchesGoldenFile('goldens/marks.png'),
+    );
   });
 }

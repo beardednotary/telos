@@ -31,8 +31,7 @@ class SessionScreen extends StatelessWidget {
     final squad = run.squad
         .map((id) => c.g.memberById(id))
         .whereType<Adventurer>()
-        .map((m) => m.name)
-        .join(' / ');
+        .toList();
 
     final sc = Color(sector.accent);
     final iColor = integrity >= 0.999
@@ -86,13 +85,30 @@ class SessionScreen extends StatelessWidget {
                                 style:
                                     T.title.copyWith(fontSize: 20, color: sc)),
                             const SizedBox(height: 7),
-                            Text(squad,
-                                style: T.micro.copyWith(letterSpacing: 1.0)),
+                            Row(
+                              children: [
+                                for (final m in squad) ...[
+                                  ClassEmblem(
+                                      classId: m.classId,
+                                      color: T.dim,
+                                      size: 15),
+                                  const SizedBox(width: 6),
+                                  Text(m.name,
+                                      style: T.micro
+                                          .copyWith(letterSpacing: 1.0)),
+                                  const SizedBox(width: 12),
+                                ],
+                              ],
+                            ),
                           ],
                         ),
                       ),
                       const SizedBox(width: 14),
-                      SigilPlate(sectorId: sector.id, color: sc, size: 66),
+                      SigilPlate(
+                          sectorId: sector.id,
+                          color: sc,
+                          size: 66,
+                          animate: true),
                     ],
                   ),
                 ],

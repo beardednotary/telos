@@ -6,6 +6,7 @@ import '../models/models.dart';
 import '../state/guild_controller.dart';
 import '../theme/telos_theme.dart';
 import '../widgets/flash.dart';
+import '../widgets/sigil.dart';
 import '../widgets/terminal.dart';
 
 class RosterScreen extends StatelessWidget {
@@ -73,7 +74,11 @@ class _MemberBand extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(width: 4, height: 62, color: T.amber),
-          const SizedBox(width: 16),
+          const SizedBox(width: 14),
+          Padding(
+            padding: const EdgeInsets.only(top: 2, right: 14),
+            child: ClassEmblem(classId: member.classId, color: T.steel, size: 34),
+          ),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

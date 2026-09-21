@@ -1,16 +1,221 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 
-import '../theme/telos_theme.dart';
-
-/// A carved mark for each sector.
+/// Carved marks: one per sector (a place) and one per class (a person).
 ///
-/// Drawn, not drawn-by-an-artist: every glyph is a handful of straight lines
-/// and arcs in a unit square, so the whole system costs nothing to ship and
-/// scales to any size. This is the one thing in the app that is a *shape*
-/// rather than type in a box, which is most of the reason it exists - five
-/// screens that each carry a different mark stop looking like one screen.
+/// Every mark is a handful of strokes in a unit square, built as a [Path] so
+/// it can be drawn progressively - the reveal animation and the static icon
+/// are the same geometry. No assets, no artist, and a new sector or class is
+/// still a data edit plus five lines here.
+///
+/// Colour carries two different channels deliberately: a sector's own colour
+/// says *where*, and a class emblem stays monochrome and says *who*. Tinting
+/// both would collapse the distinction.
+
+// ---------------------------------------------------------------------------
+// GEOMETRY
+// ---------------------------------------------------------------------------
+
+Path _p(double s, List<List<double>> segments) {
+  final path = Path();
+  for (final seg in segments) {
+    path.moveTo(seg[0] * s, seg[1] * s);
+    for (var i = 2; i < seg.length; i += 2) {
+      path.lineTo(seg[i] * s, seg[i + 1] * s);
+    }
+  }
+  return path;
+}
+
+/// A mark for a place.
+Path sigilPath(String sectorId, double s) {
+  switch (sectorId) {
+    // MOSSWOOD VERGE - a treeline: canopy over a trunk, branches either side.
+    case 'mosswood':
+      return _p(s, [
+        [0.14, 0.52, 0.5, 0.10, 0.86, 0.52],
+        [0.5, 0.10, 0.5, 0.92],
+        [0.26, 0.64, 0.5, 0.44],
+        [0.74, 0.64, 0.5, 0.44],
+      ]);
+
+    // BLACKSTONE HOLLOW - a descent: wedges dropping to a floor.
+    case 'blackstone':
+      return _p(s, [
+        [0.14, 0.12, 0.5, 0.50, 0.86, 0.12],
+        [0.26, 0.42, 0.5, 0.68, 0.74, 0.42],
+        [0.2, 0.9, 0.8, 0.9],
+      ]);
+
+    // THE CINDER ARCHIVE - a burned ledger: a volume struck through.
+    // Redrawn: the old page-stack read as a domino at header size.
+    case 'cinder':
+      return _p(s, [
+        [0.22, 0.12, 0.78, 0.12, 0.78, 0.88, 0.22, 0.88, 0.22, 0.12],
+        [0.30, 0.78, 0.70, 0.22],
+      ]);
+
+    // RIFTLINE DESCENT - a split: two halves pulled off the centre line.
+    case 'riftline':
+      return _p(s, [
+        [0.5, 0.04, 0.5, 0.96],
+        [0.28, 0.18, 0.12, 0.5, 0.28, 0.82],
+        [0.72, 0.18, 0.88, 0.5, 0.72, 0.82],
+      ]);
+
+    // THE SPIRE OF TELOS - a banded tower with something at the top.
+    case 'spire':
+      return _p(s, [
+        [0.5, 0.10, 0.24, 0.94],
+        [0.5, 0.10, 0.76, 0.94],
+        [0.33, 0.54, 0.67, 0.54],
+        [0.28, 0.74, 0.72, 0.74],
+        [0.42, 0.20, 0.5, 0.06, 0.58, 0.20, 0.42, 0.20],
+      ]);
+
+    default:
+      return _p(s, [
+        [0.5, 0.12, 0.88, 0.5, 0.5, 0.88, 0.12, 0.5, 0.5, 0.12],
+      ]);
+  }
+}
+
+/// A mark for a person. Reads at 16px, which is where most of them live.
+Path emblemPath(String classId, double s) {
+  switch (classId) {
+    // VANGUARD - a bulwark. Heavy, planted, takes the long haul.
+    case 'vanguard':
+      return _p(s, [
+        [0.12, 0.26, 0.88, 0.26],
+        [0.2, 0.26, 0.5, 0.86, 0.8, 0.26],
+        [0.32, 0.5, 0.68, 0.5],
+      ]);
+
+    // RECON - a dart already moving. In and out.
+    case 'recon':
+      return _p(s, [
+        [0.18, 0.78, 0.82, 0.22],
+        [0.52, 0.22, 0.82, 0.22, 0.82, 0.52],
+        [0.14, 0.44, 0.36, 0.44],
+        [0.14, 0.60, 0.28, 0.60],
+      ]);
+
+    // ARCHIVIST - an open volume on its spine.
+    case 'archivist':
+      return _p(s, [
+        [0.5, 0.24, 0.5, 0.84],
+        [0.5, 0.24, 0.14, 0.34, 0.14, 0.80, 0.5, 0.84],
+        [0.5, 0.24, 0.86, 0.34, 0.86, 0.80, 0.5, 0.84],
+      ]);
+
+    // ARTIFICER - a clamp on a rivet. Strips things for parts.
+    case 'artificer':
+      return _p(s, [
+        [0.16, 0.16, 0.40, 0.40],
+        [0.84, 0.16, 0.60, 0.40],
+        [0.16, 0.84, 0.40, 0.60],
+        [0.84, 0.84, 0.60, 0.60],
+        [0.40, 0.40, 0.60, 0.40, 0.60, 0.60, 0.40, 0.60, 0.40, 0.40],
+      ]);
+
+    // QUARTERMASTER - a balance. No specialism, no bad days.
+    case 'quartermaster':
+      return _p(s, [
+        [0.5, 0.10, 0.86, 0.5, 0.5, 0.90, 0.14, 0.5, 0.5, 0.10],
+        [0.2, 0.5, 0.8, 0.5],
+      ]);
+
+    default:
+      return _p(s, [
+        [0.5, 0.14, 0.5, 0.86],
+        [0.14, 0.5, 0.86, 0.5],
+      ]);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// PAINTING
+// ---------------------------------------------------------------------------
+
+class _MarkPainter extends CustomPainter {
+  _MarkPainter(this.path, this.color, this.strokeWidth, this.progress);
+
+  final Path path;
+  final Color color;
+  final double strokeWidth;
+  final double progress;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.butt
+      ..strokeJoin = StrokeJoin.miter;
+
+    if (progress >= 1.0) {
+      canvas.drawPath(path, paint);
+      return;
+    }
+
+    // Draw the subpaths in order, cutting off mid-stroke - the mark is being
+    // carved, not faded in.
+    final metrics = path.computeMetrics().toList();
+    final total = metrics.fold<double>(0, (a, m) => a + m.length);
+    var budget = total * progress.clamp(0.0, 1.0);
+    for (final m in metrics) {
+      if (budget <= 0) break;
+      final take = budget < m.length ? budget : m.length;
+      canvas.drawPath(m.extractPath(0, take), paint);
+      budget -= take;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _MarkPainter old) =>
+      old.progress != progress ||
+      old.color != color ||
+      old.strokeWidth != strokeWidth ||
+      old.path != path;
+}
+
+class _Mark extends StatelessWidget {
+  const _Mark({
+    required this.path,
+    required this.color,
+    required this.size,
+    required this.strokeScale,
+    required this.animate,
+  });
+
+  final Path path;
+  final Color color;
+  final double size;
+  final double strokeScale;
+  final bool animate;
+
+  @override
+  Widget build(BuildContext context) {
+    final stroke = size * 0.075 * strokeScale;
+    _MarkPainter painterFor(double t) => _MarkPainter(path, color, stroke, t);
+
+    return SizedBox(
+      width: size,
+      height: size,
+      child: animate
+          ? TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0, end: 1),
+              duration: const Duration(milliseconds: 900),
+              curve: Curves.easeInOutCubic,
+              builder: (_, t, __) =>
+                  CustomPaint(painter: painterFor(t), size: Size.square(size)),
+            )
+          : CustomPaint(painter: painterFor(1), size: Size.square(size)),
+    );
+  }
+}
+
+/// The mark for a sector.
 class Sigil extends StatelessWidget {
   const Sigil({
     super.key,
@@ -18,6 +223,7 @@ class Sigil extends StatelessWidget {
     required this.color,
     this.size = 40,
     this.strokeScale = 1.0,
+    this.animate = false,
   });
 
   final String sectorId;
@@ -25,113 +231,61 @@ class Sigil extends StatelessWidget {
   final double size;
   final double strokeScale;
 
+  /// One-shot stroke reveal. Reserved for things that happen rarely - a
+  /// sector opening, a run beginning. If everything animates, nothing reads.
+  final bool animate;
+
   @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: size,
-      height: size,
-      child: CustomPaint(
-        painter: _SigilPainter(sectorId, color, strokeScale),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => _Mark(
+        path: sigilPath(sectorId, size),
+        color: color,
+        size: size,
+        strokeScale: strokeScale,
+        animate: animate,
+      );
 }
 
-class _SigilPainter extends CustomPainter {
-  _SigilPainter(this.id, this.color, this.strokeScale);
+/// The mark for a class. Monochrome on purpose - see the note at the top.
+class ClassEmblem extends StatelessWidget {
+  const ClassEmblem({
+    super.key,
+    required this.classId,
+    required this.color,
+    this.size = 28,
+    this.animate = false,
+  });
 
-  final String id;
+  final String classId;
   final Color color;
-  final double strokeScale;
+  final double size;
+  final bool animate;
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final s = size.width;
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = s * 0.07 * strokeScale
-      ..strokeCap = StrokeCap.butt
-      ..strokeJoin = StrokeJoin.miter;
-
-    Offset p(double x, double y) => Offset(x * s, y * s);
-    void line(double x1, double y1, double x2, double y2) =>
-        canvas.drawLine(p(x1, y1), p(x2, y2), paint);
-
-    switch (id) {
-      // MOSSWOOD VERGE - a treeline. Chevron over a stem, notched either side.
-      case 'mosswood':
-        line(0.5, 0.10, 0.14, 0.52);
-        line(0.5, 0.10, 0.86, 0.52);
-        line(0.5, 0.10, 0.5, 0.92);
-        line(0.26, 0.62, 0.5, 0.44);
-        line(0.74, 0.62, 0.5, 0.44);
-
-      // BLACKSTONE HOLLOW - a descent. Nested wedges dropping into a floor.
-      case 'blackstone':
-        line(0.14, 0.14, 0.5, 0.52);
-        line(0.86, 0.14, 0.5, 0.52);
-        line(0.26, 0.42, 0.5, 0.68);
-        line(0.74, 0.42, 0.5, 0.68);
-        line(0.2, 0.9, 0.8, 0.9);
-
-      // THE CINDER ARCHIVE - stacked pages, burned through the middle.
-      case 'cinder':
-        final r = Rect.fromLTWH(s * 0.16, s * 0.16, s * 0.68, s * 0.68);
-        canvas.drawRect(r, paint);
-        line(0.3, 0.38, 0.7, 0.38);
-        line(0.3, 0.62, 0.7, 0.62);
-        // the burn: a gap punched through the stack
-        final gap = Paint()..color = T.black;
-        canvas.drawRect(
-            Rect.fromCenter(
-                center: Offset(s * 0.5, s * 0.5),
-                width: s * 0.2,
-                height: s * 0.34),
-            gap);
-
-      // RIFTLINE DESCENT - a split. Two halves pulled apart down the middle.
-      case 'riftline':
-        line(0.5, 0.04, 0.5, 0.96);
-        line(0.26, 0.2, 0.12, 0.5);
-        line(0.12, 0.5, 0.26, 0.8);
-        line(0.74, 0.2, 0.88, 0.5);
-        line(0.88, 0.5, 0.74, 0.8);
-
-      // THE SPIRE OF TELOS - a tower, banded, with something at the top.
-      case 'spire':
-        line(0.5, 0.06, 0.24, 0.94);
-        line(0.5, 0.06, 0.76, 0.94);
-        line(0.33, 0.52, 0.67, 0.52);
-        line(0.28, 0.73, 0.72, 0.73);
-        canvas.drawCircle(
-            Offset(s * 0.5, s * 0.2), s * 0.07, paint..style = PaintingStyle.fill);
-
-      // Fallback: a plain ring, so a new sector without a glyph still renders.
-      default:
-        canvas.drawCircle(Offset(s * 0.5, s * 0.5), s * 0.36, paint);
-        line(0.5, 0.14, 0.5, 0.86);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _SigilPainter old) =>
-      old.id != id || old.color != color || old.strokeScale != strokeScale;
+  Widget build(BuildContext context) => _Mark(
+        path: emblemPath(classId, size),
+        color: color,
+        size: size,
+        // Emblems live small, so they need a touch more weight to hold up.
+        strokeScale: size < 24 ? 1.25 : 1.0,
+        animate: animate,
+      );
 }
 
-/// A sigil set into a bordered plate, for places that need more presence than
-/// the bare mark: the session screen, the debrief header.
+/// A sigil set into a bordered plate, where the mark needs presence: the
+/// session header, the debrief header.
 class SigilPlate extends StatelessWidget {
   const SigilPlate({
     super.key,
     required this.sectorId,
     required this.color,
     this.size = 84,
+    this.animate = false,
   });
 
   final String sectorId;
   final Color color;
   final double size;
+  final bool animate;
 
   @override
   Widget build(BuildContext context) {
@@ -143,14 +297,11 @@ class SigilPlate extends StatelessWidget {
         color: color.withValues(alpha: 0.05),
       ),
       alignment: Alignment.center,
-      child: Transform.rotate(
-        angle: 0,
-        child: Sigil(
-          sectorId: sectorId,
-          color: color,
-          size: size * 0.52,
-          strokeScale: max(0.8, 1.1 - size / 400),
-        ),
+      child: Sigil(
+        sectorId: sectorId,
+        color: color,
+        size: size * 0.52,
+        animate: animate,
       ),
     );
   }
