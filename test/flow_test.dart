@@ -157,7 +157,7 @@ void main() {
     await t.pumpAndSettle();
 
     final before = c.g.facilities.values.toList();
-    await t.tap(find.text('[ UPGRADE ]').first);
+    await t.tap(find.text('UPGRADE').first);
     await t.pumpAndSettle();
     expect(c.g.facilities.values.toList(), before);
     expect(c.g.credits, 0);

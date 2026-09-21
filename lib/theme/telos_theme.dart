@@ -48,10 +48,14 @@ class T {
     letterSpacing: 1.4,
   );
 
+  /// THE RULE: anything 16px or larger is Light 300 with open tracking. That
+  /// is what makes the countdown look carved rather than typed - it is not a
+  /// different font, just weight and scale. Below 16px Light goes muddy, so
+  /// small labels keep their weight and lean on [micro] instead.
   static TextStyle heading = mono.copyWith(
-    fontSize: 15,
-    letterSpacing: 2.0,
-    fontWeight: FontWeight.w600,
+    fontSize: 19,
+    letterSpacing: 3.0,
+    fontWeight: FontWeight.w300,
   );
 
   static TextStyle data = mono.copyWith(fontSize: 13);
@@ -68,17 +72,24 @@ class T {
   /// integrity percentage. Scale contrast is what stops this reading as a
   /// generic dashboard - tiny labels are fine next to something this size.
   static TextStyle numeric = mono.copyWith(
-    fontSize: 32,
-    fontWeight: FontWeight.w600,
+    fontSize: 34,
+    fontWeight: FontWeight.w300,
     height: 1.0,
     letterSpacing: -0.5,
   );
 
   static TextStyle title = mono.copyWith(
-    fontSize: 21,
-    fontWeight: FontWeight.w600,
-    letterSpacing: 1.5,
-    height: 1.15,
+    fontSize: 22,
+    fontWeight: FontWeight.w300,
+    letterSpacing: 2.2,
+    height: 1.2,
+  );
+
+  /// A row label in a list: still display-scale, so still Light.
+  static TextStyle row = mono.copyWith(
+    fontSize: 18,
+    fontWeight: FontWeight.w300,
+    letterSpacing: 2.4,
   );
 
   static TextStyle micro = mono.copyWith(

@@ -263,9 +263,9 @@ class _BigAction extends StatelessWidget {
           label,
           style: T.mono.copyWith(
             color: color,
-            fontSize: 17,
-            letterSpacing: 2.5,
-            fontWeight: FontWeight.w600,
+            fontSize: 19,
+            letterSpacing: 3.5,
+            fontWeight: FontWeight.w300,
           ),
         ),
       ),

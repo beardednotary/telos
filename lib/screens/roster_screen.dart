@@ -19,44 +19,44 @@ class RosterScreen extends StatelessWidget {
     return TerminalScaffold(
       title: 'ROSTER',
       actions: [
-        Text('${g.roster.length}/${g.rosterSlots}', style: T.label),
+        Text('${g.roster.length}/${g.rosterSlots}', style: T.micro),
       ],
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+        padding: const EdgeInsets.only(bottom: 40),
         children: [
-          Text(
-            'Members gain XP on every run. Levels add a flat bonus; gear adds '
-            'more. Who you send still matters more than either.',
-            style: T.label.copyWith(fontSize: 10, letterSpacing: 0.3, height: 1.6),
+          for (final m in g.roster) _MemberBand(member: m),
+          const SizedBox(height: 28),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              children: [
+                Text('VAULT', style: T.micro.copyWith(color: T.steel)),
+                const SizedBox(width: 12),
+                Expanded(child: Container(height: 1, color: T.line)),
+                const SizedBox(width: 12),
+                Text('${spare.length} UNASSIGNED', style: T.micro),
+              ],
+            ),
           ),
-          const SizedBox(height: 16),
-          for (final m in g.roster) ...[
-            _MemberCard(member: m),
-            const SizedBox(height: 10),
-          ],
-          const SizedBox(height: 10),
-          PanelTitle('VAULT',
-              trailing: Text('${spare.length} UNASSIGNED', style: T.label)),
+          const SizedBox(height: 14),
           if (spare.isEmpty)
-            Panel(
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Text(
                 'Nothing spare. Salvage turns up on runs past a sector minimum.',
-                style: T.label.copyWith(fontSize: 10, letterSpacing: 0.3),
+                style: T.micro.copyWith(letterSpacing: 0.4),
               ),
             )
           else
-            for (final gear in spare) ...[
-              _GearRow(gear: gear),
-              const SizedBox(height: 6),
-            ],
+            for (final gear in spare) _GearBand(gear: gear),
         ],
       ),
     );
   }
 }
 
-class _MemberCard extends StatelessWidget {
-  const _MemberCard({required this.member});
+class _MemberBand extends StatelessWidget {
+  const _MemberBand({required this.member});
   final Adventurer member;
 
   @override
@@ -64,69 +64,93 @@ class _MemberCard extends StatelessWidget {
     final c = context.read<GuildController>();
     final cls = kClasses[member.classId]!;
 
-    return Panel(
-      child: Column(
+    return Container(
+      margin: const EdgeInsets.only(bottom: 2),
+      color: T.band,
+      padding: const EdgeInsets.fromLTRB(0, 18, 20, 18),
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Text(member.name,
-                  style: T.mono.copyWith(fontSize: 16, letterSpacing: 1.6)),
-              const SizedBox(width: 10),
-              Text(cls.name, style: T.label.copyWith(color: T.amber)),
-              const Spacer(),
-              Text('LV ${member.level}',
-                  style: T.mono.copyWith(color: T.amber, fontSize: 14)),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(cls.blurb,
-              style: T.label.copyWith(fontSize: 10, letterSpacing: 0.3, height: 1.5)),
-          const SizedBox(height: 10),
-          Meter(value: member.xp / member.xpToNext, segments: 22, height: 5),
-          const SizedBox(height: 4),
-          Row(
-            children: [
-              Text('XP', style: T.label.copyWith(fontSize: 9)),
-              const Spacer(),
-              Text('${member.xp} / ${member.xpToNext}',
-                  style: T.label.copyWith(fontSize: 9)),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Container(height: 1, color: T.line),
-          const SizedBox(height: 10),
-          Text(cls.windowText.toUpperCase(),
-              style: T.label.copyWith(color: T.good, fontSize: 9)),
-          const SizedBox(height: 6),
-          Wrap(
-            spacing: 12,
-            children: [
-              for (final l in (cls.base + cls.windowBonus).lines)
-                Text(l, style: T.mono.copyWith(fontSize: 10, color: T.dim)),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Text('KIT', style: T.label),
-          const SizedBox(height: 6),
-          Row(
-            children: [
-              for (var i = 0; i < kGearSlots; i++) ...[
-                Expanded(
-                  child: _Slot(
-                    member: member,
-                    uid: i < member.equipped.length ? member.equipped[i] : null,
-                    onTap: () => _openSlot(
-                      context,
-                      c,
-                      member,
-                      i < member.equipped.length ? member.equipped[i] : null,
+          Container(width: 4, height: 62, color: T.amber),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(cls.name,
+                              style: T.micro.copyWith(color: T.amber)),
+                          const SizedBox(height: 5),
+                          Text(member.name, style: T.title),
+                        ],
+                      ),
                     ),
-                  ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text('LEVEL', style: T.micro),
+                        const SizedBox(height: 2),
+                        Text('${member.level}'.padLeft(2, '0'),
+                            style: T.numeric.copyWith(fontSize: 30)),
+                      ],
+                    ),
+                  ],
                 ),
-                if (i == 0) const SizedBox(width: 8),
+                const SizedBox(height: 14),
+                Meter(value: member.xp / member.xpToNext, segments: 26, height: 4),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Text('XP', style: T.micro),
+                    const Spacer(),
+                    Text('${member.xp} / ${member.xpToNext}', style: T.micro),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                Text(cls.windowText.toUpperCase(),
+                    style: T.micro.copyWith(color: T.good)),
+                const SizedBox(height: 6),
+                Wrap(
+                  spacing: 14,
+                  runSpacing: 2,
+                  children: [
+                    for (final l in (cls.base + cls.windowBonus).lines)
+                      Text(l, style: T.mono.copyWith(fontSize: 11, color: T.dim)),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Text('KIT', style: T.micro),
+                const SizedBox(height: 7),
+                Row(
+                  children: [
+                    for (var i = 0; i < kGearSlots; i++) ...[
+                      Expanded(
+                        child: _Slot(
+                          uid: i < member.equipped.length
+                              ? member.equipped[i]
+                              : null,
+                          onTap: () => _openSlot(
+                            context,
+                            c,
+                            member,
+                            i < member.equipped.length
+                                ? member.equipped[i]
+                                : null,
+                          ),
+                        ),
+                      ),
+                      if (i == 0) const SizedBox(width: 8),
+                    ],
+                  ],
+                ),
               ],
-            ],
+            ),
           ),
         ],
       ),
@@ -147,32 +171,48 @@ class _MemberCard extends StatelessWidget {
       builder: (context) => SafeArea(
         child: ListView(
           shrinkWrap: true,
-          padding: const EdgeInsets.fromLTRB(18, 18, 18, 24),
+          padding: const EdgeInsets.fromLTRB(0, 18, 0, 24),
           children: [
-            Text('ASSIGN TO ${m.name}', style: T.label),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Text('ASSIGN TO ${m.name}', style: T.micro),
+            ),
             const SizedBox(height: 14),
             if (current != null) ...[
-              TButton('REMOVE CURRENT', color: T.bad, onTap: () {
-                c.unequip(m.id, current);
-                Navigator.pop(context);
-              }),
-              const SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: GestureDetector(
+                  onTap: () {
+                    c.unequip(m.id, current);
+                    Navigator.pop(context);
+                  },
+                  behavior: HitTestBehavior.opaque,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    child: Text('REMOVE CURRENT',
+                        style: T.mono.copyWith(
+                            color: T.bad, fontSize: 12, letterSpacing: 2)),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 6),
             ],
             if (spare.isEmpty)
-              Text('Vault is empty.',
-                  style: T.mono.copyWith(color: T.dim, fontSize: 12))
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child:
+                    Text('Vault is empty.', style: T.mono.copyWith(color: T.dim)),
+              )
             else
-              for (final gear in spare) ...[
+              for (final gear in spare)
                 GestureDetector(
                   onTap: () {
                     c.equip(m.id, gear.uid);
                     Navigator.pop(context);
                   },
                   behavior: HitTestBehavior.opaque,
-                  child: _GearRow(gear: gear),
+                  child: _GearBand(gear: gear),
                 ),
-                const SizedBox(height: 6),
-              ],
           ],
         ),
       ),
@@ -181,8 +221,7 @@ class _MemberCard extends StatelessWidget {
 }
 
 class _Slot extends StatelessWidget {
-  const _Slot({required this.member, required this.uid, required this.onTap});
-  final Adventurer member;
+  const _Slot({required this.uid, required this.onTap});
   final String? uid;
   final VoidCallback onTap;
 
@@ -191,14 +230,16 @@ class _Slot extends StatelessWidget {
     final c = context.read<GuildController>();
     final gear = uid == null ? null : c.g.gearByUid(uid!);
     final def = gear == null ? null : gearById(gear.defId);
+    final filled = def != null;
 
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 11),
         decoration: BoxDecoration(
-          border: Border.all(color: def == null ? T.line : T.amber),
+          color: filled ? T.amber.withValues(alpha: 0.07) : Colors.transparent,
+          border: Border.all(color: filled ? T.amber : T.line),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -207,12 +248,15 @@ class _Slot extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: T.mono.copyWith(
-                    fontSize: 11, color: def == null ? T.dim : T.text)),
-            const SizedBox(height: 2),
+                    fontSize: 12,
+                    letterSpacing: 0.8,
+                    color: filled ? T.text : T.dim)),
+            const SizedBox(height: 3),
             Text(def == null ? 'TAP TO ASSIGN' : def.bonus.lines.join('  '),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: T.label.copyWith(fontSize: 9)),
+                style: T.micro.copyWith(
+                    color: filled ? T.good : T.dim, letterSpacing: 0.6)),
           ],
         ),
       ),
@@ -220,36 +264,37 @@ class _Slot extends StatelessWidget {
   }
 }
 
-class _GearRow extends StatelessWidget {
-  const _GearRow({required this.gear});
+class _GearBand extends StatelessWidget {
+  const _GearBand({required this.gear});
   final Gear gear;
 
   @override
   Widget build(BuildContext context) {
     final def = gearById(gear.defId);
-    final color = switch (def.rarity) {
-      Rarity.common => T.dim,
-      Rarity.uncommon => T.text,
-      Rarity.rare => T.cyan,
-      Rarity.epic => T.amber,
-    };
-    return Panel(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+    final color = rarityColor(def.rarity);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 2),
+      color: T.band,
+      padding: const EdgeInsets.fromLTRB(0, 13, 20, 13),
       child: Row(
         children: [
+          Container(width: 3, height: 34, color: color),
+          const SizedBox(width: 17),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(def.name, style: T.mono.copyWith(fontSize: 12, color: color)),
-                const SizedBox(height: 2),
+                Text(def.name,
+                    style: T.mono.copyWith(
+                        fontSize: 14, letterSpacing: 1.2, color: color)),
+                const SizedBox(height: 3),
                 Text(def.bonus.lines.join('   '),
-                    style: T.label.copyWith(fontSize: 9)),
+                    style: T.micro.copyWith(color: T.good, letterSpacing: 0.6)),
               ],
             ),
           ),
-          Text('[${def.rarity.label}]',
-              style: T.label.copyWith(fontSize: 9, color: color)),
+          Text(def.rarity.label, style: T.micro.copyWith(color: color)),
         ],
       ),
     );

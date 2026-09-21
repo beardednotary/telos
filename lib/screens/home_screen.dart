@@ -202,9 +202,9 @@ class _DispatchBlock extends StatelessWidget {
                     'DISPATCH',
                     style: T.mono.copyWith(
                       color: T.amber,
-                      fontSize: 30,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 3,
+                      fontSize: 34,
+                      fontWeight: FontWeight.w300,
+                      letterSpacing: 5,
                       height: 1.0,
                     ),
                   ),
@@ -267,9 +267,9 @@ class _GoalBand extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(goal.label,
                       style: T.mono.copyWith(
-                          fontSize: 18,
-                          letterSpacing: 1.2,
-                          fontWeight: FontWeight.w600)),
+                          fontSize: 19,
+                          letterSpacing: 2.2,
+                          fontWeight: FontWeight.w300)),
                   const SizedBox(height: 12),
                   Padding(
                     padding: const EdgeInsets.only(right: 20),
@@ -375,11 +375,7 @@ class _NavRow extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(label,
-                      style: T.mono.copyWith(
-                          fontSize: 17,
-                          letterSpacing: 2,
-                          fontWeight: FontWeight.w600)),
+                  Text(label, style: T.row),
                   const SizedBox(height: 3),
                   Text(hint, style: T.micro.copyWith(letterSpacing: 0.4)),
                 ],

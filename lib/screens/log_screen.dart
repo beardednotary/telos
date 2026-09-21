@@ -17,51 +17,90 @@ class LogScreen extends StatelessWidget {
     final c = context.watch<GuildController>();
     final log = c.g.log;
     final mins = c.g.totalFocusMinutes;
+    final avgI = log.isEmpty
+        ? 0
+        : (log.map((r) => r.integrity).reduce((a, b) => a + b) /
+                log.length *
+                100)
+            .round();
 
     return TerminalScaffold(
       title: 'FIELD LOG',
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+        padding: const EdgeInsets.only(bottom: 40),
         children: [
-          Panel(
+          // -- headline ---------------------------------------------------
+          Container(
+            width: double.infinity,
+            color: T.band,
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                KV('PROTECTED TIME', '${mins ~/ 60}h ${mins % 60}m',
-                    color: T.amber, bold: true),
-                KV('EXPEDITIONS', '${log.length}'),
-                KV('CLEAN RUNS', '${c.g.cleanRuns}'),
-                KV(
-                  'AVG INTEGRITY',
-                  log.isEmpty
-                      ? '-'
-                      : '${(log.map((r) => r.integrity).reduce((a, b) => a + b) / log.length * 100).round()}%',
+                Text('PROTECTED TIME', style: T.micro),
+                const SizedBox(height: 8),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
+                  children: [
+                    Text('${mins ~/ 60}',
+                        style: T.big.copyWith(fontSize: 50, color: T.amber)),
+                    Text('h ',
+                        style: T.mono.copyWith(fontSize: 17, color: T.dim)),
+                    Text('${mins % 60}', style: T.big.copyWith(fontSize: 50)),
+                    Text('m',
+                        style: T.mono.copyWith(fontSize: 17, color: T.dim)),
+                  ],
                 ),
-                KV(
-                  'AVG SESSION',
-                  log.isEmpty ? '-' : '${mins ~/ log.length}m',
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    _Stat('EXPEDITIONS', '${log.length}'),
+                    _Stat('CLEAN', '${c.g.cleanRuns}'),
+                    _Stat('AVG INTEGRITY', log.isEmpty ? '-' : '$avgI%'),
+                    _Stat('AVG LENGTH',
+                        log.isEmpty ? '-' : '${mins ~/ log.length}m'),
+                  ],
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
+
           if (log.isEmpty)
-            Panel(
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Text('No expeditions logged yet.',
-                  style: T.label.copyWith(fontSize: 10, letterSpacing: 0.3)),
+                  style: T.micro.copyWith(letterSpacing: 0.4)),
             )
           else
-            for (final r in log) ...[
-              _LogRow(record: r),
-              const SizedBox(height: 8),
-            ],
+            for (final r in log) _LogBand(record: r),
         ],
       ),
     );
   }
 }
 
-class _LogRow extends StatelessWidget {
-  const _LogRow({required this.record});
+class _Stat extends StatelessWidget {
+  const _Stat(this.label, this.value);
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) => Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label, style: T.micro.copyWith(fontSize: 8)),
+            const SizedBox(height: 4),
+            Text(value, style: T.mono.copyWith(fontSize: 15)),
+          ],
+        ),
+      );
+}
+
+class _LogBand extends StatelessWidget {
+  const _LogBand({required this.record});
   final RunRecord record;
 
   @override
@@ -70,7 +109,8 @@ class _LogRow extends StatelessWidget {
     final sector = sectorById(r.sectorId);
     final d = r.endedAt;
     String two(int n) => n.toString().padLeft(2, '0');
-    final stamp = '${d.year}-${two(d.month)}-${two(d.day)} ${two(d.hour)}:${two(d.minute)}';
+    final stamp =
+        '${d.year}-${two(d.month)}-${two(d.day)}  ${two(d.hour)}:${two(d.minute)}';
 
     final iColor = r.integrity >= 0.999
         ? T.good
@@ -78,84 +118,109 @@ class _LogRow extends StatelessWidget {
             ? T.amber
             : T.bad;
 
-    return Panel(
-      padding: const EdgeInsets.all(13),
-      child: Column(
+    return Container(
+      margin: const EdgeInsets.only(bottom: 2),
+      color: T.band,
+      padding: const EdgeInsets.fromLTRB(0, 15, 20, 15),
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Text(stamp, style: T.label.copyWith(fontSize: 9)),
-              const Spacer(),
-              Text('${r.elapsedMinutes}m',
-                  style: T.mono.copyWith(fontSize: 12, color: T.amber)),
-              const SizedBox(width: 10),
-              Text('${(r.integrity * 100).round()}%',
-                  style: T.mono.copyWith(fontSize: 12, color: iColor)),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(sector.name, style: T.mono.copyWith(fontSize: 12)),
-          if (r.intent.isNotEmpty) ...[
-            const SizedBox(height: 6),
-            Row(
+          Container(width: 3, height: 46, color: iColor),
+          const SizedBox(width: 17),
+          Expanded(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('> ', style: T.mono.copyWith(color: T.dim, fontSize: 11)),
-                Expanded(
-                  child: Text(r.intent,
-                      style: T.mono.copyWith(fontSize: 11, height: 1.5)),
-                ),
-                if (r.progress != null) ...[
-                  const SizedBox(width: 8),
-                  Text(
-                    r.progress!,
-                    style: T.label.copyWith(
-                      fontSize: 9,
-                      color: r.progress == 'YES'
-                          ? T.good
-                          : r.progress == 'SOME'
-                              ? T.amber
-                              : T.dim,
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(stamp, style: T.micro.copyWith(fontSize: 8)),
+                          const SizedBox(height: 5),
+                          Text(sector.name,
+                              style: T.mono.copyWith(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w300,
+                                  letterSpacing: 1.6)),
+                        ],
+                      ),
                     ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text('${r.elapsedMinutes}m',
+                            style: T.mono.copyWith(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w300,
+                                color: T.amber,
+                                height: 1.0)),
+                        const SizedBox(height: 3),
+                        Text('${(r.integrity * 100).round()}%',
+                            style: T.micro.copyWith(color: iColor)),
+                      ],
+                    ),
+                  ],
+                ),
+                if (r.intent.isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(r.intent,
+                            style:
+                                T.mono.copyWith(fontSize: 12, height: 1.5)),
+                      ),
+                      if (r.progress != null) ...[
+                        const SizedBox(width: 10),
+                        Text(r.progress!,
+                            style: T.micro.copyWith(
+                              color: r.progress == 'YES'
+                                  ? T.good
+                                  : r.progress == 'SOME'
+                                      ? T.amber
+                                      : T.dim,
+                            )),
+                      ],
+                    ],
                   ),
                 ],
+                if (r.note != null) ...[
+                  const SizedBox(height: 4),
+                  Text(r.note!,
+                      style: T.micro.copyWith(letterSpacing: 0.4, height: 1.5)),
+                ],
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    if (r.credits > 0)
+                      Text('+${r.credits} CR',
+                          style: T.micro.copyWith(color: T.amber)),
+                    if (r.alloy > 0) ...[
+                      const SizedBox(width: 12),
+                      Text('+${r.alloy} AL',
+                          style: T.micro.copyWith(color: T.steel)),
+                    ],
+                    if (r.intel > 0) ...[
+                      const SizedBox(width: 12),
+                      Text('+${r.intel} IN',
+                          style: T.micro.copyWith(color: T.cyan)),
+                    ],
+                    if (r.loot.isNotEmpty) ...[
+                      const SizedBox(width: 12),
+                      Text('${r.loot.length} SALVAGE',
+                          style: T.micro.copyWith(color: T.amber)),
+                    ],
+                    const Spacer(),
+                    if (r.recalled)
+                      Text('RECALLED', style: T.micro.copyWith(color: T.bad)),
+                  ],
+                ),
               ],
             ),
-          ],
-          if (r.note != null) ...[
-            const SizedBox(height: 4),
-            Padding(
-              padding: const EdgeInsets.only(left: 14),
-              child: Text(r.note!,
-                  style: T.label.copyWith(
-                      fontSize: 10, letterSpacing: 0.3, height: 1.5)),
-            ),
-          ],
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              if (r.credits > 0)
-                Text('+${r.credits} CR',
-                    style: T.label.copyWith(fontSize: 9, color: T.amber)),
-              if (r.alloy > 0) ...[
-                const SizedBox(width: 10),
-                Text('+${r.alloy} AL', style: T.label.copyWith(fontSize: 9)),
-              ],
-              if (r.intel > 0) ...[
-                const SizedBox(width: 10),
-                Text('+${r.intel} IN',
-                    style: T.label.copyWith(fontSize: 9, color: T.cyan)),
-              ],
-              if (r.loot.isNotEmpty) ...[
-                const SizedBox(width: 10),
-                Text('${r.loot.length} SALVAGE',
-                    style: T.label.copyWith(fontSize: 9, color: T.amber)),
-              ],
-              const Spacer(),
-              if (r.recalled)
-                Text('RECALLED', style: T.label.copyWith(fontSize: 9, color: T.bad)),
-            ],
           ),
         ],
       ),

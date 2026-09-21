@@ -1,6 +1,15 @@
 import 'package:flutter/material.dart';
 
+import '../models/models.dart';
 import '../theme/telos_theme.dart';
+
+/// One colour per rarity, used by the debrief, the vault and the kit slots.
+Color rarityColor(Rarity r) => switch (r) {
+      Rarity.common => T.dim,
+      Rarity.uncommon => T.steel,
+      Rarity.rare => T.cyan,
+      Rarity.epic => T.amber,
+    };
 
 /// A section header rendered as a terminal rule:  ── LABEL ─────────────────
 class PanelTitle extends StatelessWidget {

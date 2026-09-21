@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:provider/provider.dart';
 
 import '../data/content.dart';
@@ -18,81 +17,208 @@ class OutpostScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.watch<GuildController>();
     final g = c.g;
+    final locked = kSectors.where((s) => !g.sectorUnlocked(s.id)).toList();
 
     return TerminalScaffold(
       title: 'FACILITIES',
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+        padding: const EdgeInsets.only(bottom: 40),
         children: [
-          Panel(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            child: Row(
-              children: [
-                _Bal('CR', g.credits, T.amber),
-                _Bal('AL', g.alloy, T.text),
-                _Bal('IN', g.intel, T.cyan),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
+          _Balances(g: g),
+          const SizedBox(height: 26),
 
-          const PanelTitle('UPGRADES'),
-          for (final f in Facility.values) ...[
-            _FacilityCard(facility: f),
-            const SizedBox(height: 8),
-          ],
+          const _SectionRule('UPGRADES'),
+          for (final f in Facility.values) _FacilityBand(facility: f),
 
-          const SizedBox(height: 18),
-          PanelTitle('RECRUITING',
-              trailing: Text('${g.roster.length}/${g.rosterSlots} SLOTS',
-                  style: T.label)),
+          const SizedBox(height: 26),
+          _SectionRule('RECRUITING', trailing: '${g.roster.length}/${g.rosterSlots} SLOTS'),
           if (recruitableClasses(g).isEmpty)
-            Panel(
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Text(
                 'No new archetypes available yet. The ARCHIVIST opens up at '
                 'guild level 2.',
-                style: T.label.copyWith(fontSize: 10, letterSpacing: 0.3, height: 1.5),
+                style: T.micro.copyWith(letterSpacing: 0.4),
               ),
             )
           else
-            for (final cls in recruitableClasses(g)) ...[
-              _RecruitCard(cls: cls),
-              const SizedBox(height: 8),
-            ],
+            for (final cls in recruitableClasses(g)) _RecruitBand(cls: cls),
 
-          const SizedBox(height: 18),
-          const PanelTitle('SECTOR ACCESS'),
-          for (final s in kSectors.where((s) => !g.sectorUnlocked(s.id))) ...[
-            _SectorUnlock(sector: s),
-            const SizedBox(height: 8),
-          ],
-          if (kSectors.every((s) => g.sectorUnlocked(s.id)))
-            Panel(
+          const SizedBox(height: 26),
+          const _SectionRule('SECTOR ACCESS', color: T.cyan),
+          if (locked.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Text('Every charted sector is open.',
-                  style: T.label.copyWith(fontSize: 10, letterSpacing: 0.3)),
-            ),
+                  style: T.micro.copyWith(letterSpacing: 0.4)),
+            )
+          else
+            for (final s in locked) _SectorBand(sector: s),
+        ],
+      ),
+    );
+  }
+}
 
-          const SizedBox(height: 22),
-          const PanelTitle('ABOUT'),
-          Panel(
-            onTap: () => _showLicence(context),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
-            child: Row(
+class _SectionRule extends StatelessWidget {
+  const _SectionRule(this.label, {this.trailing, this.color});
+  final String label;
+  final String? trailing;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+      child: Row(
+        children: [
+          Text(label, style: T.micro.copyWith(color: color ?? T.steel)),
+          const SizedBox(width: 12),
+          Expanded(child: Container(height: 1, color: T.line)),
+          if (trailing != null) ...[
+            const SizedBox(width: 12),
+            Text(trailing!, style: T.micro),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _Balances extends StatelessWidget {
+  const _Balances({required this.g});
+  final GuildState g;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget cell(String label, int v, Color color) => Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: T.micro),
+              const SizedBox(height: 6),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text('$v',
+                    style: T.numeric.copyWith(fontSize: 28, color: color)),
+              ),
+            ],
+          ),
+        );
+
+    return Container(
+      color: T.band,
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+      child: Row(
+        children: [
+          cell('CREDITS', g.credits, T.amber),
+          cell('ALLOY', g.alloy, T.steel),
+          cell('INTEL', g.intel, T.cyan),
+        ],
+      ),
+    );
+  }
+}
+
+/// One shared shape for facilities, recruits and sectors: accent bar, a big
+/// Light name, the cost, and the action. Repetition here is structure, not
+/// sameness - each row is doing the same job.
+class _SpendBand extends StatelessWidget {
+  const _SpendBand({
+    required this.accent,
+    required this.kicker,
+    required this.name,
+    required this.blurb,
+    required this.trailing,
+    required this.cost,
+    required this.action,
+    required this.enabled,
+    required this.onTap,
+    this.note,
+  });
+
+  final Color accent;
+  final String kicker;
+  final String name;
+  final String blurb;
+  final Widget trailing;
+  final String cost;
+  final String action;
+  final bool enabled;
+  final VoidCallback? onTap;
+  final String? note;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 2),
+      color: T.band,
+      padding: const EdgeInsets.fromLTRB(0, 16, 20, 16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(width: 4, height: 54, color: enabled ? accent : T.line),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('TYPEFACE',
-                          style: T.mono.copyWith(letterSpacing: 1.6)),
-                      const SizedBox(height: 3),
-                      Text('JetBrains Mono - SIL Open Font License 1.1',
-                          style: T.label
-                              .copyWith(fontSize: 10, letterSpacing: 0.3)),
-                    ],
-                  ),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(kicker, style: T.micro.copyWith(color: accent)),
+                          const SizedBox(height: 5),
+                          Text(name, style: T.title.copyWith(fontSize: 19)),
+                        ],
+                      ),
+                    ),
+                    trailing,
+                  ],
                 ),
-                Text('>', style: T.mono.copyWith(color: T.dim)),
+                const SizedBox(height: 7),
+                Text(blurb,
+                    style: T.micro.copyWith(letterSpacing: 0.4, height: 1.6)),
+                if (note != null) ...[
+                  const SizedBox(height: 5),
+                  Text(note!, style: T.micro.copyWith(color: T.good)),
+                ],
+                const SizedBox(height: 14),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(cost,
+                          style: T.mono.copyWith(
+                              fontSize: 12,
+                              letterSpacing: 0.8,
+                              color: enabled ? T.text : T.dim)),
+                    ),
+                    GestureDetector(
+                      onTap: enabled ? onTap : null,
+                      behavior: HitTestBehavior.opaque,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: enabled
+                              ? accent.withValues(alpha: 0.12)
+                              : Colors.transparent,
+                          border:
+                              Border.all(color: enabled ? accent : T.line),
+                        ),
+                        child: Text(action,
+                            style: T.mono.copyWith(
+                                fontSize: 11,
+                                letterSpacing: 2,
+                                color: enabled ? accent : T.dim)),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -100,72 +226,10 @@ class OutpostScreen extends StatelessWidget {
       ),
     );
   }
-
-  Future<void> _showLicence(BuildContext context) async {
-    final text = await rootBundle.loadString('assets/fonts/OFL.txt');
-    if (!context.mounted) return;
-    await showModalBottomSheet(
-      context: context,
-      backgroundColor: T.card,
-      isScrollControlled: true,
-      shape: const Border(top: BorderSide(color: T.line)),
-      builder: (context) => FractionallySizedBox(
-        heightFactor: 0.85,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(18, 18, 18, 10),
-              child: Row(
-                children: [
-                  Text('SIL OPEN FONT LICENSE 1.1', style: T.label),
-                  const Spacer(),
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    behavior: HitTestBehavior.opaque,
-                    child: Text('[ CLOSE ]',
-                        style: T.label.copyWith(color: T.amber)),
-                  ),
-                ],
-              ),
-            ),
-            const Divider(height: 1, color: T.line),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(18, 14, 18, 28),
-                child: SelectableText(
-                  text,
-                  style: T.mono.copyWith(fontSize: 11, height: 1.5),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
-class _Bal extends StatelessWidget {
-  const _Bal(this.label, this.value, this.color);
-  final String label;
-  final int value;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) => Expanded(
-        child: Row(
-          children: [
-            Text(label, style: T.label.copyWith(fontSize: 9)),
-            const SizedBox(width: 6),
-            Text('$value', style: T.mono.copyWith(color: color, fontSize: 14)),
-          ],
-        ),
-      );
-}
-
-class _FacilityCard extends StatelessWidget {
-  const _FacilityCard({required this.facility});
+class _FacilityBand extends StatelessWidget {
+  const _FacilityBand({required this.facility});
   final Facility facility;
 
   @override
@@ -175,47 +239,30 @@ class _FacilityCard extends StatelessWidget {
     final (costC, costA) = facility.costAt(level);
     final can = c.canUpgrade(facility);
 
-    return Panel(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return _SpendBand(
+      accent: T.steel,
+      kicker: 'FACILITY',
+      name: facility.label,
+      blurb: facility.effect,
+      trailing: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Row(
-            children: [
-              Text(facility.label,
-                  style: T.mono.copyWith(fontSize: 14, letterSpacing: 1.6)),
-              const Spacer(),
-              Text('LV $level', style: T.mono.copyWith(color: T.amber)),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(facility.effect,
-              style: T.label.copyWith(fontSize: 10, letterSpacing: 0.3, height: 1.5)),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'NEXT: $costC CR  +  $costA AL',
-                  style: T.mono.copyWith(
-                      fontSize: 11, color: can ? T.text : T.dim),
-                ),
-              ),
-              TButton(
-                'UPGRADE',
-                expand: false,
-                dense: true,
-                onTap: can ? () => c.upgrade(facility) : null,
-              ),
-            ],
-          ),
+          Text('LEVEL', style: T.micro),
+          const SizedBox(height: 2),
+          Text('$level'.padLeft(2, '0'),
+              style: T.numeric.copyWith(fontSize: 28, color: T.steel)),
         ],
       ),
+      cost: '$costC CR   +   $costA AL',
+      action: 'UPGRADE',
+      enabled: can,
+      onTap: () => c.upgrade(facility),
     );
   }
 }
 
-class _RecruitCard extends StatelessWidget {
-  const _RecruitCard({required this.cls});
+class _RecruitBand extends StatelessWidget {
+  const _RecruitBand({required this.cls});
   final ClassDef cls;
 
   @override
@@ -224,40 +271,31 @@ class _RecruitCard extends StatelessWidget {
     final can = c.canRecruit(cls);
     final full = c.g.roster.length >= c.g.rosterSlots;
 
-    return Panel(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return _SpendBand(
+      accent: T.amber,
+      kicker: 'ARCHETYPE',
+      name: cls.name,
+      blurb: cls.blurb,
+      note: cls.windowText.toUpperCase(),
+      trailing: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Row(
-            children: [
-              Text(cls.name,
-                  style: T.mono.copyWith(fontSize: 14, letterSpacing: 1.6)),
-              const Spacer(),
-              Text('${cls.recruitCost} CR',
-                  style: T.mono.copyWith(
-                      color: c.g.credits >= cls.recruitCost ? T.amber : T.dim)),
-            ],
-          ),
-          const SizedBox(height: 4),
-          Text(cls.blurb,
-              style: T.label.copyWith(fontSize: 10, letterSpacing: 0.3, height: 1.5)),
-          const SizedBox(height: 6),
-          Text(cls.windowText.toUpperCase(),
-              style: T.label.copyWith(color: T.good, fontSize: 9)),
-          const SizedBox(height: 10),
-          TButton(
-            full ? 'ROSTER FULL - UPGRADE BARRACKS' : 'RECRUIT',
-            dense: true,
-            onTap: can ? () => c.recruit(cls) : null,
-          ),
+          Text('COST', style: T.micro),
+          const SizedBox(height: 2),
+          Text('${cls.recruitCost}',
+              style: T.numeric.copyWith(fontSize: 26, color: T.amber)),
         ],
       ),
+      cost: full ? 'ROSTER FULL - UPGRADE BARRACKS' : '${cls.recruitCost} CREDITS',
+      action: 'RECRUIT',
+      enabled: can,
+      onTap: () => c.recruit(cls),
     );
   }
 }
 
-class _SectorUnlock extends StatelessWidget {
-  const _SectorUnlock({required this.sector});
+class _SectorBand extends StatelessWidget {
+  const _SectorBand({required this.sector});
   final Sector sector;
 
   @override
@@ -266,48 +304,26 @@ class _SectorUnlock extends StatelessWidget {
     final can = c.canUnlock(sector);
     final levelShort = c.g.level < sector.guildLevelToUnlock;
 
-    return Panel(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return _SpendBand(
+      accent: T.cyan,
+      kicker: '${sector.designation}   //   ${sector.minMinutes}+ MIN',
+      name: sector.name,
+      blurb: sector.blurb,
+      trailing: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Row(
-            children: [
-              Text(sector.designation, style: T.label),
-              const Spacer(),
-              Text('${sector.minMinutes}+ MIN',
-                  style: T.label.copyWith(color: T.amber)),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(sector.name,
-              style: T.mono.copyWith(fontSize: 14, letterSpacing: 1.4)),
-          const SizedBox(height: 4),
-          Text(sector.blurb,
-              style: T.label.copyWith(fontSize: 10, letterSpacing: 0.3, height: 1.5)),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  levelShort
-                      ? 'REQUIRES GUILD LV ${sector.guildLevelToUnlock}'
-                      : '${sector.intelToUnlock} INTEL  '
-                          '(HAVE ${c.g.intel})',
-                  style: T.mono.copyWith(
-                      fontSize: 11, color: can ? T.cyan : T.dim),
-                ),
-              ),
-              TButton(
-                'UNLOCK',
-                expand: false,
-                dense: true,
-                color: T.cyan,
-                onTap: can ? () => c.unlockSector(sector) : null,
-              ),
-            ],
-          ),
+          Text('INTEL', style: T.micro),
+          const SizedBox(height: 2),
+          Text('${sector.intelToUnlock}',
+              style: T.numeric.copyWith(fontSize: 26, color: T.cyan)),
         ],
       ),
+      cost: levelShort
+          ? 'REQUIRES GUILD LV ${sector.guildLevelToUnlock}'
+          : 'HAVE ${c.g.intel} OF ${sector.intelToUnlock}',
+      action: 'UNLOCK',
+      enabled: can,
+      onTap: () => c.unlockSector(sector),
     );
   }
 }
