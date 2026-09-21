@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:telos/models/models.dart';
@@ -145,5 +146,68 @@ void main() {
     expect(second.hasActiveRun, isTrue); // still waiting on its debrief
     expect(alerts.scheduledFor, isEmpty); // but no alert for a finished run
     second.dispose();
+  });
+
+  group('integrity lifecycle', () {
+    test('a transient resume does not cost a check-in', () async {
+      final c = GuildController(Persistence(), alerts: alerts);
+      await c.boot();
+      await c.startRun(
+        sectorId: 'mosswood',
+        intent: '',
+        squad: ['a1'],
+        minutes: 25,
+      );
+      expect(c.active!.checkIns, 0);
+
+      // What iOS does for a permission dialog or a notification banner:
+      // inactive, then resumed, with no pause in between.
+      c.didChangeAppLifecycleState(AppLifecycleState.inactive);
+      c.didChangeAppLifecycleState(AppLifecycleState.resumed);
+
+      expect(c.active!.checkIns, 0, reason: 'never actually left the app');
+      expect(c.active!.integrity(DateTime.now()), 1.0);
+      c.dispose();
+    });
+
+    test('a real background and return costs one check-in', () async {
+      final c = GuildController(Persistence(), alerts: alerts);
+      await c.boot();
+      await c.startRun(
+        sectorId: 'mosswood',
+        intent: '',
+        squad: ['a1'],
+        minutes: 25,
+      );
+
+      c.didChangeAppLifecycleState(AppLifecycleState.paused);
+      expect(c.active!.watchingSince, isNull);
+      c.didChangeAppLifecycleState(AppLifecycleState.resumed);
+
+      expect(c.active!.checkIns, 1);
+      expect(c.active!.integrity(DateTime.now()), closeTo(0.96, 0.001));
+      c.dispose();
+    });
+
+    test('repeated transient resumes while backgrounded stay at one', () async {
+      final c = GuildController(Persistence(), alerts: alerts);
+      await c.boot();
+      await c.startRun(
+        sectorId: 'mosswood',
+        intent: '',
+        squad: ['a1'],
+        minutes: 25,
+      );
+
+      c.didChangeAppLifecycleState(AppLifecycleState.paused);
+      c.didChangeAppLifecycleState(AppLifecycleState.resumed);
+      c.didChangeAppLifecycleState(AppLifecycleState.inactive);
+      c.didChangeAppLifecycleState(AppLifecycleState.resumed);
+      c.didChangeAppLifecycleState(AppLifecycleState.inactive);
+      c.didChangeAppLifecycleState(AppLifecycleState.resumed);
+
+      expect(c.active!.checkIns, 1, reason: 'one real return, two blips');
+      c.dispose();
+    });
   });
 }

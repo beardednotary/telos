@@ -83,8 +83,14 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
         }
         _save();
       case AppLifecycleState.resumed:
-        // Coming back before the run ends is the thing that costs you.
-        if (!run.isComplete(t)) {
+        // Coming back before the run ends is the thing that costs you - but
+        // only if we actually went away. iOS fires inactive -> resumed for
+        // things the user did not do: the notification permission dialog, an
+        // incoming banner, a Control Centre swipe. None of those background
+        // the app, so watchingSince is still set, and charging a check-in for
+        // them means a run can open below 100% before the user has touched
+        // anything.
+        if (!run.isComplete(t) && run.watchingSince == null) {
           run.checkIns++;
           run.watchingSince = t;
         }
