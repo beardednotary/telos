@@ -48,8 +48,8 @@ void main() {
     await t.pumpAndSettle();
 
     // Dispatch: nothing selected yet, so the action is blocked.
-    expect(find.text('01 / INTENT'), findsOneWidget);
-    expect(find.text('[ SELECT A SQUAD ]'), findsOneWidget);
+    expect(find.text('INTENT'), findsOneWidget);
+    expect(find.text('SELECT A SQUAD'), findsOneWidget);
 
     await t.enterText(find.byType(TextField).first, 'Refactor the auth flow');
     await t.tap(find.text('15 MIN'));
@@ -63,9 +63,9 @@ void main() {
 
     await t.tap(find.text('KAEL'));
     await t.pumpAndSettle();
-    expect(find.text('[ BEGIN EXPEDITION ]'), findsOneWidget);
+    expect(find.text('BEGIN EXPEDITION'), findsOneWidget);
 
-    await t.tap(find.text('[ BEGIN EXPEDITION ]'));
+    await t.tap(find.text('BEGIN EXPEDITION'));
     await t.pump(); // startRun
     await t.pump(const Duration(milliseconds: 500)); // pop transition
 
@@ -94,7 +94,7 @@ void main() {
     await t.pumpAndSettle();
     expect(c.g.log.first.progress, 'SOME');
 
-    await t.tap(find.text('[ RETURN TO OUTPOST ]'));
+    await t.tap(find.text('RETURN TO OUTPOST'));
     await t.pumpAndSettle();
     expect(find.text('DISPATCH'), findsOneWidget);
     expect(c.g.log.length, 1);

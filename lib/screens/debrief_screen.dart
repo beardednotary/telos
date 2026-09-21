@@ -8,7 +8,7 @@ import '../theme/telos_theme.dart';
 import '../widgets/terminal.dart';
 
 /// The after-action report. This is the reward: everything the run produced is
-/// hidden until the work is over, then delivered at once.
+/// hidden until the work is over, then delivered in sequence.
 class DebriefScreen extends StatefulWidget {
   const DebriefScreen({super.key, required this.record});
   final RunRecord record;
@@ -22,8 +22,6 @@ class _DebriefScreenState extends State<DebriefScreen>
   final _note = TextEditingController();
   String? _progress;
 
-  /// Drives the staged reveal. Finite, so the screen still settles; tapping
-  /// anywhere jumps to the end for anyone who does not want the ceremony.
   late final AnimationController _reveal = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 1500),
@@ -38,13 +36,22 @@ class _DebriefScreenState extends State<DebriefScreen>
     super.dispose();
   }
 
+  Widget _beat(int step, Widget child) =>
+      Staged(animation: _reveal, step: step, steps: _beats, child: child);
+
   @override
   Widget build(BuildContext context) {
     final c = context.read<GuildController>();
     final r = widget.record;
     final sector = sectorById(r.sectorId);
-    final mins = r.elapsedMinutes;
-    final depth = (r.elapsedSeconds / 60 / sector.nominalMinutes).clamp(0.0, 1.6);
+    final depth =
+        (r.elapsedSeconds / 60 / sector.nominalMinutes).clamp(0.0, 1.6);
+    final clean = r.integrity >= 0.999;
+    final iColor = clean
+        ? T.good
+        : r.integrity >= 0.7
+            ? T.amber
+            : T.bad;
 
     return Scaffold(
       body: SafeArea(
@@ -52,273 +59,361 @@ class _DebriefScreenState extends State<DebriefScreen>
           onTap: () => _reveal.value = 1,
           behavior: HitTestBehavior.deferToChild,
           child: Column(
-          children: [
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
-                children: [
-                  // -- 0. header ----------------------------------------
-                  _beat(
-                    0,
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
+            children: [
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.only(bottom: 20),
+                  children: [
+                    // -- 0. header -----------------------------------------
+                    _beat(
+                      0,
+                      Container(
+                        width: double.infinity,
+                        color: T.band,
+                        padding: const EdgeInsets.fromLTRB(20, 22, 20, 20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('DEBRIEF', style: T.heading),
-                            const SizedBox(width: 12),
-                            Expanded(child: Container(height: 1, color: T.line)),
-                            const SizedBox(width: 12),
-                            Text(sector.designation, style: T.label),
+                            Row(
+                              children: [
+                                Text('DEBRIEF',
+                                    style: T.micro.copyWith(color: T.cyan)),
+                                const Spacer(),
+                                Text(sector.designation, style: T.micro),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            Text(sector.name,
+                                style: T.title.copyWith(fontSize: 24)),
                           ],
                         ),
-                        const SizedBox(height: 14),
-                        Text(sector.name,
-                            style: T.heading
-                                .copyWith(fontSize: 18, letterSpacing: 2.4)),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-
-                  // -- 1. the numbers -----------------------------------
-                  _beat(
-                    1,
-                    Panel(
-                      child: Column(
-                        children: [
-                          KV('ELAPSED', '${mins}m of ${r.plannedMinutes}m',
-                              bold: true),
-                          KV(
-                            'INTEGRITY',
-                            '${(r.integrity * 100).round()}%'
-                            '${r.integrity >= 0.999 ? '  CLEAN RUN' : ''}',
-                            color: r.integrity >= 0.999
-                                ? T.good
-                                : r.integrity >= 0.7
-                                    ? T.amber
-                                    : T.bad,
-                            bold: true,
-                          ),
-                          KV('DEPTH REACHED', '${(depth * 100).round()}%'),
-                          if (r.recalled)
-                            const KV('STATUS', 'RECALLED EARLY', color: T.bad),
-                          if (r.scraps)
-                            const KV('STATUS', 'BELOW SECTOR MINIMUM',
-                                color: T.bad),
-                        ],
                       ),
                     ),
-                  ),
 
-                  // -- 2. journal ---------------------------------------
-                  const SizedBox(height: 22),
-                  _beat(
-                    2,
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const PanelTitle('FIELD JOURNAL'),
-                        Panel(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              for (final line in r.journal)
-                                Padding(
-                                  padding: const EdgeInsets.only(bottom: 8),
-                                  child: Row(
+                    // -- 1. the two numbers that matter ---------------------
+                    _beat(
+                      1,
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(
+                                  child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      Text('> ',
-                                          style:
-                                              T.mono.copyWith(color: T.dim)),
-                                      Expanded(
-                                        child: Text(line,
-                                            style: T.mono.copyWith(
-                                                fontSize: 12, height: 1.6)),
+                                      Text('FOCUSED', style: T.micro),
+                                      const SizedBox(height: 6),
+                                      Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.baseline,
+                                        textBaseline: TextBaseline.alphabetic,
+                                        children: [
+                                          Text('${r.elapsedMinutes}',
+                                              style: T.big.copyWith(
+                                                  fontSize: 48,
+                                                  color: T.amber)),
+                                          Text('m',
+                                              style: T.mono.copyWith(
+                                                  fontSize: 16, color: T.dim)),
+                                        ],
                                       ),
                                     ],
                                   ),
                                 ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // -- 3. yield -----------------------------------------
-                  const SizedBox(height: 22),
-                  _beat(
-                    3,
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const PanelTitle('RECOVERED'),
-                        Panel(
-                          child: Column(
-                            children: [
-                              _Gain('CREDITS', r.credits, T.amber),
-                              _Gain('ALLOY', r.alloy, T.text),
-                              _Gain('INTEL', r.intel, T.cyan),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // -- 4. salvage: the beat everything else builds to ----
-                  if (r.loot.isNotEmpty)
-                    _beat(
-                      4,
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 22),
-                          Text('> and something else came back with them',
-                              style: T.label.copyWith(
-                                  fontSize: 10,
-                                  letterSpacing: 0.4,
-                                  color: T.amber)),
-                          const SizedBox(height: 10),
-                          PanelTitle('SALVAGE',
-                              color: T.amber,
-                              trailing: Text('${r.loot.length} FOUND',
-                                  style: T.label.copyWith(color: T.amber))),
-                          for (final uid in r.loot) ...[
-                            _LootCard(uid: uid),
-                            const SizedBox(height: 8),
-                          ],
-                        ],
-                      ),
-                    ),
-
-                  // -- 5. progression -----------------------------------
-                  const SizedBox(height: 22),
-                  _beat(
-                    5,
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const PanelTitle('ROSTER PROGRESSION'),
-                        Panel(
-                          child: Column(
-                            children: [
-                              for (final id in r.squad)
-                                _MemberProgress(id: id, rec: r),
-                              const SizedBox(height: 6),
-                              const Divider(height: 18, color: T.line),
-                              KV('GUILD XP', '+${r.guildXp}'),
-                              if (r.guildLevelUps > 0)
-                                KV('GUILD LEVEL',
-                                    'UP x${r.guildLevelUps}  ->  LV ${c.g.level}',
-                                    color: T.good, bold: true),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  // -- 6. honour-system self report ---------------------
-                  if (r.intent.isNotEmpty)
-                    _beat(
-                      6,
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 22),
-                          const PanelTitle('YOU SET OUT TO'),
-                          Panel(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(r.intent,
-                                    style: T.mono
-                                        .copyWith(fontSize: 14, height: 1.5)),
-                                const SizedBox(height: 14),
-                                Text('DID YOU MAKE PROGRESS?', style: T.label),
-                                const SizedBox(height: 8),
-                                Row(
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
                                   children: [
-                                    for (final a in ['YES', 'SOME', 'NO']) ...[
-                                      TChip(
-                                        a,
-                                        selected: _progress == a,
-                                        color: a == 'YES'
-                                            ? T.good
-                                            : a == 'SOME'
-                                                ? T.amber
-                                                : T.dim,
-                                        onTap: () {
-                                          setState(() => _progress = a);
-                                          c.recordProgress(a,
-                                              note: _note.text);
-                                        },
-                                      ),
-                                      const SizedBox(width: 8),
-                                    ],
+                                    Text('INTEGRITY', style: T.micro),
+                                    const SizedBox(height: 6),
+                                    Text('${(r.integrity * 100).round()}%',
+                                        style: T.big.copyWith(
+                                            fontSize: 48, color: iColor)),
                                   ],
-                                ),
-                                const SizedBox(height: 14),
-                                TextField(
-                                  controller: _note,
-                                  style: T.mono.copyWith(fontSize: 13),
-                                  cursorColor: T.amber,
-                                  maxLines: 2,
-                                  maxLength: 160,
-                                  onChanged: (v) {
-                                    if (_progress != null) {
-                                      c.recordProgress(_progress!, note: v);
-                                    }
-                                  },
-                                  decoration: InputDecoration(
-                                    isDense: true,
-                                    counterText: '',
-                                    hintText: 'Add a note (optional)',
-                                    hintStyle: T.mono
-                                        .copyWith(color: T.dim, fontSize: 13),
-                                    border: const UnderlineInputBorder(
-                                        borderSide: BorderSide(color: T.line)),
-                                    enabledBorder: const UnderlineInputBorder(
-                                        borderSide: BorderSide(color: T.line)),
-                                    focusedBorder: const UnderlineInputBorder(
-                                        borderSide: BorderSide(color: T.amber)),
-                                  ),
                                 ),
                               ],
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 14),
+                            Meter(
+                                value: depth.clamp(0.0, 1.0),
+                                segments: 30,
+                                height: 4,
+                                color: iColor),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                Text('DEPTH ${(depth * 100).round()}%',
+                                    style: T.micro),
+                                const Spacer(),
+                                Text(
+                                  r.scraps
+                                      ? 'BELOW SECTOR MINIMUM'
+                                      : r.recalled
+                                          ? 'RECALLED EARLY'
+                                          : clean
+                                              ? 'CLEAN RUN'
+                                              : 'PLANNED ${r.plannedMinutes}m',
+                                  style: T.micro.copyWith(
+                                      color: (r.scraps || r.recalled)
+                                          ? T.bad
+                                          : iColor),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                ],
+
+                    // -- 2. journal ----------------------------------------
+                    const SizedBox(height: 26),
+                    _beat(
+                      2,
+                      Container(
+                        color: T.band,
+                        padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('FIELD JOURNAL', style: T.micro),
+                            const SizedBox(height: 12),
+                            for (final line in r.journal)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 9),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('> ',
+                                        style: T.mono.copyWith(color: T.dim)),
+                                    Expanded(
+                                      child: Text(line,
+                                          style: T.mono.copyWith(
+                                              fontSize: 13, height: 1.65)),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    // -- 3. yield ------------------------------------------
+                    const SizedBox(height: 26),
+                    _beat(
+                      3,
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text('RECOVERED',
+                                    style: T.micro.copyWith(color: T.steel)),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                    child:
+                                        Container(height: 1, color: T.line)),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                _Gain('CREDITS', r.credits, T.amber),
+                                _Gain('ALLOY', r.alloy, T.steel),
+                                _Gain('INTEL', r.intel, T.cyan),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    // -- 4. salvage: the beat everything builds to ----------
+                    if (r.loot.isNotEmpty)
+                      _beat(
+                        4,
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 28),
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 20),
+                              child: Text(
+                                  '> and something else came back with them',
+                                  style: T.micro.copyWith(
+                                      color: T.amber, letterSpacing: 0.4)),
+                            ),
+                            const SizedBox(height: 12),
+                            for (final uid in r.loot) _LootBand(uid: uid),
+                          ],
+                        ),
+                      ),
+
+                    // -- 5. progression -------------------------------------
+                    const SizedBox(height: 28),
+                    _beat(
+                      5,
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text('PROGRESSION',
+                                    style: T.micro.copyWith(color: T.steel)),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                    child:
+                                        Container(height: 1, color: T.line)),
+                                const SizedBox(width: 12),
+                                Text('+${r.guildXp} GUILD XP',
+                                    style: T.micro.copyWith(color: T.amber)),
+                              ],
+                            ),
+                            const SizedBox(height: 14),
+                            for (final id in r.squad)
+                              _MemberProgress(id: id, rec: r),
+                            if (r.guildLevelUps > 0) ...[
+                              const SizedBox(height: 10),
+                              Text(
+                                  'GUILD LEVEL UP  x${r.guildLevelUps}  ->  '
+                                  'LV ${c.g.level}',
+                                  style: T.mono.copyWith(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w300,
+                                      letterSpacing: 1.6,
+                                      color: T.good)),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    // -- 6. honour-system self report -----------------------
+                    if (r.intent.isNotEmpty)
+                      _beat(
+                        6,
+                        Column(
+                          children: [
+                            const SizedBox(height: 28),
+                            Container(
+                              width: double.infinity,
+                              color: T.band,
+                              padding:
+                                  const EdgeInsets.fromLTRB(20, 18, 20, 20),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('YOU SET OUT TO', style: T.micro),
+                                  const SizedBox(height: 8),
+                                  Text(r.intent,
+                                      style: T.mono.copyWith(
+                                          fontSize: 17,
+                                          fontWeight: FontWeight.w300,
+                                          height: 1.45)),
+                                  const SizedBox(height: 18),
+                                  Text('DID YOU MAKE PROGRESS?', style: T.micro),
+                                  const SizedBox(height: 10),
+                                  Row(
+                                    children: [
+                                      for (final a in ['YES', 'SOME', 'NO']) ...[
+                                        TChip(
+                                          a,
+                                          selected: _progress == a,
+                                          color: a == 'YES'
+                                              ? T.good
+                                              : a == 'SOME'
+                                                  ? T.amber
+                                                  : T.dim,
+                                          onTap: () {
+                                            setState(() => _progress = a);
+                                            c.recordProgress(a,
+                                                note: _note.text);
+                                          },
+                                        ),
+                                        const SizedBox(width: 8),
+                                      ],
+                                    ],
+                                  ),
+                                  const SizedBox(height: 16),
+                                  TextField(
+                                    controller: _note,
+                                    style: T.mono.copyWith(fontSize: 13),
+                                    cursorColor: T.amber,
+                                    maxLines: 2,
+                                    maxLength: 160,
+                                    onChanged: (v) {
+                                      if (_progress != null) {
+                                        c.recordProgress(_progress!, note: v);
+                                      }
+                                    },
+                                    decoration: InputDecoration(
+                                      isDense: true,
+                                      counterText: '',
+                                      hintText: 'Add a note (optional)',
+                                      hintStyle: T.mono
+                                          .copyWith(color: T.dim, fontSize: 13),
+                                      border: const UnderlineInputBorder(
+                                          borderSide:
+                                              BorderSide(color: T.line)),
+                                      enabledBorder: const UnderlineInputBorder(
+                                          borderSide:
+                                              BorderSide(color: T.line)),
+                                      focusedBorder: const UnderlineInputBorder(
+                                          borderSide:
+                                              BorderSide(color: T.amber)),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 4, 20, 18),
-              child: TButton(
-                'RETURN TO OUTPOST',
-                filled: true,
-                onTap: () {
-                  if (_progress != null) {
-                    c.recordProgress(_progress!, note: _note.text);
-                  }
-                  c.dismissDebrief();
-                },
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 4, 20, 18),
+                child: GestureDetector(
+                  onTap: () {
+                    if (_progress != null) {
+                      c.recordProgress(_progress!, note: _note.text);
+                    }
+                    c.dismissDebrief();
+                  },
+                  behavior: HitTestBehavior.opaque,
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: T.amber.withValues(alpha: 0.12),
+                      border: Border.all(color: T.amber, width: 1.5),
+                    ),
+                    child: Text('RETURN TO OUTPOST',
+                        style: T.mono.copyWith(
+                            color: T.amber,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w300,
+                            letterSpacing: 3.5)),
+                  ),
+                ),
               ),
-            ),
-          ],
+            ],
           ),
         ),
       ),
     );
   }
-
-  Widget _beat(int step, Widget child) =>
-      Staged(animation: _reveal, step: step, steps: _beats, child: child);
 }
 
 class _Gain extends StatelessWidget {
@@ -328,12 +423,26 @@ class _Gain extends StatelessWidget {
   final Color color;
 
   @override
-  Widget build(BuildContext context) =>
-      KV(label, value > 0 ? '+$value' : '-', color: value > 0 ? color : T.dim);
+  Widget build(BuildContext context) => Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label, style: T.micro),
+            const SizedBox(height: 6),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(value > 0 ? '+$value' : '-',
+                  style: T.numeric
+                      .copyWith(fontSize: 30, color: value > 0 ? color : T.dim)),
+            ),
+          ],
+        ),
+      );
 }
 
-class _LootCard extends StatelessWidget {
-  const _LootCard({required this.uid});
+class _LootBand extends StatelessWidget {
+  const _LootBand({required this.uid});
   final String uid;
 
   @override
@@ -342,40 +451,38 @@ class _LootCard extends StatelessWidget {
     final gear = c.g.gearByUid(uid);
     if (gear == null) return const SizedBox.shrink();
     final def = gearById(gear.defId);
-    final color = switch (def.rarity) {
-      Rarity.common => T.dim,
-      Rarity.uncommon => T.text,
-      Rarity.rare => T.cyan,
-      Rarity.epic => T.amber,
-    };
+    final color = rarityColor(def.rarity);
 
-    return Panel(
-      accent: color,
-      selected: def.rarity.index >= Rarity.rare.index,
-      child: Column(
+    return Container(
+      margin: const EdgeInsets.only(bottom: 2),
+      color: color.withValues(alpha: 0.06),
+      padding: const EdgeInsets.fromLTRB(0, 16, 20, 16),
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Text('[${def.rarity.label}]',
-                  style: T.label.copyWith(color: color, fontSize: 9)),
-              const Spacer(),
-              Text('SALVAGE', style: T.label.copyWith(fontSize: 9)),
-            ],
+          Container(width: 4, height: 54, color: color),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(def.rarity.label, style: T.micro.copyWith(color: color)),
+                const SizedBox(height: 6),
+                Text(def.name,
+                    style: T.title.copyWith(fontSize: 20, color: color)),
+                if (def.flavor.isNotEmpty) ...[
+                  const SizedBox(height: 5),
+                  Text(def.flavor,
+                      style: T.micro.copyWith(
+                          letterSpacing: 0.4, fontStyle: FontStyle.italic)),
+                ],
+                const SizedBox(height: 10),
+                for (final l in def.bonus.lines)
+                  Text(l,
+                      style: T.mono.copyWith(fontSize: 12, color: T.good)),
+              ],
+            ),
           ),
-          const SizedBox(height: 6),
-          Text(def.name,
-              style: T.mono.copyWith(
-                  fontSize: 15, color: color, letterSpacing: 1.4)),
-          if (def.flavor.isNotEmpty) ...[
-            const SizedBox(height: 4),
-            Text(def.flavor,
-                style: T.label.copyWith(
-                    fontSize: 10, letterSpacing: 0.3, fontStyle: FontStyle.italic)),
-          ],
-          const SizedBox(height: 8),
-          for (final l in def.bonus.lines)
-            Text('> $l', style: T.mono.copyWith(fontSize: 11, color: T.good)),
         ],
       ),
     );
@@ -395,28 +502,33 @@ class _MemberProgress extends StatelessWidget {
     final levelled = rec.levelUps.contains(id);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.only(bottom: 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(m.name, style: T.mono.copyWith(letterSpacing: 1.2)),
-              const SizedBox(width: 8),
-              Text('+${rec.xpGained[id] ?? 0} XP', style: T.label),
+              Text(m.name,
+                  style: T.mono.copyWith(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w300,
+                      letterSpacing: 2)),
+              const SizedBox(width: 10),
+              Text('+${rec.xpGained[id] ?? 0} XP', style: T.micro),
               const Spacer(),
-              Text(
-                levelled ? 'LV ${m.level}  UP' : 'LV ${m.level}',
-                style: T.mono.copyWith(
-                    fontSize: 12, color: levelled ? T.good : T.dim),
-              ),
+              Text(levelled ? 'LV ${m.level}  UP' : 'LV ${m.level}',
+                  style: T.mono.copyWith(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w300,
+                      color: levelled ? T.good : T.dim)),
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
           Meter(
             value: m.xp / m.xpToNext,
-            segments: 18,
-            height: 5,
+            segments: 24,
+            height: 4,
             color: levelled ? T.good : T.amber,
           ),
         ],
