@@ -2,8 +2,8 @@
 # rasterisation differs between platforms, so they would fail on any machine
 # other than the one that generated them. Skipped by default.
 #
-#   flutter test --tags golden --update-goldens test/golden_test.dart
+#   flutter test --run-skipped --update-goldens test/golden_test.dart
 #
 tags:
   golden:
-    skip: "preview renders - run explicitly with --tags golden"
+    skip: "preview renders - run explicitly with --run-skipped"
