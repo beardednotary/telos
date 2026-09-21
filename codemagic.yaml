@@ -4,10 +4,13 @@
 #    ios-testflight  - signed release, uploaded to TestFlight (use this one)
 #    ios-unsigned    - no signing, no account needed; proves the build compiles
 #
-#  App ID and App Store Connect record for com.dahvio.telos: confirmed to exist.
-#
 #  `integrations.app_store_connect` is the *name* of the integration in
 #  Codemagic (Teams -> Integrations), not the key ID.
+#
+#  Signing is done with explicit CLI steps rather than the automatic
+#  `ios_signing` block. The automatic block reported zero matching profiles
+#  even after one was created by hand, and it does not say why. The steps
+#  below print what the API key can actually see before they try to sign.
 
 definitions:
   base: &base
@@ -27,11 +30,51 @@ workflows:
 
     environment:
       <<: *base
-      ios_signing:
-        distribution_type: app_store
-        bundle_identifier: com.dahvio.telos
+      vars:
+        BUNDLE_ID: "com.dahvio.telos"
 
     scripts:
+      # -- diagnosis ---------------------------------------------------------
+      - name: What can this API key see?
+        # Read-only, and never fails the build. If com.dahvio.telos does not
+        # appear in the bundle id listing, the key is authenticated against a
+        # different Apple team than the one that owns the identifier - which
+        # would explain a hand-made profile being invisible.
+        script: |
+          echo "=== bundle ids visible to this key ==="
+          app-store-connect list-bundle-ids 2>&1 | grep -i -A2 -B2 "dahvio" \
+            || echo ">>> $BUNDLE_ID NOT VISIBLE TO THIS KEY <<<"
+          echo
+          echo "=== iOS distribution certificates ==="
+          app-store-connect list-certificates --type IOS_DISTRIBUTION 2>&1 \
+            | head -40 || true
+          echo
+          echo "=== App Store provisioning profiles ==="
+          app-store-connect list-profiles --type IOS_APP_STORE 2>&1 \
+            | head -60 || true
+          true
+
+      # -- signing -----------------------------------------------------------
+      - name: Set up keychain
+        script: keychain initialize
+
+      - name: Fetch or create signing files
+        # --create makes the CLI create the profile (and, if the account has
+        # none it can use, a distribution certificate) instead of only
+        # looking for existing ones. Apple caps distribution certificates at
+        # 3 per account, so if this creates one, keep an eye on that limit.
+        script: |
+          app-store-connect fetch-signing-files "$BUNDLE_ID" \
+            --type IOS_APP_STORE \
+            --create
+
+      - name: Add certificates to keychain
+        script: keychain add-certificates
+
+      - name: Apply profiles to the Xcode project
+        script: xcode-project use-profiles
+
+      # -- build -------------------------------------------------------------
       - name: Dependencies
         script: flutter pub get
 
@@ -75,10 +118,9 @@ workflows:
         #   - Internal
 
   # ---------------------------------------------------------------------------
-  # Needs no Apple account at all. Run this first: it proves the Podfile
-  # resolves, flutter_local_notifications compiles against iOS 13, the
-  # AppDelegate change builds, and the fonts bundle. It produces a .app that
-  # cannot be installed on a device.
+  # Needs no Apple account at all. It proves the project resolves, the plugins
+  # compile, the AppDelegate change builds and the fonts bundle. It produces a
+  # .app that cannot be installed on a device.
   ios-unsigned:
     name: Telos - iOS (unsigned build check)
     max_build_duration: 30
