@@ -42,9 +42,9 @@ void main() {
 
     // Home
     expect(find.text('THE SILVER LANTERN'), findsOneWidget);
-    expect(find.text('[ DISPATCH SQUAD ]'), findsOneWidget);
+    expect(find.text('DISPATCH'), findsOneWidget);
 
-    await t.tap(find.text('[ DISPATCH SQUAD ]'));
+    await t.tap(find.text('DISPATCH'));
     await t.pumpAndSettle();
 
     // Dispatch: nothing selected yet, so the action is blocked.
@@ -71,10 +71,10 @@ void main() {
 
     // Session
     expect(find.text('MOSSWOOD VERGE'), findsOneWidget);
-    expect(find.text('SQUAD: KAEL'), findsOneWidget);
+    expect(find.text('KAEL'), findsOneWidget);
     expect(find.text('INTEGRITY'), findsOneWidget);
     expect(find.text('100%'), findsOneWidget);
-    expect(find.text('[ RECALL SQUAD ]'), findsOneWidget);
+    expect(find.text('RECALL SQUAD'), findsOneWidget);
     expect(find.text('Refactor the auth flow'), findsOneWidget);
 
     // Recalling resolves the run and hands back a debrief.
@@ -96,7 +96,7 @@ void main() {
 
     await t.tap(find.text('[ RETURN TO OUTPOST ]'));
     await t.pumpAndSettle();
-    expect(find.text('[ DISPATCH SQUAD ]'), findsOneWidget);
+    expect(find.text('DISPATCH'), findsOneWidget);
     expect(c.g.log.length, 1);
 
     c.dispose();

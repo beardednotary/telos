@@ -8,7 +8,8 @@ import '../theme/telos_theme.dart';
 import '../widgets/terminal.dart';
 
 /// The live run. Deliberately almost empty: there is nothing to tap, nothing
-/// to collect, and watching it costs you integrity.
+/// to collect, and watching it costs you integrity. The countdown is the only
+/// thing on it allowed to be large.
 class SessionScreen extends StatelessWidget {
   const SessionScreen({super.key});
 
@@ -30,7 +31,13 @@ class SessionScreen extends StatelessWidget {
         .map((id) => c.g.memberById(id))
         .whereType<Adventurer>()
         .map((m) => m.name)
-        .join(', ');
+        .join(' / ');
+
+    final iColor = integrity >= 0.999
+        ? T.good
+        : integrity >= 0.7
+            ? T.amber
+            : T.bad;
 
     String two(int n) => n.toString().padLeft(2, '0');
     final clock = left.inHours > 0
@@ -39,132 +46,149 @@ class SessionScreen extends StatelessWidget {
 
     return Scaffold(
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+        child: Column(
+          children: [
+            // -- destination band ------------------------------------------
+            Container(
+              width: double.infinity,
+              color: T.band,
+              padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(sector.designation, style: T.label),
-                  const SizedBox(width: 10),
-                  Expanded(child: Container(height: 1, color: T.line)),
-                  const SizedBox(width: 10),
-                  Text(done ? 'RETURNED' : 'IN TRANSIT',
-                      style: T.label.copyWith(color: done ? T.good : T.amber)),
+                  Row(
+                    children: [
+                      Text(sector.designation,
+                          style: T.micro.copyWith(color: T.cyan)),
+                      const Spacer(),
+                      Container(
+                        width: 6,
+                        height: 6,
+                        color: done ? T.good : T.amber,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(done ? 'RETURNED' : 'IN TRANSIT',
+                          style:
+                              T.micro.copyWith(color: done ? T.good : T.amber)),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Text(sector.name,
+                      style: T.title.copyWith(fontSize: 19, color: T.cyan)),
+                  const SizedBox(height: 6),
+                  Text(squad, style: T.micro.copyWith(letterSpacing: 1.0)),
                 ],
               ),
-              const SizedBox(height: 10),
-              Text(sector.name,
-                  style: T.heading.copyWith(fontSize: 16, letterSpacing: 2.2)),
-              const SizedBox(height: 4),
-              Text('SQUAD: $squad', style: T.label),
+            ),
 
-              const Spacer(),
+            const Spacer(flex: 2),
 
-              // -- the clock -------------------------------------------
-              Center(
-                child: Column(
-                  children: [
-                    Text(done ? '00:00' : clock, style: T.big),
-                    const SizedBox(height: 6),
-                    Text(done ? 'EXPEDITION COMPLETE' : 'REMAINING',
-                        style: T.label.copyWith(
-                            color: done ? T.good : T.dim, letterSpacing: 2)),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-              Meter(value: progress, segments: 30, height: 6),
+            // -- the clock -------------------------------------------------
+            Text(done ? '00:00' : clock,
+                style: T.big.copyWith(color: done ? T.good : T.text)),
+            const SizedBox(height: 10),
+            Text(done ? 'EXPEDITION COMPLETE' : 'REMAINING',
+                style: T.micro.copyWith(
+                    color: done ? T.good : T.dim, letterSpacing: 3)),
 
-              const SizedBox(height: 28),
+            const SizedBox(height: 30),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Meter(value: progress, segments: 34, height: 4),
+            ),
 
-              // -- integrity -------------------------------------------
-              Panel(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Text('INTEGRITY', style: T.label),
-                        const Spacer(),
-                        Text('${(integrity * 100).round()}%',
-                            style: T.mono.copyWith(
-                              color: integrity >= 0.999
-                                  ? T.good
-                                  : integrity >= 0.7
-                                      ? T.amber
-                                      : T.bad,
-                              fontSize: 15,
-                            )),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Meter(
-                      value: integrity,
-                      segments: 20,
-                      height: 6,
-                      color: integrity >= 0.999
-                          ? T.good
-                          : integrity >= 0.7
-                              ? T.amber
-                              : T.bad,
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      done
-                          ? 'Final. Rare finds were scaled to this.'
-                          : run.checkIns == 0
-                              ? 'Untouched since dispatch. Put the phone down and it stays there.'
-                              : 'Reopened ${run.checkIns} time${run.checkIns == 1 ? '' : 's'}. '
-                                  'Each check-in costs the squad.',
-                      style: T.label.copyWith(
-                          fontSize: 10, letterSpacing: 0.3, height: 1.5),
-                    ),
-                  ],
-                ),
-              ),
+            const Spacer(flex: 2),
 
-              if (run.intent.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                Panel(
-                  padding: const EdgeInsets.all(13),
-                  child: Row(
+            // -- integrity -------------------------------------------------
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Text('INTENT  ', style: T.label),
-                      Expanded(
-                        child: Text(run.intent,
-                            style: T.mono.copyWith(fontSize: 12)),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('INTEGRITY', style: T.micro),
+                          const SizedBox(height: 4),
+                          Text('${(integrity * 100).round()}%',
+                              style: T.numeric.copyWith(color: iColor)),
+                        ],
+                      ),
+                      const Spacer(),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 4),
+                        child: Text(
+                          run.checkIns == 0
+                              ? 'UNTOUCHED'
+                              : '${run.checkIns} CHECK-IN'
+                                  '${run.checkIns == 1 ? '' : 'S'}',
+                          style: T.micro.copyWith(
+                              color: run.checkIns == 0 ? T.good : T.amber),
+                        ),
                       ),
                     ],
                   ),
-                ),
-              ],
+                  const SizedBox(height: 12),
+                  Meter(
+                      value: integrity, segments: 24, height: 5, color: iColor),
+                ],
+              ),
+            ),
 
-              const Spacer(),
-
-              if (done)
-                TButton(
-                  'RECEIVE DEBRIEF',
-                  filled: true,
-                  color: T.good,
-                  onTap: () => c.finishRun(recalled: false),
-                )
-              else ...[
-                Text(
-                  'Nothing happens in here while you watch. Lock the phone.',
-                  textAlign: TextAlign.center,
-                  style: T.label.copyWith(fontSize: 10, letterSpacing: 0.4),
+            if (run.intent.isNotEmpty) ...[
+              const SizedBox(height: 24),
+              Container(
+                width: double.infinity,
+                color: T.band,
+                padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('INTENT', style: T.micro),
+                    const SizedBox(height: 5),
+                    Text(run.intent,
+                        style: T.mono.copyWith(fontSize: 14, height: 1.4)),
+                  ],
                 ),
-                const SizedBox(height: 10),
-                TButton(
-                  'RECALL SQUAD',
-                  color: T.bad,
-                  onTap: () => _confirmRecall(context, c),
-                ),
-              ],
+              ),
             ],
-          ),
+
+            const Spacer(flex: 1),
+
+            // -- the only control ------------------------------------------
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 18),
+              child: done
+                  ? _BigAction(
+                      label: 'RECEIVE DEBRIEF',
+                      color: T.good,
+                      onTap: () => c.finishRun(recalled: false),
+                    )
+                  : Column(
+                      children: [
+                        Text('Nothing happens in here while you watch it.',
+                            textAlign: TextAlign.center,
+                            style: T.micro.copyWith(letterSpacing: 0.4)),
+                        const SizedBox(height: 14),
+                        GestureDetector(
+                          onTap: () => _confirmRecall(context, c),
+                          behavior: HitTestBehavior.opaque,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            child: Text('RECALL SQUAD',
+                                style: T.mono.copyWith(
+                                    color: T.bad,
+                                    fontSize: 12,
+                                    letterSpacing: 2.4)),
+                          ),
+                        ),
+                      ],
+                    ),
+            ),
+          ],
         ),
       ),
     );
@@ -182,7 +206,8 @@ class SessionScreen extends StatelessWidget {
       builder: (context) => AlertDialog(
         backgroundColor: T.card,
         shape: const Border.fromBorderSide(BorderSide(color: T.line)),
-        title: Text('RECALL SQUAD?', style: T.heading.copyWith(fontSize: 14)),
+        title: Text('RECALL SQUAD?',
+            style: T.mono.copyWith(fontSize: 16, letterSpacing: 2)),
         content: Text(
           short
               ? 'They are $elapsedMin minutes in. ${sector.name} needs '
@@ -190,20 +215,60 @@ class SessionScreen extends StatelessWidget {
                   'with scraps - but the time still counts in your log.'
               : 'They are $elapsedMin minutes in. You keep what they have '
                   'gathered so far, scaled to how far they got.',
-          style: T.mono.copyWith(fontSize: 12, height: 1.6),
+          style: T.mono.copyWith(fontSize: 13, height: 1.6),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text('KEEP GOING', style: T.label.copyWith(color: T.amber)),
+            child: Text('KEEP GOING',
+                style: T.mono.copyWith(color: T.amber, fontSize: 12)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text('RECALL', style: T.label.copyWith(color: T.bad)),
+            child: Text('RECALL',
+                style: T.mono.copyWith(color: T.bad, fontSize: 12)),
           ),
         ],
       ),
     );
     if (ok == true) await c.finishRun(recalled: true);
+  }
+}
+
+class _BigAction extends StatelessWidget {
+  const _BigAction({
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.12),
+          border: Border.all(color: color, width: 1.5),
+        ),
+        child: Text(
+          label,
+          style: T.mono.copyWith(
+            color: color,
+            fontSize: 17,
+            letterSpacing: 2.5,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
   }
 }
