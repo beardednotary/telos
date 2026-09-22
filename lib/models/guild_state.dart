@@ -212,6 +212,21 @@ class GuildState {
   }
 }
 
+/// Everything the forge can make: the loot pools of every sector you have
+/// opened. Charting a place is what teaches you to build its equipment.
+List<GearDef> craftableGear(GuildState g) {
+  final ids = <String>{};
+  for (final s in kSectors) {
+    if (g.sectorUnlocked(s.id)) ids.addAll(s.lootPool);
+  }
+  final out = ids.map((i) => kGear[i]!).toList();
+  out.sort((a, b) {
+    final r = a.rarity.index.compareTo(b.rarity.index);
+    return r != 0 ? r : a.name.compareTo(b.name);
+  });
+  return out;
+}
+
 /// Guild levels that grant another squad slot. Named so the level-up
 /// acknowledgement and the slot calculation cannot drift apart.
 const List<int> kSquadSlotLevels = [3, 6, 10];

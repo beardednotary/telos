@@ -307,6 +307,45 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
     notifyListeners();
   }
 
+  // -- forge -----------------------------------------------------------------
+
+  int get forgeLevel => _g.facilities[Facility.forge]!;
+
+  bool forgeCanWork(Rarity r) => forgeLevel >= kForgeLevelFor[r]!;
+
+  bool canCraft(GearDef def) {
+    if (!forgeCanWork(def.rarity)) return false;
+    final c = kCraftCost[def.rarity]!;
+    return _g.credits >= c.credits &&
+        _g.alloy >= c.alloy &&
+        _g.intel >= c.intel;
+  }
+
+  Future<Gear?> craft(GearDef def) async {
+    if (!canCraft(def)) return null;
+    final c = kCraftCost[def.rarity]!;
+    _g.credits -= c.credits;
+    _g.alloy -= c.alloy;
+    _g.intel -= c.intel;
+    final gear = Gear('g${_g.gearCounter++}', def.id);
+    _g.vault.add(gear);
+    await _save();
+    notifyListeners();
+    return gear;
+  }
+
+  /// Only unassigned gear can be melted - taking something off a member to
+  /// destroy it should be a deliberate two-step.
+  Future<int?> melt(Gear gear) async {
+    if (!_g.unequippedGear.any((x) => x.uid == gear.uid)) return null;
+    final value = kMeltValue[gearById(gear.defId).rarity]!;
+    _g.vault.removeWhere((x) => x.uid == gear.uid);
+    _g.alloy += value;
+    await _save();
+    notifyListeners();
+    return value;
+  }
+
   bool canUnlock(Sector s) =>
       !_g.sectorUnlocked(s.id) &&
       _g.level >= s.guildLevelToUnlock &&

@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/guild_state.dart';
+import '../models/models.dart';
 import '../state/guild_controller.dart';
 import '../theme/telos_theme.dart';
 import '../widgets/terminal.dart';
 import 'dispatch_screen.dart';
+import 'forge_screen.dart';
 import 'log_screen.dart';
 import 'outpost_screen.dart';
 import 'roster_screen.dart';
@@ -56,6 +58,13 @@ class HomeScreen extends StatelessWidget {
               hint: 'Upgrades, recruiting, sectors',
               onTap: () => Navigator.push(context,
                   MaterialPageRoute(builder: (_) => const OutpostScreen())),
+            ),
+            _NavRow(
+              label: 'FORGE',
+              value: 'LV ${g.facilities[Facility.forge]}',
+              hint: 'Build gear from what you have charted',
+              onTap: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const ForgeScreen())),
             ),
             _NavRow(
               label: 'FIELD LOG',

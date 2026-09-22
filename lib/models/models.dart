@@ -148,6 +148,44 @@ class Gear {
       Gear(j['uid'] as String, j['defId'] as String);
 }
 
+/// What it costs to forge a piece of gear, and what melting one returns.
+///
+/// INTEL had exactly one sink - opening sectors, 5,480 of it in total - after
+/// which it accumulated forever with nothing to spend it on. Worse, the
+/// ARCHIVIST exists to produce intel, so investing in one eventually bought a
+/// member whose whole purpose was a dead stat. The forge is that sink.
+class CraftCost {
+  final int credits;
+  final int alloy;
+  final int intel;
+  const CraftCost(this.credits, this.alloy, this.intel);
+}
+
+const Map<Rarity, CraftCost> kCraftCost = {
+  Rarity.common: CraftCost(120, 45, 15),
+  Rarity.uncommon: CraftCost(300, 110, 50),
+  Rarity.rare: CraftCost(850, 260, 160),
+  Rarity.epic: CraftCost(2200, 600, 480),
+};
+
+/// Melting returns alloy only, and less than forging cost. The vault is for
+/// keeping things, not for laundering them.
+const Map<Rarity, int> kMeltValue = {
+  Rarity.common: 18,
+  Rarity.uncommon: 45,
+  Rarity.rare: 105,
+  Rarity.epic: 240,
+};
+
+/// The forge level needed to work at each rarity, so the deep tiers stay
+/// something to build toward rather than something to buy on day one.
+const Map<Rarity, int> kForgeLevelFor = {
+  Rarity.common: 1,
+  Rarity.uncommon: 1,
+  Rarity.rare: 3,
+  Rarity.epic: 5,
+};
+
 /// ---------------------------------------------------------------------------
 /// ADVENTURER
 /// One member of your guild. Gains XP from sessions, levels up, holds gear.
