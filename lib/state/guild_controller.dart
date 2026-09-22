@@ -49,11 +49,32 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
         squad: _squadLabel(restored.squad),
       );
     }
+    _noteOpen();
     // The board is always full, so there is never a refresh to remember.
     ContractBoard.refill(_g);
     _ready = true;
     _syncTicker();
     notifyListeners();
+  }
+
+  /// One line of local bookkeeping per launch: how many times, and on which
+  /// distinct days. Never sent anywhere.
+  void _noteOpen() {
+    final now = DateTime.now();
+    _g.installedAt ??= now;
+    _g.appOpens++;
+    final day = '${now.year}-${now.month.toString().padLeft(2, '0')}'
+        '-${now.day.toString().padLeft(2, '0')}';
+    if (!_g.openDays.contains(day)) _g.openDays.add(day);
+    if (_g.openDays.length > 400) _g.openDays.removeAt(0);
+    unawaited(_save());
+  }
+
+  /// Called when the manual is first shown, so bouncing off it is visible.
+  Future<void> noteManualSeen() async {
+    if (_g.manualSeenAt != null) return;
+    _g.manualSeenAt = DateTime.now();
+    await _save();
   }
 
   @override
@@ -228,6 +249,7 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
 
   Future<void> completeOnboarding() async {
     _g.onboarded = true;
+    _g.manualDoneAt = DateTime.now();
     await _save();
     notifyListeners();
   }

@@ -62,4 +62,38 @@ void main() {
     expect(early.compareTo(later), lessThan(0));
     expect(later, endsWith('.json'));
   });
+
+  group('local telemetry', () {
+    test('a fresh save records when it was installed', () {
+      final g = GuildState.fresh();
+      expect(g.installedAt, isNotNull);
+      expect(g.appOpens, 0);
+      expect(g.daysActive, 0);
+    });
+
+    test('telemetry survives the round trip and reaches the summary', () {
+      final g = GuildState.fresh();
+      g.appOpens = 14;
+      g.openDays.addAll(['2026-09-20', '2026-09-21', '2026-09-22']);
+      g.manualSeenAt = DateTime(2026, 9, 20, 8);
+      g.manualDoneAt = DateTime(2026, 9, 20, 8, 2);
+
+      final after = Backup.decode(Backup.encode(g))!;
+      expect(after.appOpens, 14);
+      expect(after.daysActive, 3);
+      expect(after.manualDoneAt, g.manualDoneAt);
+
+      // Readable without parsing the whole save.
+      expect(Backup.encode(g), contains('"appOpens": 14'));
+      expect(Backup.encode(g), contains('"daysActive": 3'));
+    });
+
+    test('someone who bounced off the manual is visible', () {
+      final g = GuildState.fresh();
+      g.manualSeenAt = DateTime(2026, 9, 20, 8);
+      // Never completed it.
+      expect(g.manualDoneAt, isNull);
+      expect(g.onboarded, isFalse);
+    });
+  });
 }

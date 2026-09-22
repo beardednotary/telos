@@ -80,6 +80,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    if (!widget.asReview) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => context.read<GuildController>().noteManualSeen(),
+      );
+    }
+  }
+
+  @override
   void dispose() {
     _pages.dispose();
     super.dispose();

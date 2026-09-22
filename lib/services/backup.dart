@@ -39,6 +39,11 @@ class Backup {
         'level': g.level,
         'expeditions': g.log.length,
         'focusMinutes': g.totalFocusMinutes,
+        'installedAt': g.installedAt?.toIso8601String(),
+        'appOpens': g.appOpens,
+        'daysActive': g.daysActive,
+        'manualSeenAt': g.manualSeenAt?.toIso8601String(),
+        'manualDoneAt': g.manualDoneAt?.toIso8601String(),
       },
       'save': g.toJson(),
     });

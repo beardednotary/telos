@@ -30,6 +30,28 @@ class GuildState {
   int runCounter;
   bool onboarded;
 
+  /// LOCAL TELEMETRY. Nothing here leaves the phone unless the player
+  /// deliberately exports a backup and sends it to you.
+  ///
+  /// It exists because the field log answers "what did they do" but not
+  /// "did they come back and decide not to". An opened app with no run is
+  /// the single most informative event in an early test, and it is the one
+  /// thing the log cannot see. An analytics SDK would answer it too, at the
+  /// cost of a backend, a privacy policy, a nutrition label, and the claim
+  /// that this app makes no network calls - which is worth more than the
+  /// question.
+  DateTime? installedAt;
+  int appOpens;
+
+  /// Distinct yyyy-mm-dd strings the app was opened on. Bounded by days, not
+  /// by opens, so it stays tiny.
+  List<String> openDays;
+
+  /// When the manual was first shown, and when it was finished. A gap with
+  /// no completion is someone who bounced off the first screen.
+  DateTime? manualSeenAt;
+  DateTime? manualDoneAt;
+
   GuildState({
     required this.guildName,
     required this.level,
@@ -49,7 +71,13 @@ class GuildState {
     this.gearCounter = 0,
     this.runCounter = 0,
     this.onboarded = false,
-  }) : contracts = contracts ?? <Contract>[];
+    this.installedAt,
+    this.appOpens = 0,
+    List<String>? openDays,
+    this.manualSeenAt,
+    this.manualDoneAt,
+  })  : contracts = contracts ?? <Contract>[],
+        openDays = openDays ?? <String>[];
 
   /// A fresh save: two members, one sector, nothing else.
   factory GuildState.fresh() => GuildState(
@@ -71,6 +99,7 @@ class GuildState {
         },
         unlockedSectors: {'mosswood'},
         log: [],
+        installedAt: DateTime.now(),
       );
 
   // -- progression curves ----------------------------------------------------
@@ -124,6 +153,10 @@ class GuildState {
   int get totalFocusMinutes =>
       log.fold(0, (sum, r) => sum + r.elapsedSeconds) ~/ 60;
 
+  /// Days between install and the last day the app was opened. The blunt
+  /// retention number for an early test.
+  int get daysActive => openDays.length;
+
   int get cleanRuns => log.where((r) => r.integrity >= 0.999).length;
 
   /// Consecutive days, ending today or yesterday, with at least one run.
@@ -172,6 +205,11 @@ class GuildState {
         'gearCounter': gearCounter,
         'runCounter': runCounter,
         'onboarded': onboarded,
+        'installedAt': installedAt?.toIso8601String(),
+        'appOpens': appOpens,
+        'openDays': openDays,
+        'manualSeenAt': manualSeenAt?.toIso8601String(),
+        'manualDoneAt': manualDoneAt?.toIso8601String(),
       };
 
   factory GuildState.fromJson(Map<String, dynamic> j) {
@@ -219,6 +257,11 @@ class GuildState {
       gearCounter: j['gearCounter'] as int? ?? 0,
       runCounter: j['runCounter'] as int? ?? 0,
       onboarded: j['onboarded'] as bool? ?? false,
+      installedAt: DateTime.tryParse(j['installedAt'] as String? ?? ''),
+      appOpens: j['appOpens'] as int? ?? 0,
+      openDays: (j['openDays'] as List?)?.cast<String>() ?? <String>[],
+      manualSeenAt: DateTime.tryParse(j['manualSeenAt'] as String? ?? ''),
+      manualDoneAt: DateTime.tryParse(j['manualDoneAt'] as String? ?? ''),
     );
   }
 }
