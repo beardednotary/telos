@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 
 import 'screens/debrief_screen.dart';
 import 'screens/home_screen.dart';
+import 'screens/onboarding_screen.dart';
 import 'screens/session_screen.dart';
 import 'services/alerts.dart';
 import 'services/persistence.dart';
@@ -67,6 +68,9 @@ class Root extends StatelessWidget {
     final c = context.watch<GuildController>();
     if (!c.ready) {
       return const Scaffold(body: SizedBox.shrink());
+    }
+    if (!c.g.onboarded) {
+      return const OnboardingScreen();
     }
     if (c.pendingDebrief != null) {
       return DebriefScreen(record: c.pendingDebrief!);

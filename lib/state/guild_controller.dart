@@ -151,7 +151,6 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
       plannedMinutes: minutes,
       watchingSince: t,
     );
-    _g.onboarded = true;
     now = t;
     _syncTicker();
     await _alerts.scheduleReturn(
@@ -220,6 +219,12 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
     await _save();
     notifyListeners();
     return res.record;
+  }
+
+  Future<void> completeOnboarding() async {
+    _g.onboarded = true;
+    await _save();
+    notifyListeners();
   }
 
   Future<void> recordProgress(String answer, {String? note}) async {

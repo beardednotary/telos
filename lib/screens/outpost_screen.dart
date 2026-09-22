@@ -7,6 +7,7 @@ import '../models/models.dart';
 import '../state/guild_controller.dart';
 import '../theme/telos_theme.dart';
 import '../widgets/flash.dart';
+import 'onboarding_screen.dart';
 import '../widgets/terminal.dart';
 
 /// Everything you spend resources on. This is the between-sessions layer -
@@ -55,6 +56,40 @@ class OutpostScreen extends StatelessWidget {
             )
           else
             for (final s in locked) _SectorBand(sector: s),
+
+          const SizedBox(height: 26),
+          const _SectionRule('ABOUT'),
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const OnboardingScreen(asReview: true),
+              ),
+            ),
+            child: Container(
+              color: T.band,
+              padding: const EdgeInsets.fromLTRB(0, 16, 20, 16),
+              child: Row(
+                children: [
+                  Container(width: 4, height: 40, color: T.amber),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('FIELD MANUAL', style: T.title.copyWith(fontSize: 18)),
+                        const SizedBox(height: 4),
+                        Text('How this works, and why not opening it is the point',
+                            style: T.micro.copyWith(letterSpacing: 0.4)),
+                      ],
+                    ),
+                  ),
+                  Text('>', style: T.mono.copyWith(color: T.dim)),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );

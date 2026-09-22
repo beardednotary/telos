@@ -10,6 +10,7 @@ import 'package:telos/data/content.dart';
 import 'package:telos/models/models.dart';
 import 'package:telos/screens/debrief_screen.dart';
 import 'package:telos/screens/dispatch_screen.dart';
+import 'package:telos/screens/onboarding_screen.dart';
 import 'package:telos/screens/session_screen.dart';
 import 'package:telos/services/persistence.dart';
 import 'package:telos/state/guild_controller.dart';
@@ -203,5 +204,18 @@ void main() {
       find.byType(Scaffold),
       matchesGoldenFile('goldens/marks.png'),
     );
+  });
+
+  testWidgets('manual', (t) async {
+    await frame(t);
+    final c = GuildController(Persistence());
+    await c.boot();
+    await t.pumpWidget(_phone(c, const OnboardingScreen()));
+    await t.pumpAndSettle();
+    await expectLater(
+      find.byType(OnboardingScreen),
+      matchesGoldenFile('goldens/manual.png'),
+    );
+    c.dispose();
   });
 }

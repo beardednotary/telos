@@ -14,6 +14,8 @@ Future<GuildController> bootController() async {
   SharedPreferences.setMockInitialValues({});
   final c = GuildController(Persistence());
   await c.boot();
+  // Most tests are about the game, not the first-run manual.
+  c.g.onboarded = true;
   return c;
 }
 
@@ -114,6 +116,7 @@ void main() {
     // Simulate relaunching the app against the same save.
     final c2 = GuildController(Persistence());
     await c2.boot();
+    c2.g.onboarded = true;
     expect(c2.hasActiveRun, isTrue);
     expect(c2.active!.intent, 'still going');
 
@@ -163,5 +166,47 @@ void main() {
     expect(c.g.credits, 0);
 
     c.dispose();
+  });
+
+  testWidgets('a fresh save opens on the field manual', (t) async {
+    tallSurface(t);
+    SharedPreferences.setMockInitialValues({});
+    final c = GuildController(Persistence());
+    await c.boot();
+    expect(c.g.onboarded, isFalse);
+
+    await t.pumpWidget(wrap(c, const Root()));
+    await t.pumpAndSettle();
+
+    // The one rule, before anything else.
+    expect(find.text('I  //  THE ONE RULE'), findsOneWidget);
+    expect(find.text('DISPATCH'), findsNothing);
+
+    await t.tap(find.text('CONTINUE'));
+    await t.pumpAndSettle();
+    expect(find.text('II  //  INTEGRITY'), findsOneWidget);
+
+    await t.tap(find.text('CONTINUE'));
+    await t.pumpAndSettle();
+    await t.tap(find.text('OPEN THE OUTPOST'));
+    await t.pumpAndSettle();
+
+    expect(c.g.onboarded, isTrue);
+    expect(find.text('DISPATCH'), findsOneWidget);
+    c.dispose();
+  });
+
+  testWidgets('the manual survives a restart once dismissed', (t) async {
+    tallSurface(t);
+    SharedPreferences.setMockInitialValues({});
+    final first = GuildController(Persistence());
+    await first.boot();
+    await first.completeOnboarding();
+    first.dispose();
+
+    final second = GuildController(Persistence());
+    await second.boot();
+    expect(second.g.onboarded, isTrue, reason: 'should not ask again');
+    second.dispose();
   });
 }
