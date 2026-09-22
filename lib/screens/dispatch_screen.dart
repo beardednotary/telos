@@ -372,10 +372,18 @@ class _SectorBand extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Text('${sector.designation}   //   ${sector.kind}',
-                            style: T.micro
-                                .copyWith(color: selected ? sc : T.dim)),
-                        const Spacer(),
+                        // The lock reason can run long ("LOCKED - 320 INTEL,
+                        // GUILD LV 3"), so the designation yields rather than
+                        // overflowing the band on a narrow phone.
+                        Flexible(
+                          child: Text(
+                              '${sector.designation}   //   ${sector.kind}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: T.micro
+                                  .copyWith(color: selected ? sc : T.dim)),
+                        ),
+                        const SizedBox(width: 10),
                         Text(
                           reason ?? '${(depth * 100).round()}% DEPTH',
                           style: T.micro.copyWith(

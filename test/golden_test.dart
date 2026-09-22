@@ -64,6 +64,9 @@ void main() {
 
   testWidgets('dispatch', (t) async {
     await frame(t);
+    // Dispatch is one long screen and the squad picker and projection sit at
+    // the bottom; a phone-height surface never builds them.
+    t.view.physicalSize = const Size(390, 1700);
     final c = GuildController(Persistence());
     await c.boot();
     c.g.unlockedSectors.addAll(['blackstone', 'cinder']);
