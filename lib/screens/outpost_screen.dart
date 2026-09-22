@@ -7,6 +7,7 @@ import '../models/models.dart';
 import '../state/guild_controller.dart';
 import '../theme/telos_theme.dart';
 import '../widgets/flash.dart';
+import 'backup_screen.dart';
 import 'onboarding_screen.dart';
 import '../widgets/terminal.dart';
 
@@ -68,6 +69,36 @@ class OutpostScreen extends StatelessWidget {
 
           const SizedBox(height: 26),
           const _SectionRule('ABOUT'),
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const BackupScreen()),
+            ),
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 2),
+              color: T.band,
+              padding: const EdgeInsets.fromLTRB(0, 16, 20, 16),
+              child: Row(
+                children: [
+                  Container(width: 4, height: 40, color: T.steel),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('SAVE DATA', style: T.title.copyWith(fontSize: 18)),
+                        const SizedBox(height: 4),
+                        Text('Export a backup, or restore one',
+                            style: T.micro.copyWith(letterSpacing: 0.4)),
+                      ],
+                    ),
+                  ),
+                  Text('>', style: T.mono.copyWith(color: T.dim)),
+                ],
+              ),
+            ),
+          ),
           GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: () => Navigator.push(

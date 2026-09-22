@@ -375,6 +375,21 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
     notifyListeners();
   }
 
+  /// Replaces everything with a restored save. Destructive by definition -
+  /// the caller confirms.
+  Future<void> restore(GuildState state) async {
+    _ticker?.cancel();
+    _ticker = null;
+    await _alerts.cancel();
+    _g = state;
+    // A run that was live when the backup was taken is long over; do not
+    // resurrect a countdown from another phone.
+    _g.active = null;
+    _g.pendingDebrief = null;
+    await _save();
+    notifyListeners();
+  }
+
   Future<void> hardReset() async {
     _ticker?.cancel();
     _ticker = null;
