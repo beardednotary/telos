@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../data/content.dart';
 import '../models/models.dart';
+import '../services/expedition_engine.dart';
 import '../state/guild_controller.dart';
 import '../theme/telos_theme.dart';
 import '../widgets/sigil.dart';
@@ -202,6 +203,15 @@ class _DispatchScreenState extends State<DispatchScreen> {
                 });
               },
             ),
+          if (_squad.isNotEmpty && _sectorId != null) ...[
+            const SizedBox(height: 16),
+            _Projection(
+              squad: _squad,
+              sectorId: _sectorId!,
+              minutes: _minutes,
+            ),
+          ],
+
           if (g.squadSlots < g.roster.length)
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
@@ -518,6 +528,117 @@ class _MemberBand extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// What this squad, at this length, in this place, is actually worth.
+///
+/// Modifiers only - never the loot. The reveal at the debrief is the payoff
+/// the whole loop is built around, so the preview stops at how the odds are
+/// shaped and says nothing about what comes back.
+class _Projection extends StatelessWidget {
+  const _Projection({
+    required this.squad,
+    required this.sectorId,
+    required this.minutes,
+  });
+
+  final List<String> squad;
+  final String sectorId;
+  final int minutes;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.watch<GuildController>();
+    final sector = sectorById(sectorId);
+    final sc = Color(sector.accent);
+
+    final members = squad
+        .map((id) => c.g.memberById(id))
+        .whereType<Adventurer>()
+        .toList();
+
+    final bonus = ExpeditionEngine.squadBonusFor(
+      guild: c.g,
+      members: members,
+      minutes: minutes.toDouble(),
+    );
+    final rare = ExpeditionEngine.rareChanceFor(
+      sector: sector,
+      minutes: minutes.toDouble(),
+      squadBonus: bonus,
+    );
+    final team = ExpeditionEngine.teamFactorFor(members.length);
+
+    Widget mod(String label, double v, Color hue) {
+      final pct = (v * 100).round();
+      return Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label, style: T.micro.copyWith(fontSize: 8)),
+            const SizedBox(height: 4),
+            Text(
+              '${pct >= 0 ? '+' : ''}$pct%',
+              style: T.mono.copyWith(
+                fontSize: 17,
+                fontWeight: FontWeight.w300,
+                color: pct == 0 ? T.dim : (pct > 0 ? hue : T.bad),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      color: T.band,
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text('PROJECTED', style: T.micro.copyWith(color: sc)),
+              const SizedBox(width: 12),
+              Expanded(child: Container(height: 1, color: T.line)),
+              const SizedBox(width: 12),
+              Text('AT 100% INTEGRITY', style: T.micro),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              mod('CREDITS', bonus.credits, T.amber),
+              mod('ALLOY', bonus.alloy, T.steel),
+              mod('INTEL', bonus.intel, T.cyan),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Container(height: 1, color: T.line),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Text('RARE FIND', style: T.micro),
+              const SizedBox(width: 10),
+              Text('${(rare * 100).round()}%',
+                  style: T.mono.copyWith(
+                      fontSize: 15, fontWeight: FontWeight.w300, color: sc)),
+              const Spacer(),
+              if (members.length > 1)
+                Text('SQUAD x${team.toStringAsFixed(2)}', style: T.micro),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'Class, levels, kit and the outpost, combined. Integrity is the '
+            'one part still up to you - it barely moves the resources but '
+            'drives the rare find hard.',
+            style: T.micro.copyWith(letterSpacing: 0.4, height: 1.7),
+          ),
+        ],
       ),
     );
   }

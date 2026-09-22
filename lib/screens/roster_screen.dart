@@ -54,7 +54,9 @@ class RosterScreen extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Text(
-                'Nothing spare. Salvage turns up on runs past a sector minimum.',
+                'Nothing spare. Salvage turns up on runs past a sector '
+                'minimum, and melting one down at the FORGE is the only way '
+                'to lose a piece.',
                 style: T.micro.copyWith(letterSpacing: 0.4),
               ),
             )

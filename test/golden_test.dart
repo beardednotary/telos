@@ -71,6 +71,8 @@ void main() {
 
     await t.pumpWidget(_phone(c, const DispatchScreen()));
     await t.pumpAndSettle();
+    await t.tap(find.text('KAEL'));
+    await t.pumpAndSettle();
     await expectLater(
       find.byType(DispatchScreen),
       matchesGoldenFile('goldens/dispatch.png'),

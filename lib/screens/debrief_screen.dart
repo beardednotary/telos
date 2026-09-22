@@ -331,6 +331,10 @@ class _DebriefScreenState extends State<DebriefScreen>
                                           height: 1.45)),
                                   const SizedBox(height: 18),
                                   Text('DID YOU MAKE PROGRESS?', style: T.micro),
+                                  const SizedBox(height: 4),
+                                  Text('For your log only. It changes nothing here.',
+                                      style: T.micro.copyWith(
+                                          letterSpacing: 0.4, fontSize: 8)),
                                   const SizedBox(height: 10),
                                   Row(
                                     children: [

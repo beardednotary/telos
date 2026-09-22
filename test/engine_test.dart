@@ -281,4 +281,54 @@ void main() {
       expect(g.nextGoal!.kind, 'FACILITY');
     });
   });
+
+  group('dispatch preview', () {
+    List<Adventurer> squad(GuildState g, List<String> ids) =>
+        ids.map((i) => g.memberById(i)!).toList();
+
+    test('a member inside their window projects higher than outside it', () {
+      final g = GuildState.fresh(); // a2 = recon, window 10-30
+      final short = ExpeditionEngine.squadBonusFor(
+          guild: g, members: squad(g, ['a2']), minutes: 20);
+      final long = ExpeditionEngine.squadBonusFor(
+          guild: g, members: squad(g, ['a2']), minutes: 120);
+      expect(short.credits, greaterThan(long.credits));
+    });
+
+    test('worn gear raises the projection', () {
+      final g = GuildState.fresh();
+      final before = ExpeditionEngine.squadBonusFor(
+          guild: g, members: squad(g, ['a1']), minutes: 90);
+      g.vault.add(Gear('g0', 'ore_sense')); // +25% alloy
+      g.roster.first.equipped.add('g0');
+      final after = ExpeditionEngine.squadBonusFor(
+          guild: g, members: squad(g, ['a1']), minutes: 90);
+      expect(after.alloy, greaterThan(before.alloy));
+    });
+
+    test('the outpost is included', () {
+      final g = GuildState.fresh();
+      final before = ExpeditionEngine.squadBonusFor(
+          guild: g, members: squad(g, ['a1']), minutes: 90);
+      g.facilities[Facility.forge] = 4;
+      final after = ExpeditionEngine.squadBonusFor(
+          guild: g, members: squad(g, ['a1']), minutes: 90);
+      expect(after.alloy, greaterThan(before.alloy));
+    });
+
+    test('rare chance rises with length and falls with distraction', () {
+      final g = GuildState.fresh();
+      final b = ExpeditionEngine.squadBonusFor(
+          guild: g, members: squad(g, ['a1']), minutes: 45);
+      final s = sectorById('mosswood');
+      final shortRun =
+          ExpeditionEngine.rareChanceFor(sector: s, minutes: 12, squadBonus: b);
+      final longRun =
+          ExpeditionEngine.rareChanceFor(sector: s, minutes: 45, squadBonus: b);
+      final messy = ExpeditionEngine.rareChanceFor(
+          sector: s, minutes: 45, squadBonus: b, integrity: 0.5);
+      expect(longRun, greaterThan(shortRun));
+      expect(messy, lessThan(longRun));
+    });
+  });
 }

@@ -44,28 +44,12 @@ class ExpeditionEngine {
         .whereType<Adventurer>()
         .toList();
 
-    var squadBonus = Bonus.none;
-    for (final m in members) {
-      final cls = kClasses[m.classId]!;
-      var b = cls.base + m.levelBonus;
-      // Inside their window, a class does what it is built for.
-      if (elapsedMin >= cls.windowMin && elapsedMin <= cls.windowMax) {
-        b = b + cls.windowBonus;
-      }
-      for (final uid in m.equipped) {
-        final g = guild.gearByUid(uid);
-        if (g != null) b = b + gearById(g.defId).bonus;
-      }
-      squadBonus = squadBonus + b;
-    }
-    // Average, so adding members shifts the mix rather than multiplying it.
-    if (members.isNotEmpty) {
-      squadBonus = squadBonus.scaled(1 / members.length);
-    }
-    squadBonus = squadBonus + guild.facilityBonus;
-
-    // A bigger squad still carries more out, just not explosively.
-    final teamFactor = 1 + 0.15 * (members.length - 1).clamp(0, 5);
+    final squadBonus = squadBonusFor(
+      guild: guild,
+      members: members,
+      minutes: elapsedMin,
+    );
+    final teamFactor = teamFactorFor(members.length);
 
     // -- yields --------------------------------------------------------------
     // Integrity scales quantity gently (a distracted run still earns) ...
@@ -92,11 +76,12 @@ class ExpeditionEngine {
     // a clean run actually pays.
     final loot = <Gear>[];
     if (!scraps) {
-      final chance = (sector.baseRare *
-              (0.55 + 0.75 * depth) *
-              pow(integrity, 1.6) *
-              (1 + squadBonus.rare))
-          .clamp(0.02, 0.90);
+      final chance = rareChanceFor(
+        sector: sector,
+        minutes: elapsedMin,
+        squadBonus: squadBonus,
+        integrity: integrity,
+      );
 
       var rolls = 1;
       if (depth >= 1.0) rolls++;
@@ -182,6 +167,55 @@ class ExpeditionEngine {
     );
 
     return Resolution(record, loot);
+  }
+
+  /// Everything a squad contributes to a run of [minutes]: class shape, the
+  /// window bonus when the length suits them, levels, worn gear, and the
+  /// outpost on top. Shared with the dispatch preview so the number shown
+  /// before a run is the number used to resolve it.
+  static Bonus squadBonusFor({
+    required GuildState guild,
+    required List<Adventurer> members,
+    required double minutes,
+  }) {
+    var total = Bonus.none;
+    for (final m in members) {
+      final cls = kClasses[m.classId]!;
+      var b = cls.base + m.levelBonus;
+      // Inside their window, a class does what it is built for.
+      if (minutes >= cls.windowMin && minutes <= cls.windowMax) {
+        b = b + cls.windowBonus;
+      }
+      for (final uid in m.equipped) {
+        final g = guild.gearByUid(uid);
+        if (g != null) b = b + gearById(g.defId).bonus;
+      }
+      total = total + b;
+    }
+    // Average, so adding members shifts the mix rather than multiplying it.
+    if (members.isNotEmpty) total = total.scaled(1 / members.length);
+    return total + guild.facilityBonus;
+  }
+
+  /// A bigger squad carries more out, just not explosively.
+  static double teamFactorFor(int size) => 1 + 0.15 * (size - 1).clamp(0, 5);
+
+  /// The chance of a gear find on a clean run of this length, for the
+  /// dispatch preview. Deliberately the only number shown before a run - the
+  /// loot itself stays hidden until the debrief, which is the whole point.
+  static double rareChanceFor({
+    required Sector sector,
+    required double minutes,
+    required Bonus squadBonus,
+    double integrity = 1.0,
+  }) {
+    final depth = (minutes / sector.nominalMinutes).clamp(0.0, 1.6);
+    return (sector.baseRare *
+            (0.55 + 0.75 * depth) *
+            pow(integrity, 1.6) *
+            (1 + squadBonus.rare))
+        .clamp(0.02, 0.90)
+        .toDouble();
   }
 
   /// Weighted pick from the sector's pool. Depth and integrity both push the
