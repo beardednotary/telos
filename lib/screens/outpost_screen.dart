@@ -27,7 +27,16 @@ class OutpostScreen extends StatelessWidget {
         padding: const EdgeInsets.only(bottom: 40),
         children: [
           _Balances(g: g),
-          const SizedBox(height: 26),
+          const SizedBox(height: 18),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 18),
+            child: Text(
+              'Upgrades apply to every run from now on. BARRACKS raises how '
+              'many members you can keep, FORGE how deep it can work, ARCHIVE '
+              'how much INTEL comes home.',
+              style: T.micro.copyWith(letterSpacing: 0.4, height: 1.7),
+            ),
+          ),
 
           const _SectionRule('UPGRADES'),
           for (final f in Facility.values) _FacilityBand(facility: f),

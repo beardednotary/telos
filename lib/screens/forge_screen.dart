@@ -46,9 +46,11 @@ class ForgeScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 14),
                 Text(
-                  'The forge works at ${_tierText(c)}. Raise it in FACILITIES '
-                  'to work deeper.',
-                  style: T.micro.copyWith(letterSpacing: 0.4, height: 1.6),
+                  'Build a named piece rather than a random one. The forge '
+                  'works at ${_tierText(c)} - raise it in FACILITIES to work '
+                  'deeper. What you make lands in the vault unassigned, so '
+                  'take it to ROSTER and put it on someone.',
+                  style: T.micro.copyWith(letterSpacing: 0.4, height: 1.7),
                 ),
               ],
             ),

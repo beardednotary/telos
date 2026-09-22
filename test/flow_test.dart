@@ -188,6 +188,10 @@ void main() {
 
     await t.tap(find.text('CONTINUE'));
     await t.pumpAndSettle();
+    expect(find.text('III  //  WHAT COMES BACK'), findsOneWidget);
+
+    await t.tap(find.text('CONTINUE'));
+    await t.pumpAndSettle();
     await t.tap(find.text('OPEN THE OUTPOST'));
     await t.pumpAndSettle();
 

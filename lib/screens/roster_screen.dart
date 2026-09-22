@@ -26,6 +26,15 @@ class RosterScreen extends StatelessWidget {
       child: ListView(
         padding: const EdgeInsets.only(bottom: 40),
         children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+            child: Text(
+              'Members gain XP on every run they go on. Levels add a flat '
+              'bonus; the two KIT slots add more. Gear does nothing until it '
+              'is assigned to someone.',
+              style: T.micro.copyWith(letterSpacing: 0.4, height: 1.7),
+            ),
+          ),
           for (final m in g.roster) _MemberBand(member: m),
           const SizedBox(height: 28),
           Padding(

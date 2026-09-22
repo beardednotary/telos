@@ -53,7 +53,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       ],
     ),
     _Panel(
-      kicker: 'III  //  THE GUILD',
+      kicker: 'III  //  WHAT COMES BACK',
+      title: 'Each run\nfunds the next',
+      body: [
+        'Salvage does nothing sitting in the vault. Assign it to a member in '
+            'ROSTER - two pieces each - and it raises what that member brings '
+            'home from then on.',
+        'Resources go into the outpost. Facilities raise every run, recruits '
+            'add archetypes, and INTEL opens new sectors and feeds the forge.',
+        'So a good session is not just a good session. It is the reason the '
+            'next one pays more.',
+      ],
+    ),
+    _Panel(
+      kicker: 'IV  //  THE GUILD',
       title: 'Time buys\nthe map',
       body: [
         'Every sector needs a minimum length. Come back short and the squad '
