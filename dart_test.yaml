@@ -7,3 +7,5 @@
 tags:
   golden:
     skip: "preview renders - run explicitly with --run-skipped"
+  economy:
+    skip: "economy instrument - run explicitly with --run-skipped"

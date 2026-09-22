@@ -161,20 +161,25 @@ class CraftCost {
   const CraftCost(this.credits, this.alloy, this.intel);
 }
 
+/// Priced in hours of clean focus, measured by test/economy_test.dart against
+/// the real engine rather than guessed: roughly 1h, 2h, 7h and 22h at the
+/// sectors a player would actually be running when each tier matters. INTEL is
+/// the binding constraint at the top, which is the point - the forge exists to
+/// be somewhere for intel to go.
 const Map<Rarity, CraftCost> kCraftCost = {
-  Rarity.common: CraftCost(120, 45, 15),
-  Rarity.uncommon: CraftCost(300, 110, 50),
-  Rarity.rare: CraftCost(850, 260, 160),
-  Rarity.epic: CraftCost(2200, 600, 480),
+  Rarity.common: CraftCost(160, 60, 25),
+  Rarity.uncommon: CraftCost(520, 190, 140),
+  Rarity.rare: CraftCost(1600, 520, 520),
+  Rarity.epic: CraftCost(5200, 1500, 1600),
 };
 
 /// Melting returns alloy only, and less than forging cost. The vault is for
 /// keeping things, not for laundering them.
 const Map<Rarity, int> kMeltValue = {
-  Rarity.common: 18,
-  Rarity.uncommon: 45,
-  Rarity.rare: 105,
-  Rarity.epic: 240,
+  Rarity.common: 24,
+  Rarity.uncommon: 75,
+  Rarity.rare: 200,
+  Rarity.epic: 560,
 };
 
 /// The forge level needed to work at each rarity, so the deep tiers stay

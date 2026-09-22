@@ -155,7 +155,7 @@ const List<Sector> kSectors = [
     intelPerMin: 1.10,
     baseRare: 0.34,
     lootPool: ['rift_anchor', 'null_core', 'descent_rig', 'first_light'],
-    intelToUnlock: 1100,
+    intelToUnlock: 2600,
     guildLevelToUnlock: 6,
     journal: [
       'Rope descent. Forty minutes before the first ledge.',
@@ -178,7 +178,7 @@ const List<Sector> kSectors = [
     intelPerMin: 2.0,
     baseRare: 0.45,
     lootPool: ['spire_sigil', 'telos_lens', 'last_charter'],
-    intelToUnlock: 4000,
+    intelToUnlock: 6500,
     guildLevelToUnlock: 12,
     journal: [
       'The approach alone takes an hour.',
