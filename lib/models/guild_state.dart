@@ -23,6 +23,9 @@ class GuildState {
   /// Debrief waiting to be viewed (set when a run resolves, cleared on dismiss).
   RunRecord? pendingDebrief;
 
+  List<Contract> contracts;
+  int contractCounter;
+
   int gearCounter;
   int runCounter;
   bool onboarded;
@@ -39,12 +42,14 @@ class GuildState {
     required this.facilities,
     required this.unlockedSectors,
     required this.log,
+    List<Contract>? contracts,
+    this.contractCounter = 0,
     this.active,
     this.pendingDebrief,
     this.gearCounter = 0,
     this.runCounter = 0,
     this.onboarded = false,
-  });
+  }) : contracts = contracts ?? <Contract>[];
 
   /// A fresh save: two members, one sector, nothing else.
   factory GuildState.fresh() => GuildState(
@@ -160,6 +165,8 @@ class GuildState {
         'facilities': facilities.map((k, v) => MapEntry(k.name, v)),
         'unlockedSectors': unlockedSectors.toList(),
         'log': log.map((r) => r.toJson()).toList(),
+        'contracts': contracts.map((c) => c.toJson()).toList(),
+        'contractCounter': contractCounter,
         'active': active?.toJson(),
         'pendingDebrief': pendingDebrief?.toJson(),
         'gearCounter': gearCounter,
@@ -199,6 +206,10 @@ class GuildState {
       log: ((j['log'] as List?) ?? [])
           .map((e) => RunRecord.fromJson(e as Map<String, dynamic>))
           .toList(),
+      contracts: ((j['contracts'] as List?) ?? [])
+          .map((e) => Contract.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      contractCounter: j['contractCounter'] as int? ?? 0,
       active: j['active'] == null
           ? null
           : ActiveRun.fromJson(j['active'] as Map<String, dynamic>),

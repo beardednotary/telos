@@ -524,6 +524,97 @@ class RunRecord {
 }
 
 /// ---------------------------------------------------------------------------
+/// CONTRACTS
+/// Short-term direction. See services/contracts.dart for why they exist and
+/// the rules they are built to respect.
+/// ---------------------------------------------------------------------------
+enum ContractKind {
+  sectorRuns,
+  haul,
+  cleanRuns,
+  longRun,
+  minutes,
+  classRuns,
+  fullDepth,
+}
+
+class Contract {
+  final String id;
+  final ContractKind kind;
+  final String? sectorId;
+  final String? classId;
+  final Res? res;
+  final int target;
+  final int tier;
+  final int rewardCredits;
+  final int rewardAlloy;
+  final int rewardIntel;
+  final int rewardXp;
+  int progress;
+
+  Contract({
+    required this.id,
+    required this.kind,
+    required this.target,
+    required this.tier,
+    required this.rewardCredits,
+    required this.rewardAlloy,
+    required this.rewardIntel,
+    required this.rewardXp,
+    this.sectorId,
+    this.classId,
+    this.res,
+    this.progress = 0,
+  });
+
+  bool get done => progress >= target;
+
+  /// Two contracts asking the same thing of the same place, regardless of
+  /// how much - the board should never offer near-duplicates.
+  bool sameShapeAs(Contract o) =>
+      kind == o.kind &&
+      sectorId == o.sectorId &&
+      classId == o.classId &&
+      res == o.res;
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'kind': kind.name,
+        'sectorId': sectorId,
+        'classId': classId,
+        'res': res?.name,
+        'target': target,
+        'tier': tier,
+        'rewardCredits': rewardCredits,
+        'rewardAlloy': rewardAlloy,
+        'rewardIntel': rewardIntel,
+        'rewardXp': rewardXp,
+        'progress': progress,
+      };
+
+  factory Contract.fromJson(Map<String, dynamic> j) => Contract(
+        id: j['id'] as String,
+        kind: ContractKind.values.firstWhere(
+          (k) => k.name == j['kind'],
+          orElse: () => ContractKind.cleanRuns,
+        ),
+        sectorId: j['sectorId'] as String?,
+        classId: j['classId'] as String?,
+        res: j['res'] == null
+            ? null
+            : Res.values.firstWhere((r) => r.name == j['res'],
+                orElse: () => Res.credits),
+        target: j['target'] as int? ?? 1,
+        tier: j['tier'] as int? ?? 1,
+        rewardCredits: j['rewardCredits'] as int? ?? 0,
+        rewardAlloy: j['rewardAlloy'] as int? ?? 0,
+        rewardIntel: j['rewardIntel'] as int? ?? 0,
+        rewardXp: j['rewardXp'] as int? ?? 0,
+        progress: j['progress'] as int? ?? 0,
+      );
+}
+
+/// ---------------------------------------------------------------------------
 /// FACILITIES - the guild outpost. Permanent upgrades bought with resources.
 /// This is the "between sessions" layer that gives you a reason to come back.
 /// ---------------------------------------------------------------------------

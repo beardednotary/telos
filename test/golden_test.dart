@@ -10,6 +10,7 @@ import 'package:telos/data/content.dart';
 import 'package:telos/models/models.dart';
 import 'package:telos/screens/debrief_screen.dart';
 import 'package:telos/screens/dispatch_screen.dart';
+import 'package:telos/screens/home_screen.dart';
 import 'package:telos/screens/onboarding_screen.dart';
 import 'package:telos/screens/session_screen.dart';
 import 'package:telos/services/persistence.dart';
@@ -220,6 +221,29 @@ void main() {
     await expectLater(
       find.byType(OnboardingScreen),
       matchesGoldenFile('goldens/manual.png'),
+    );
+    c.dispose();
+  });
+
+  testWidgets('home', (t) async {
+    await frame(t);
+    t.view.physicalSize = const Size(390, 1900);
+    final c = GuildController(Persistence());
+    await c.boot();
+    c.g.onboarded = true;
+    c.g.credits = 1840;
+    c.g.alloy = 420;
+    c.g.intel = 96;
+    c.g.level = 4;
+    c.g.xp = 130;
+    // One contract already finished, so the claim state is visible too.
+    c.g.contracts.first.progress = c.g.contracts.first.target;
+
+    await t.pumpWidget(_phone(c, const HomeScreen()));
+    await t.pumpAndSettle();
+    await expectLater(
+      find.byType(HomeScreen),
+      matchesGoldenFile('goldens/home.png'),
     );
     c.dispose();
   });

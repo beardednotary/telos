@@ -7,6 +7,7 @@ import '../data/content.dart';
 import '../models/guild_state.dart';
 import '../models/models.dart';
 import '../services/alerts.dart';
+import '../services/contracts.dart';
 import '../services/expedition_engine.dart';
 import '../services/persistence.dart';
 
@@ -48,6 +49,8 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
         squad: _squadLabel(restored.squad),
       );
     }
+    // The board is always full, so there is never a refresh to remember.
+    ContractBoard.refill(_g);
     _ready = true;
     _syncTicker();
     notifyListeners();
@@ -208,6 +211,8 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
       _g.level++;
     }
 
+    ContractBoard.applyRun(_g, res.record);
+
     _g.log.insert(0, res.record);
     if (_g.log.length > 500) _g.log.removeRange(500, _g.log.length);
 
@@ -225,6 +230,33 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
     _g.onboarded = true;
     await _save();
     notifyListeners();
+  }
+
+  // -- contracts ---------------------------------------------------------
+
+  List<Contract> get contracts => _g.contracts;
+  int get claimableContracts => _g.contracts.where((c) => c.done).length;
+
+  /// Pays out and replaces the slot. Nothing expires, so this is the only way
+  /// a contract ever leaves the board.
+  Future<Contract?> claimContract(String id) async {
+    final i = _g.contracts.indexWhere((c) => c.id == id && c.done);
+    if (i < 0) return null;
+    final c = _g.contracts.removeAt(i);
+
+    _g.credits += c.rewardCredits;
+    _g.alloy += c.rewardAlloy;
+    _g.intel += c.rewardIntel;
+    _g.xp += c.rewardXp;
+    while (_g.xp >= GuildState.xpForGuildLevel(_g.level)) {
+      _g.xp -= GuildState.xpForGuildLevel(_g.level);
+      _g.level++;
+    }
+
+    ContractBoard.refill(_g);
+    await _save();
+    notifyListeners();
+    return c;
   }
 
   Future<void> recordProgress(String answer, {String? note}) async {

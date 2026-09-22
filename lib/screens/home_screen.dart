@@ -5,6 +5,7 @@ import '../models/guild_state.dart';
 import '../models/models.dart';
 import '../state/guild_controller.dart';
 import '../theme/telos_theme.dart';
+import '../widgets/contract_board.dart';
 import '../widgets/terminal.dart';
 import 'dispatch_screen.dart';
 import 'forge_screen.dart';
@@ -36,6 +37,8 @@ class HomeScreen extends StatelessWidget {
               child: _DispatchBlock(hasHistory: g.log.isNotEmpty),
             ),
 
+            const SizedBox(height: 30),
+            const ContractBoardPanel(),
             const SizedBox(height: 30),
             if (g.nextGoal != null) ...[
               _GoalBand(goal: g.nextGoal!),
@@ -267,8 +270,13 @@ class _GoalBand extends StatelessWidget {
                       const Spacer(),
                       Text(
                         goal.blocked ??
-                            '${(goal.progress * 100).clamp(0, 100).round()}%',
-                        style: T.micro.copyWith(color: accent),
+                            (goal.progress >= 1.0
+                                ? 'READY'
+                                : '${(goal.progress * 100).round()}%'),
+                        style: T.micro.copyWith(
+                            color: goal.progress >= 1.0 && reachable
+                                ? T.good
+                                : accent),
                       ),
                       const SizedBox(width: 20),
                     ],
