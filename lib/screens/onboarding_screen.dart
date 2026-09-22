@@ -208,7 +208,7 @@ class _PanelView extends StatelessWidget {
       children: [
         Text(panel.kicker, style: T.micro.copyWith(color: T.amber)),
         const SizedBox(height: 16),
-        Text(panel.title, style: T.title.copyWith(fontSize: 27, height: 1.25)),
+        Text(panel.title, style: T.title.copyWith(fontSize: 27)),
         const SizedBox(height: 22),
         const Flourish(),
         const SizedBox(height: 22),

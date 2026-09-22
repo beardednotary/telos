@@ -91,7 +91,12 @@ class T {
     color: text,
     fontSize: 22,
     letterSpacing: 1.0,
-    height: 1.15,
+    // Syne has deep descenders. At 1.15 the tail of a g or y on a wrapped
+    // line was being clipped by the line below it, and `even` splits the
+    // leading above and below the text rather than piling it all on top,
+    // which is what actually leaves room for the descender.
+    height: 1.3,
+    leadingDistribution: TextLeadingDistribution.even,
   );
 
   static TextStyle micro = mono.copyWith(
