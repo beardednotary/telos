@@ -27,6 +27,7 @@ void main() {
       Sim('4 x 25min  pomodoro', 4, 25),
       Sim('2 x 60min  study/coding', 2, 60),
       Sim('1 x 90min  deep work', 1, 90),
+      Sim('1 x 120min deep + long', 1, 120),
       Sim('2 x 90min  heavy', 2, 90),
     ];
 
@@ -118,11 +119,14 @@ void main() {
         final reachable = s.minMinutes <= sim.minutesPerRun;
         final status = s.id == 'mosswood'
             ? 'open from day 1'
-            : !reachable
-                ? 'UNREACHABLE - needs ${s.minMinutes}min sessions'
-                : when == null
-                    ? 'never unlocked in 2 years'
-                    : 'day $when';
+            : when == null
+                ? 'never unlocked in 2 years'
+                : reachable
+                    ? 'day $when'
+                    // Bought and visible, but no session is long enough to
+                    // dispatch there. The player can see it and what it
+                    // costs them in minutes, which is the honest nudge.
+                    : 'day $when, but locked out - needs ${s.minMinutes}min';
         // ignore: avoid_print
         print('   ${s.designation}  ${s.name.padRight(20)} $status');
       }
