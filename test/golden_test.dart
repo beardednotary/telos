@@ -13,6 +13,7 @@ import 'package:telos/screens/dispatch_screen.dart';
 import 'package:telos/screens/home_screen.dart';
 import 'package:telos/screens/onboarding_screen.dart';
 import 'package:telos/screens/session_screen.dart';
+import 'package:telos/screens/spire_screen.dart';
 import 'package:telos/services/persistence.dart';
 import 'package:telos/state/guild_controller.dart';
 import 'package:telos/theme/telos_theme.dart';
@@ -103,6 +104,46 @@ void main() {
       matchesGoldenFile('goldens/session.png'),
     );
     await c.finishRun(recalled: true);
+    c.dispose();
+  });
+
+  testWidgets('spire', (t) async {
+    await frame(t);
+    final c = GuildController(Persistence());
+    await c.boot();
+    // A player a year past arriving: enough floors to read as a real share
+    // of the structure, nowhere near the centuries below.
+    c.g.spireCompletedAt = DateTime(2026, 3, 1);
+    c.g.spireCompletionMinutes = 0;
+    c.g.log.add(RunRecord(
+      id: 'sp',
+      sectorId: 'spire',
+      intent: '',
+      squad: const [],
+      startedAt: DateTime(2026, 3, 1),
+      endedAt: DateTime(2026, 3, 1),
+      plannedMinutes: 0,
+      elapsedSeconds: 240 * 60 * 60,
+      integrity: 1,
+      recalled: false,
+      scraps: false,
+      credits: 0,
+      alloy: 0,
+      intel: 0,
+      loot: const [],
+      xpGained: const {},
+      levelUps: const [],
+      guildXp: 0,
+      guildLevelUps: 0,
+      journal: const [],
+    ));
+
+    await t.pumpWidget(_phone(c, const SpireScreen()));
+    await t.pump();
+    await expectLater(
+      find.byType(SpireScreen),
+      matchesGoldenFile('goldens/spire.png'),
+    );
     c.dispose();
   });
 

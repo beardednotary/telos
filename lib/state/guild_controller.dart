@@ -237,9 +237,25 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
       _g.surveyRead[id] = (_g.surveyRead[id] ?? 0) + 1;
     }
 
+    // Arriving is recovering the last of the Spire's records - the Charter
+    // under a stone on the top course. It takes a campaign of long runs in
+    // Sector 05, not one lucky session.
+    if (!_g.spireComplete && res.record.sectorId == 'spire') {
+      final spire = sectorById('spire');
+      if ((_g.surveyRead['spire'] ?? 0) >= spire.priorSurvey.length) {
+        res.record.completedSpire = true;
+        _g.spireCompletedAt = t;
+      }
+    }
+
     ContractBoard.applyRun(_g, res.record);
 
     _g.log.insert(0, res.record);
+    // After the insert, so the run that arrived is counted on the Charter
+    // rather than becoming the first of the floors.
+    if (res.record.completedSpire) {
+      _g.spireCompletionMinutes = _g.totalFocusMinutes;
+    }
     if (_g.log.length > 500) _g.log.removeRange(500, _g.log.length);
 
     _g.active = null;

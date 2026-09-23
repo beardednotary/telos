@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:telos/data/content.dart';
 import 'package:telos/main.dart';
+import 'package:telos/models/models.dart';
 import 'package:telos/screens/log_screen.dart';
 import 'package:telos/screens/outpost_screen.dart';
 import 'package:telos/screens/roster_screen.dart';
@@ -34,6 +36,8 @@ Widget wrap(GuildController c, Widget child) => ChangeNotifierProvider.value(
     );
 
 void main() {
+  _spireTests();
+
   testWidgets('full loop: home -> dispatch -> session -> debrief', (t) async {
     tallSurface(t);
     final c = await bootController();
@@ -212,5 +216,50 @@ void main() {
     await second.boot();
     expect(second.g.onboarded, isTrue, reason: 'should not ask again');
     second.dispose();
+  });
+}
+
+void _spireTests() {
+  testWidgets('arriving at the Spire fires once and starts the floors',
+      (t) async {
+    final c = await bootController();
+    c.g.unlockedSectors.add('spire');
+    final need = sectorById('spire').priorSurvey.length;
+
+    var completions = 0;
+    // A campaign of long runs, not one lucky session.
+    for (var i = 0; i < need + 3; i++) {
+      await c.startRun(
+        sectorId: 'spire',
+        intent: 'deep work',
+        squad: c.g.roster.map((a) => a.id).toList(),
+        minutes: 90,
+      );
+      // Backdate so the run resolves as a full 90 minutes.
+      final a = c.g.active!;
+      c.g.active = ActiveRun(
+        id: a.id,
+        sectorId: a.sectorId,
+        intent: a.intent,
+        squad: a.squad,
+        startedAt: DateTime.now().subtract(const Duration(minutes: 90)),
+        plannedMinutes: a.plannedMinutes,
+        watchSeconds: a.watchSeconds,
+        checkIns: a.checkIns,
+      );
+      final rec = await c.finishRun(recalled: false);
+      if (rec!.completedSpire) completions++;
+      c.g.pendingDebrief = null;
+    }
+
+    expect(completions, 1, reason: 'the arrival must happen exactly once');
+    expect(c.g.spireComplete, isTrue);
+    expect(c.g.surveyRead['spire'], need);
+
+    // The run that arrived is credited on the Charter, not as the first floor.
+    final afterArrival = c.g.totalFocusMinutes - c.g.spireCompletionMinutes;
+    expect(afterArrival, 3 * 90, reason: 'only the runs after it count');
+    expect(c.g.spireFloors, 0, reason: '4.5 hours is not yet a floor');
+    c.dispose();
   });
 }

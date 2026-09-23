@@ -286,6 +286,102 @@ void main() {
     });
   });
 
+  group('the spire', () {
+    GuildState arrived() {
+      final g = GuildState.fresh();
+      g.unlockedSectors.add('spire');
+      g.surveyRead['spire'] = sectorById('spire').priorSurvey.length;
+      g.spireCompletedAt = DateTime(2026, 6, 1);
+      return g;
+    }
+
+    test('floors need the full 20 hours each', () {
+      final g = arrived();
+      g.spireCompletionMinutes = 0;
+      for (final probe in [
+        [0, 0],
+        [19 * 60 + 59, 0],
+        [20 * 60, 1],
+        [59 * 60, 2],
+        [60 * 60, 3],
+      ]) {
+        g.log.clear();
+        g.log.add(RunRecord(
+          id: 'x',
+          sectorId: 'spire',
+          intent: '',
+          squad: const [],
+          startedAt: DateTime(2026, 6, 1),
+          endedAt: DateTime(2026, 6, 1),
+          plannedMinutes: probe[0],
+          elapsedSeconds: probe[0] * 60,
+          integrity: 1,
+          recalled: false,
+          scraps: false,
+          credits: 0,
+          alloy: 0,
+          intel: 0,
+          loot: const [],
+          xpGained: const {},
+          levelUps: const [],
+          guildXp: 0,
+          guildLevelUps: 0,
+          journal: const [],
+        ));
+        expect(g.spireFloors, probe[1], reason: '${probe[0]} minutes');
+      }
+    });
+
+    test('hours spent getting there are not counted as floors', () {
+      final g = arrived();
+      g.log.add(RunRecord(
+        id: 'x',
+        sectorId: 'spire',
+        intent: '',
+        squad: const [],
+        startedAt: DateTime(2026, 6, 1),
+        endedAt: DateTime(2026, 6, 1),
+        plannedMinutes: 100 * 60,
+        elapsedSeconds: 100 * 60 * 60,
+        integrity: 1,
+        recalled: false,
+        scraps: false,
+        credits: 0,
+        alloy: 0,
+        intel: 0,
+        loot: const [],
+        xpGained: const {},
+        levelUps: const [],
+        guildXp: 0,
+        guildLevelUps: 0,
+        journal: const [],
+      ));
+      g.spireCompletionMinutes = g.totalFocusMinutes; // arrived on 100 hours
+      expect(g.spireFloors, 0);
+      expect(g.minutesSinceSpire, 0);
+    });
+
+    test('the charter total is derived from the standing structure', () {
+      expect(GuildState.kCharterHours,
+          GuildState.kFloorHours * GuildState.kHistoricalFloors);
+    });
+
+    test('completion survives a save round-trip', () {
+      final g = arrived();
+      g.spireCompletionMinutes = 4242;
+      final back = GuildState.fromJson(g.toJson());
+      expect(back.spireComplete, isTrue);
+      expect(back.spireCompletedAt, g.spireCompletedAt);
+      expect(back.spireCompletionMinutes, 4242);
+    });
+
+    test('a fresh guild has not arrived', () {
+      final g = GuildState.fresh();
+      expect(g.spireComplete, isFalse);
+      expect(g.spireFloors, 0);
+    });
+  });
+
   group('content sanity', () {
     test('every sector loot pool references real gear', () {
       for (final s in kSectors) {

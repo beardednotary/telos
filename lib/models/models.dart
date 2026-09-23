@@ -450,6 +450,11 @@ class RunRecord {
   /// the record so the log reads back the same way months later.
   final String? priorSurvey;
 
+  /// True on the one run that recovered the last of the Spire's records.
+  /// Mutable and set by the controller rather than the engine, which stays a
+  /// pure resolver and knows nothing about the guild's long arc.
+  bool completedSpire;
+
   String? progress; // 'YES' | 'SOME' | 'NO' - honour-system self report
   String? note;
 
@@ -475,6 +480,7 @@ class RunRecord {
     required this.guildLevelUps,
     required this.journal,
     this.priorSurvey,
+    this.completedSpire = false,
     this.progress,
     this.note,
   });
@@ -503,6 +509,7 @@ class RunRecord {
         'guildLevelUps': guildLevelUps,
         'journal': journal,
         'priorSurvey': priorSurvey,
+        'completedSpire': completedSpire,
         'progress': progress,
         'note': note,
       };
@@ -532,6 +539,7 @@ class RunRecord {
         guildLevelUps: j['guildLevelUps'] as int? ?? 0,
         journal: (j['journal'] as List?)?.cast<String>() ?? <String>[],
         priorSurvey: j['priorSurvey'] as String?,
+        completedSpire: j['completedSpire'] as bool? ?? false,
         progress: j['progress'] as String?,
         note: j['note'] as String?,
       );

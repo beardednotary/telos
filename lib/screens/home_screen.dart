@@ -7,6 +7,7 @@ import '../state/guild_controller.dart';
 import '../theme/telos_theme.dart';
 import '../widgets/contract_board.dart';
 import '../widgets/terminal.dart';
+import 'spire_screen.dart';
 import 'dispatch_screen.dart';
 import 'forge_screen.dart';
 import 'log_screen.dart';
@@ -69,6 +70,14 @@ class HomeScreen extends StatelessWidget {
               onTap: () => Navigator.push(context,
                   MaterialPageRoute(builder: (_) => const ForgeScreen())),
             ),
+            if (g.spireComplete)
+              _NavRow(
+                label: 'THE SPIRE',
+                value: '${g.spireFloors}',
+                hint: 'What your hours have raised since you got there',
+                onTap: () => Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const SpireScreen())),
+              ),
             _NavRow(
               label: 'FIELD LOG',
               value: '${g.log.length}',

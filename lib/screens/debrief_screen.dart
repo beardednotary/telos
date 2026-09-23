@@ -219,6 +219,40 @@ class _DebriefScreenState extends State<DebriefScreen>
                             // not a report - but deliberately unadorned: no
                             // counter, no "1 of 5", nothing that turns it into
                             // a collection the player is behind on.
+                            // The arrival. Shown once, on the run that
+                            // recovered the Charter, and never framed as a
+                            // score - the two numbers simply both exist.
+                            if (r.completedSpire) ...[
+                              const SizedBox(height: 6),
+                              Container(height: 1, color: T.line),
+                              const SizedBox(height: 14),
+                              Text('THE LAST CHARTER',
+                                  style: T.micro.copyWith(color: T.amber)),
+                              const SizedBox(height: 10),
+                              Text(
+                                'Find out what the structure in Sector 05 is '
+                                'for.',
+                                style: T.mono.copyWith(
+                                    fontSize: 13, height: 1.65),
+                              ),
+                              const SizedBox(height: 14),
+                              Text(
+                                'Logged against this charter before you: '
+                                '${GuildState.kCharterHours} hours. Yours: '
+                                '${c.g.totalFocusMinutes ~/ 60}.',
+                                style: T.mono.copyWith(
+                                    fontSize: 13,
+                                    height: 1.65,
+                                    color: T.dim),
+                              ),
+                              const SizedBox(height: 14),
+                              Text(
+                                'The top course is unfinished. It is yours to '
+                                'carry on, or not.',
+                                style: T.mono.copyWith(
+                                    fontSize: 13, height: 1.65),
+                              ),
+                            ],
                             if (r.priorSurvey != null) ...[
                               const SizedBox(height: 6),
                               Container(height: 1, color: T.line),

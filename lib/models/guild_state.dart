@@ -18,6 +18,13 @@ class GuildState {
   Map<Facility, int> facilities;
   Set<String> unlockedSectors;
 
+  /// When the last of the Spire's records was recovered, and the total
+  /// protected minutes standing at that moment. Floors are counted from
+  /// there, so the hours spent getting to the Spire are credited on the
+  /// Charter and the hours after it become height.
+  DateTime? spireCompletedAt;
+  int spireCompletionMinutes;
+
   /// How far into each sector's prior-survey pool the player has read.
   /// sectorId -> lines recovered. Advanced by the controller once a run is
   /// banked, so a resolve that never lands cannot burn a line.
@@ -69,6 +76,8 @@ class GuildState {
     required this.facilities,
     required this.unlockedSectors,
     required this.surveyRead,
+    this.spireCompletedAt,
+    this.spireCompletionMinutes = 0,
     required this.log,
     List<Contract>? contracts,
     this.contractCounter = 0,
@@ -166,6 +175,27 @@ class GuildState {
 
   int get cleanRuns => log.where((r) => r.integrity >= 0.999).length;
 
+  /// The Spire is unfinished. Everyone who worked on it stopped, which is
+  /// why nobody knows what it is for. After the player arrives, their own
+  /// hours start adding to it.
+  ///
+  /// One floor per [kFloorHours]. It never decays and there is no target -
+  /// see the story bible: a record shows what someone did, a streak
+  /// threatens what they will lose.
+  static const int kFloorHours = 20;
+  static const int kHistoricalFloors = 60;
+
+  /// What the first company logged against this charter, in hours. Derived
+  /// from the standing structure so the two numbers can never disagree.
+  static const int kCharterHours = kFloorHours * kHistoricalFloors;
+
+  bool get spireComplete => spireCompletedAt != null;
+
+  int get minutesSinceSpire =>
+      (totalFocusMinutes - spireCompletionMinutes).clamp(0, 1 << 30);
+
+  int get spireFloors => minutesSinceSpire ~/ (kFloorHours * 60);
+
   /// Consecutive days, ending today or yesterday, with at least one run.
   int get streak {
     if (log.isEmpty) return 0;
@@ -205,6 +235,8 @@ class GuildState {
         'facilities': facilities.map((k, v) => MapEntry(k.name, v)),
         'unlockedSectors': unlockedSectors.toList(),
         'surveyRead': surveyRead,
+        'spireCompletedAt': spireCompletedAt?.toIso8601String(),
+        'spireCompletionMinutes': spireCompletionMinutes,
         'log': log.map((r) => r.toJson()).toList(),
         'contracts': contracts.map((c) => c.toJson()).toList(),
         'contractCounter': contractCounter,
@@ -252,6 +284,10 @@ class GuildState {
       surveyRead: ((j['surveyRead'] as Map?) ?? {}).map(
         (k, v) => MapEntry(k as String, v as int),
       ),
+      spireCompletedAt: j['spireCompletedAt'] == null
+          ? null
+          : DateTime.tryParse(j['spireCompletedAt'] as String),
+      spireCompletionMinutes: j['spireCompletionMinutes'] as int? ?? 0,
       log: ((j['log'] as List?) ?? [])
           .map((e) => RunRecord.fromJson(e as Map<String, dynamic>))
           .toList(),
