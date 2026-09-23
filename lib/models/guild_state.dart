@@ -17,6 +17,11 @@ class GuildState {
   List<Gear> vault;
   Map<Facility, int> facilities;
   Set<String> unlockedSectors;
+
+  /// How far into each sector's prior-survey pool the player has read.
+  /// sectorId -> lines recovered. Advanced by the controller once a run is
+  /// banked, so a resolve that never lands cannot burn a line.
+  Map<String, int> surveyRead;
   List<RunRecord> log;
   ActiveRun? active;
 
@@ -63,6 +68,7 @@ class GuildState {
     required this.vault,
     required this.facilities,
     required this.unlockedSectors,
+    required this.surveyRead,
     required this.log,
     List<Contract>? contracts,
     this.contractCounter = 0,
@@ -98,6 +104,7 @@ class GuildState {
           Facility.archive: 1,
         },
         unlockedSectors: {'mosswood'},
+        surveyRead: {},
         log: [],
         installedAt: DateTime.now(),
       );
@@ -197,6 +204,7 @@ class GuildState {
         'vault': vault.map((g) => g.toJson()).toList(),
         'facilities': facilities.map((k, v) => MapEntry(k.name, v)),
         'unlockedSectors': unlockedSectors.toList(),
+        'surveyRead': surveyRead,
         'log': log.map((r) => r.toJson()).toList(),
         'contracts': contracts.map((c) => c.toJson()).toList(),
         'contractCounter': contractCounter,
@@ -241,6 +249,9 @@ class GuildState {
       unlockedSectors:
           ((j['unlockedSectors'] as List?)?.cast<String>() ?? ['mosswood'])
               .toSet(),
+      surveyRead: ((j['surveyRead'] as Map?) ?? {}).map(
+        (k, v) => MapEntry(k as String, v as int),
+      ),
       log: ((j['log'] as List?) ?? [])
           .map((e) => RunRecord.fromJson(e as Map<String, dynamic>))
           .toList(),

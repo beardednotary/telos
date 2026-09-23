@@ -143,6 +143,16 @@ class ExpeditionEngine {
       sector: sector,
     ));
 
+    // -- prior survey --------------------------------------------------------
+    // One trace of the first company per run in a sector, in order. Read-only
+    // here: the controller advances the index after banking, so a resolve
+    // that never lands cannot burn a line. Deliberately granted on scraps
+    // runs too - withholding the story for a short session would be the app
+    // scolding the player for a short session, which it must never do.
+    final seen = guild.surveyRead[sector.id] ?? 0;
+    final priorSurvey =
+        seen < sector.priorSurvey.length ? sector.priorSurvey[seen] : null;
+
     final record = RunRecord(
       id: run.id,
       sectorId: run.sectorId,
@@ -164,6 +174,7 @@ class ExpeditionEngine {
       guildXp: guildXp,
       guildLevelUps: gLvl - guild.level,
       journal: journal,
+      priorSurvey: priorSurvey,
     );
 
     return Resolution(record, loot);

@@ -232,6 +232,11 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
       _g.level++;
     }
 
+    if (res.record.priorSurvey != null) {
+      final id = res.record.sectorId;
+      _g.surveyRead[id] = (_g.surveyRead[id] ?? 0) + 1;
+    }
+
     ContractBoard.applyRun(_g, res.record);
 
     _g.log.insert(0, res.record);

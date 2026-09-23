@@ -276,6 +276,12 @@ class Sector {
 
   final List<String> journal; // flavor lines shown in the debrief
 
+  /// Traces of the company that worked this ground before, in order, one per
+  /// run. Unlike [journal] these are read once each and never repeat - see
+  /// the story bible for why they may never gate anything or be counted at
+  /// the player.
+  final List<String> priorSurvey;
+
   /// Every sector owns a colour. The app takes it on wherever that sector is
   /// the subject - dispatch, the live run, the debrief, the log - so the
   /// screens stop being five views of the same amber.
@@ -297,6 +303,7 @@ class Sector {
     this.intelToUnlock = 0,
     this.guildLevelToUnlock = 1,
     this.journal = const [],
+    this.priorSurvey = const [],
     required this.accent,
   });
 }
@@ -439,6 +446,10 @@ class RunRecord {
   final int guildLevelUps;
   final List<String> journal;
 
+  /// The prior-survey line this run turned up, if it was owed one. Stored on
+  /// the record so the log reads back the same way months later.
+  final String? priorSurvey;
+
   String? progress; // 'YES' | 'SOME' | 'NO' - honour-system self report
   String? note;
 
@@ -463,6 +474,7 @@ class RunRecord {
     required this.guildXp,
     required this.guildLevelUps,
     required this.journal,
+    this.priorSurvey,
     this.progress,
     this.note,
   });
@@ -490,6 +502,7 @@ class RunRecord {
         'guildXp': guildXp,
         'guildLevelUps': guildLevelUps,
         'journal': journal,
+        'priorSurvey': priorSurvey,
         'progress': progress,
         'note': note,
       };
@@ -518,6 +531,7 @@ class RunRecord {
         guildXp: j['guildXp'] as int? ?? 0,
         guildLevelUps: j['guildLevelUps'] as int? ?? 0,
         journal: (j['journal'] as List?)?.cast<String>() ?? <String>[],
+        priorSurvey: j['priorSurvey'] as String?,
         progress: j['progress'] as String?,
         note: j['note'] as String?,
       );

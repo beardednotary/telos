@@ -95,6 +95,14 @@ const List<Sector> kSectors = [
       'Found a cache under a collapsed relay mast.',
       'Light rain. Visibility poor but the ground is quiet.',
     ],
+    priorSurvey: [
+      'Survey markers along the service road, cut into the posts. Not ours.',
+      'The markers carry sector numbers. Ours are written the same way.',
+      'The cache under the relay mast was stocked, not emptied.',
+      'Tins in the cache are dated. Eleven years, give or take a season.',
+      'The service road runs past our last marker. Graded flat, by something '
+          'with an engine.',
+    ],
   ),
   Sector(
     id: 'blackstone',
@@ -116,6 +124,20 @@ const List<Sector> kSectors = [
       'Cross-beam gave way on level two. No injuries.',
       'Ore seam is richer than the survey suggested.',
       'Something moved in the lower gallery. Squad held position.',
+    ],
+    priorSurvey: [
+      'The shoring on level two is not original. Someone re-cut it to hold, '
+          'and it has.',
+      'Equipment in the side gallery is stacked and sheeted. Packed away, '
+          'not dropped.',
+      'Shift roster still pinned in the winch house. Four crews, rotating. '
+          'Years of it.',
+      'Their survey of the seam is here. It reads a third of what we are '
+          'pulling out.',
+      'Requisition copies in the same file. They were asking for more hands, '
+          'and getting them.',
+      'Tools racked and signed in, every one. The book ends part way down a '
+          'page.',
     ],
   ),
   Sector(

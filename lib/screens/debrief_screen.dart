@@ -214,6 +214,23 @@ class _DebriefScreenState extends State<DebriefScreen>
                                   ],
                                 ),
                               ),
+                            // A trace of the company that worked here before.
+                            // Set apart from the journal because it is a find,
+                            // not a report - but deliberately unadorned: no
+                            // counter, no "1 of 5", nothing that turns it into
+                            // a collection the player is behind on.
+                            if (r.priorSurvey != null) ...[
+                              const SizedBox(height: 6),
+                              Container(height: 1, color: T.line),
+                              const SizedBox(height: 14),
+                              Text('PRIOR SURVEY',
+                                  style: T.micro
+                                      .copyWith(color: Color(sector.accent))),
+                              const SizedBox(height: 10),
+                              Text(r.priorSurvey!,
+                                  style: T.mono.copyWith(
+                                      fontSize: 13, height: 1.65)),
+                            ],
                           ],
                         ),
                       ),

@@ -138,6 +138,9 @@ void main() {
         'Ore seam is richer than the survey suggested.',
         'Clean run. No interruptions, no losses.',
       ],
+      priorSurvey:
+          'Their survey of the seam is here. It reads a third of what we '
+          'are pulling out.',
     );
 
     await t.pumpWidget(_phone(c, DebriefScreen(record: rec)));

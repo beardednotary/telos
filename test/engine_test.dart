@@ -212,11 +212,95 @@ void main() {
     });
   });
 
+  group('prior survey', () {
+    // The story rides on the debrief and must never become a reason to open
+    // the app: the rules it has to keep are mechanical, so they are tested.
+    GuildState g() => GuildState.fresh();
+
+    Resolution resolveIn(GuildState guild, String id,
+        {String sector = 'mosswood', int minutes = 45}) {
+      return ExpeditionEngine.resolve(
+        run: run(id: id, sector: sector, minutes: minutes),
+        guild: guild,
+        now: DateTime(2026, 1, 1, 9, minutes),
+        recalled: false,
+      );
+    }
+
+    test('the first run in a sector recovers its first line', () {
+      final guild = g();
+      final res = resolveIn(guild, 'r1');
+      expect(res.record.priorSurvey, sectorById('mosswood').priorSurvey.first);
+    });
+
+    test('resolving twice without banking does not burn a line', () {
+      final guild = g();
+      final a = resolveIn(guild, 'r1');
+      final b = resolveIn(guild, 'r2');
+      expect(b.record.priorSurvey, a.record.priorSurvey);
+    });
+
+    test('lines come back in order, once each, then stop', () {
+      final guild = g();
+      final pool = sectorById('mosswood').priorSurvey;
+      final got = <String>[];
+      for (var i = 0; i < pool.length + 2; i++) {
+        final res = resolveIn(guild, 'r$i');
+        final line = res.record.priorSurvey;
+        if (line == null) continue;
+        got.add(line);
+        guild.surveyRead['mosswood'] = (guild.surveyRead['mosswood'] ?? 0) + 1;
+      }
+      expect(got, pool);
+    });
+
+    test('a scraps run still recovers one - the app never withholds story '
+        'as a punishment for a short session', () {
+      final guild = g();
+      final res = resolveIn(guild, 'r1', minutes: 5);
+      expect(res.record.scraps, isTrue);
+      expect(res.record.priorSurvey, isNotNull);
+    });
+
+    test('each sector keeps its own place in its own pool', () {
+      final guild = g();
+      guild.unlockedSectors.add('blackstone');
+      guild.surveyRead['mosswood'] = 2;
+      final res = resolveIn(guild, 'r1', sector: 'blackstone', minutes: 60);
+      expect(res.record.priorSurvey,
+          sectorById('blackstone').priorSurvey.first);
+    });
+
+    test('the recovered line survives a save round-trip', () {
+      final guild = g();
+      final res = resolveIn(guild, 'r1');
+      final back = RunRecord.fromJson(res.record.toJson());
+      expect(back.priorSurvey, res.record.priorSurvey);
+    });
+
+    test('the read index survives a save round-trip', () {
+      final guild = g();
+      guild.surveyRead['mosswood'] = 3;
+      final back = GuildState.fromJson(guild.toJson());
+      expect(back.surveyRead['mosswood'], 3);
+    });
+  });
+
   group('content sanity', () {
     test('every sector loot pool references real gear', () {
       for (final s in kSectors) {
         for (final id in s.lootPool) {
           expect(kGear.containsKey(id), isTrue, reason: '${s.id} -> $id');
+        }
+      }
+    });
+
+    test('no prior-survey line ends on a hook', () {
+      // The tone rule that is actually checkable: a line that ends in a
+      // question mark is fishing for the next session.
+      for (final s in kSectors) {
+        for (final line in s.priorSurvey) {
+          expect(line.endsWith('?'), isFalse, reason: '${s.id}: $line');
         }
       }
     });
