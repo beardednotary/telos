@@ -97,6 +97,19 @@ void main() {
         }
       }
 
+      // The economy must never be the thing standing in the way: if a
+      // pattern can clear a sector's minutes at all, INTEL and guild level
+      // should follow inside 90 days (worst case today is 33). Session length is allowed to gate
+      // content. Grinding is not.
+      for (final s in kSectors) {
+        if (s.id == 'mosswood') continue;
+        if (s.minMinutes > sim.minutesPerRun) continue;
+        expect(unlocked[s.id], isNotNull,
+            reason: '${sim.label} can reach ${s.id} but never unlocked it');
+        expect(unlocked[s.id]!, lessThan(90),
+            reason: '${sim.label} took ${unlocked[s.id]} days to open ${s.id}');
+      }
+
       // ignore: avoid_print
       print('\n${sim.label}   (${sim.runsPerDay * sim.minutesPerRun} min/day, '
           'lv ${g.level} after 2 years, 150h on day ${day150 ?? "never"})');
