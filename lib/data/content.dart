@@ -202,6 +202,21 @@ const List<Sector> kSectors = [
       'Squad reports no sound at all. Not silence - absence.',
       'Charted two kilometres of new passage.',
     ],
+    priorSurvey: [
+      'Their anchors are set the whole way down. Ours clip straight onto '
+          'them.',
+      'Depth marks cut into the rock every fifty metres. They stop at nine '
+          'hundred.',
+      'Below the last mark, rigging for a further descent. Set, tensioned, '
+          'never used.',
+      'Stores cached at the nine hundred mark. Sealed and full, dated the '
+          'same season as the rigging.',
+      'The descent log ends mid-season. No incident entry, no casualty list, '
+          'nothing closed out.',
+      'Nothing down here is broken. Nothing has been moved.',
+      'Last entry in the book is a stores return. Someone signed the rope '
+          'back in.',
+    ],
   ),
   Sector(
     id: 'spire',
@@ -223,6 +238,24 @@ const List<Sector> kSectors = [
       'The approach alone takes an hour.',
       'Every floor is a different century.',
       'They are climbing. Nothing to report until they stop.',
+    ],
+    priorSurvey: [
+      'Their camp at the base was built to last. Stone footings, drainage, a '
+          'roof frame.',
+      'The first two hundred steps are cut and dressed. After that the stone '
+          'is as it was.',
+      'Each floor is finished to a different standard. The joins are not '
+          'disguised.',
+      'Work stops and restarts the whole height of it. Different tools, '
+          'different stone, decades between.',
+      'No plans anywhere in it. Whoever raised each stage did not write down '
+          'what the stage was for.',
+      'The top course is unfinished. Cut stone stacked ready, mortar never '
+          'mixed.',
+      'Their marks are on the last complete floor. They got here, and the '
+          'ledgers stayed blank after.',
+      'The charter is weighted under a stone on the top course. Their field '
+          'hours are totalled on the back.',
     ],
   ),
 ];

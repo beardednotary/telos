@@ -295,6 +295,12 @@ void main() {
       }
     });
 
+    test('every sector has prior survey lines', () {
+      for (final s in kSectors) {
+        expect(s.priorSurvey, isNotEmpty, reason: s.id);
+      }
+    });
+
     test('no prior-survey line ends on a hook', () {
       // The tone rule that is actually checkable: a line that ends in a
       // question mark is fishing for the next session.
