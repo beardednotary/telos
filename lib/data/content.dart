@@ -162,6 +162,23 @@ const List<Sector> kSectors = [
       'Found a sealed reading room, untouched.',
       'The fire is still burning somewhere below. It has been years.',
     ],
+    priorSurvey: [
+      "Their files are shelved in with the library's own, catalogued in the "
+          'same hand.',
+      'Three rooms of it. They were not passing through - they worked out of '
+          'here.',
+      'Equipment manifests. Nine crews in the field at once, at the peak.',
+      'Instrument lists we cannot match. Half of these we have no name for.',
+      'The charter is copied into the front of every ledger. One line: find '
+          'out what the structure in Sector 05 is for.',
+      'Twenty years of ledgers under that line. The answer column is blank in '
+          'all of them.',
+      'Depth logs from the Riftline, dated years before ours. Past our '
+          'furthest marker by their second season.',
+      'The fire was here before they were. Their notes treat it as weather.',
+      'The ledgers run thinner toward the end of the shelf. Same hand, fewer '
+          'entries, longer gaps.',
+    ],
   ),
   Sector(
     id: 'riftline',
@@ -192,7 +209,7 @@ const List<Sector> kSectors = [
     name: 'THE SPIRE OF TELOS',
     designation: 'SECTOR 05',
     blurb: 'The reason the guild reopened. Bring everything.',
-    kind: 'ASSAULT',
+    kind: 'ASCENT',
     minMinutes: 100,
     nominalMinutes: 150,
     creditsPerMin: 8.0,
