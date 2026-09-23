@@ -369,10 +369,12 @@ void main() {
     test('completion survives a save round-trip', () {
       final g = arrived();
       g.spireCompletionMinutes = 4242;
+      g.spireCharterName = 'THE SILVER LANTERN';
       final back = GuildState.fromJson(g.toJson());
       expect(back.spireComplete, isTrue);
       expect(back.spireCompletedAt, g.spireCompletedAt);
       expect(back.spireCompletionMinutes, 4242);
+      expect(back.spireCharterName, 'THE SILVER LANTERN');
     });
 
     test('a fresh guild has not arrived', () {

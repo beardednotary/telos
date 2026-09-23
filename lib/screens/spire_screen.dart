@@ -30,6 +30,13 @@ class SpireScreen extends StatelessWidget {
       child: ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
         children: [
+          if (g.spireCharterName != null) ...[
+            Text('HOLDER OF THE LAST CHARTER', style: T.micro),
+            const SizedBox(height: 8),
+            Text(g.spireCharterName!,
+                style: T.title.copyWith(fontSize: 21, color: T.amber)),
+            const SizedBox(height: 22),
+          ],
           Text(
             'The top course was never finished. Cut stone stacked ready, '
             'mortar never mixed. Everyone who worked on it stopped, which is '

@@ -253,6 +253,13 @@ void _spireTests() {
     }
 
     expect(completions, 1, reason: 'the arrival must happen exactly once');
+    expect(c.g.spireCharterName, c.g.guildName,
+        reason: 'the blank holder line takes the guild name on arrival');
+
+    // A charter is signed once. Renaming the guild afterwards must not
+    // quietly rewrite the document.
+    await c.renameGuild('SOME OTHER OUTFIT');
+    expect(c.g.spireCharterName, isNot('SOME OTHER OUTFIT'));
     expect(c.g.spireComplete, isTrue);
     expect(c.g.surveyRead['spire'], need);
 

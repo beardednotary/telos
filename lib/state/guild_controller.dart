@@ -245,6 +245,7 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
       if ((_g.surveyRead['spire'] ?? 0) >= spire.priorSurvey.length) {
         res.record.completedSpire = true;
         _g.spireCompletedAt = t;
+        _g.spireCharterName = _g.guildName;
       }
     }
 

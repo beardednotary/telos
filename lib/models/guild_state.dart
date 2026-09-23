@@ -25,6 +25,15 @@ class GuildState {
   DateTime? spireCompletedAt;
   int spireCompletionMinutes;
 
+  /// The Charter's holder line was left blank - the first company never put
+  /// their name to it, because nobody had finished the work. The player's
+  /// goes in on arrival.
+  ///
+  /// Snapshotted rather than read live from [guildName]: a charter is a
+  /// document signed once, so renaming the guild afterwards does not quietly
+  /// rewrite history.
+  String? spireCharterName;
+
   /// How far into each sector's prior-survey pool the player has read.
   /// sectorId -> lines recovered. Advanced by the controller once a run is
   /// banked, so a resolve that never lands cannot burn a line.
@@ -78,6 +87,7 @@ class GuildState {
     required this.surveyRead,
     this.spireCompletedAt,
     this.spireCompletionMinutes = 0,
+    this.spireCharterName,
     required this.log,
     List<Contract>? contracts,
     this.contractCounter = 0,
@@ -237,6 +247,7 @@ class GuildState {
         'surveyRead': surveyRead,
         'spireCompletedAt': spireCompletedAt?.toIso8601String(),
         'spireCompletionMinutes': spireCompletionMinutes,
+        'spireCharterName': spireCharterName,
         'log': log.map((r) => r.toJson()).toList(),
         'contracts': contracts.map((c) => c.toJson()).toList(),
         'contractCounter': contractCounter,
@@ -288,6 +299,7 @@ class GuildState {
           ? null
           : DateTime.tryParse(j['spireCompletedAt'] as String),
       spireCompletionMinutes: j['spireCompletionMinutes'] as int? ?? 0,
+      spireCharterName: j['spireCharterName'] as String?,
       log: ((j['log'] as List?) ?? [])
           .map((e) => RunRecord.fromJson(e as Map<String, dynamic>))
           .toList(),

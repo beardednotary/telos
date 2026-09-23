@@ -237,6 +237,19 @@ class _DebriefScreenState extends State<DebriefScreen>
                               ),
                               const SizedBox(height: 14),
                               Text(
+                                'The line for the holder is blank. They never '
+                                'put their name to it.',
+                                style: T.mono.copyWith(
+                                    fontSize: 13, height: 1.65),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                c.g.spireCharterName ?? c.g.guildName,
+                                style: T.title.copyWith(
+                                    fontSize: 21, color: T.amber),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
                                 'Logged against this charter before you: '
                                 '${GuildState.kCharterHours} hours. Yours: '
                                 '${c.g.totalFocusMinutes ~/ 60}.',

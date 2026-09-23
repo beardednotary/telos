@@ -115,6 +115,7 @@ void main() {
     // of the structure, nowhere near the centuries below.
     c.g.spireCompletedAt = DateTime(2026, 3, 1);
     c.g.spireCompletionMinutes = 0;
+    c.g.spireCharterName = c.g.guildName;
     c.g.log.add(RunRecord(
       id: 'sp',
       sectorId: 'spire',
