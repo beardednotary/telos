@@ -55,9 +55,9 @@ telling the user how long they should focus.
 |---|---:|---|
 | Mosswood Verge | 10m | Credits |
 | Blackstone Hollow | 25m | Alloy |
-| The Cinder Archive | 45m | Intel |
-| Riftline Descent | 75m | Everything, richly |
-| The Spire of Telos | 100m | Endgame |
+| The Cinder Archive | 40m | Intel |
+| Riftline Descent | 60m | Everything, richly |
+| The Spire of Telos | 90m | Endgame |
 
 ### Class windows
 
@@ -226,9 +226,9 @@ flutter test
 ## Not in V1 (deliberately)
 
 - App blocking / distraction detection (see V2 path above)
-- IAP: Guildmaster one-time unlock, sector packs, cosmetic terminal themes.
+- IAP: sector packs and cosmetic terminal themes, after retention is proven.
   The one rule from the design notes stands: money expands and customises the
   game; focus is the only thing that generates progression. No XP boosts, no
-  session skips, no purchased currency.
+  session skips, no purchased currency. No pack sector goes deeper than the
+  Spire's 90 minutes.
 - Crafting, companions, guild-hall cosmetics
-- Onboarding / first-run tutorial
