@@ -203,6 +203,20 @@ void main() {
       c.dispose();
     });
 
+    test('the widget is told when a squad goes out, and when it is back',
+        () async {
+      final (c, launch) = await booted([rec(minutes: 25)]);
+      await launch.pick(LaunchActions.latest);
+      final out = launch.runs.last!;
+      expect(out.sectorName, 'MOSSWOOD VERGE');
+      expect(out.endsAt, c.g.active!.endsAt);
+      expect(launch.published.last.first.accent, isNonZero);
+
+      await c.finishRun(recalled: true);
+      expect(launch.runs.last, isNull);
+      c.dispose();
+    });
+
     test('boot starts listening, so a pick that launched the app lands',
         () async {
       final (c, launch) = await booted([]);
@@ -313,10 +327,14 @@ void main() {
 
 class _FakeLaunch implements LaunchActions {
   final published = <List<LaunchItem>>[];
+  final runs = <LaunchRun?>[];
   void Function(String key)? onPick;
 
   @override
-  Future<void> publish(List<LaunchItem> items) async => published.add(items);
+  Future<void> publish(List<LaunchItem> items, {LaunchRun? run}) async {
+    published.add(items);
+    runs.add(run);
+  }
 
   @override
   Future<void> listen(void Function(String key) onPick) async =>

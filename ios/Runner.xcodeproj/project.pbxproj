@@ -16,6 +16,9 @@
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
 		E1A700012EA0000000000011 /* ExpeditionAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1A700012EA0000000000001 /* ExpeditionAttributes.swift */; };
+		D15A7C01000000000000A004 /* WidgetStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D15A7C01000000000000A003 /* WidgetStore.swift */; };
+		D15A7C01000000000000A005 /* WidgetStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D15A7C01000000000000A003 /* WidgetStore.swift */; };
+		D15A7C01000000000000A007 /* DispatchWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = D15A7C01000000000000A006 /* DispatchWidget.swift */; };
 		E1A700012EA0000000000012 /* ExpeditionLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1A700012EA0000000000002 /* ExpeditionLiveActivity.swift */; };
 		D15A7C01000000000000A001 /* DispatchIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = D15A7C01000000000000A002 /* DispatchIntent.swift */; };
 		E1A700012EA0000000000013 /* ExpeditionAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1A700012EA0000000000001 /* ExpeditionAttributes.swift */; };
@@ -87,6 +90,10 @@
 		97C147001CF9000F007C117D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		97C147021CF9000F007C117D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		E1A700012EA0000000000001 /* ExpeditionAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpeditionAttributes.swift; sourceTree = "<group>"; };
+		D15A7C01000000000000A003 /* WidgetStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetStore.swift; sourceTree = "<group>"; };
+		D15A7C01000000000000A006 /* DispatchWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DispatchWidget.swift; sourceTree = "<group>"; };
+		D15A7C01000000000000A008 /* Runner.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Runner.entitlements; sourceTree = "<group>"; };
+		D15A7C01000000000000A009 /* ExpeditionWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ExpeditionWidget.entitlements; sourceTree = "<group>"; };
 		E1A700012EA0000000000002 /* ExpeditionLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpeditionLiveActivity.swift; sourceTree = "<group>"; };
 		D15A7C01000000000000A002 /* DispatchIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DispatchIntent.swift; sourceTree = "<group>"; };
 		E1A700012EA0000000000003 /* ExpeditionWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpeditionWidgetBundle.swift; sourceTree = "<group>"; };
@@ -173,6 +180,7 @@
 				7884E8672EC3CC0400C636F2 /* SceneDelegate.swift */,
 				E1A700012EA0000000000002 /* ExpeditionLiveActivity.swift */,
 				D15A7C01000000000000A002 /* DispatchIntent.swift */,
+				D15A7C01000000000000A008 /* Runner.entitlements */,
 				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
 			);
 			path = Runner;
@@ -182,6 +190,7 @@
 			isa = PBXGroup;
 			children = (
 				E1A700012EA0000000000001 /* ExpeditionAttributes.swift */,
+				D15A7C01000000000000A003 /* WidgetStore.swift */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -191,6 +200,8 @@
 			children = (
 				E1A700012EA0000000000003 /* ExpeditionWidgetBundle.swift */,
 				E1A700012EA0000000000004 /* ExpeditionLiveActivityWidget.swift */,
+				D15A7C01000000000000A006 /* DispatchWidget.swift */,
+				D15A7C01000000000000A009 /* ExpeditionWidget.entitlements */,
 				E1A700012EA0000000000005 /* Info.plist */,
 				E1A700012EA0000000000023 /* Fonts */,
 			);
@@ -398,6 +409,7 @@
 				7884E8682EC3CC0700C636F2 /* SceneDelegate.swift in Sources */,
 				E1A700012EA0000000000011 /* ExpeditionAttributes.swift in Sources */,
 				E1A700012EA0000000000012 /* ExpeditionLiveActivity.swift in Sources */,
+				D15A7C01000000000000A004 /* WidgetStore.swift in Sources */,
 				D15A7C01000000000000A001 /* DispatchIntent.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -409,6 +421,8 @@
 				E1A700012EA0000000000013 /* ExpeditionAttributes.swift in Sources */,
 				E1A700012EA0000000000014 /* ExpeditionWidgetBundle.swift in Sources */,
 				E1A700012EA0000000000015 /* ExpeditionLiveActivityWidget.swift in Sources */,
+				D15A7C01000000000000A005 /* WidgetStore.swift in Sources */,
+				D15A7C01000000000000A007 /* DispatchWidget.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -512,6 +526,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
 				PRODUCT_BUNDLE_IDENTIFIER = com.dahvio.telos;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
@@ -691,6 +706,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
 				PRODUCT_BUNDLE_IDENTIFIER = com.dahvio.telos;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
@@ -713,6 +729,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;
 				PRODUCT_BUNDLE_IDENTIFIER = com.dahvio.telos;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "Runner/Runner-Bridging-Header.h";
@@ -738,6 +755,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
+				CODE_SIGN_ENTITLEMENTS = ExpeditionWidget/ExpeditionWidget.entitlements;
 				PRODUCT_BUNDLE_IDENTIFIER = com.dahvio.telos.ExpeditionWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -765,6 +783,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
+				CODE_SIGN_ENTITLEMENTS = ExpeditionWidget/ExpeditionWidget.entitlements;
 				PRODUCT_BUNDLE_IDENTIFIER = com.dahvio.telos.ExpeditionWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -790,6 +809,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
+				CODE_SIGN_ENTITLEMENTS = ExpeditionWidget/ExpeditionWidget.entitlements;
 				PRODUCT_BUNDLE_IDENTIFIER = com.dahvio.telos.ExpeditionWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;

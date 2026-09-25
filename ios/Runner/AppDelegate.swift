@@ -1,6 +1,7 @@
 import Flutter
 import UIKit
 import UserNotifications
+import WidgetKit
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
@@ -68,6 +69,32 @@ import UserNotifications
       switch call.method {
       case "takePending":
         result(ShortcutRelay.shared.take())
+      case "publish":
+        // The recent dispatches and the live run, for the widget and the
+        // Shortcuts action. Written to the App Group the widget can read.
+        let args = call.arguments as? [String: Any] ?? [:]
+        let dispatches = (args["dispatches"] as? [[String: Any]] ?? []).compactMap {
+          row -> WidgetStore.Dispatch? in
+          guard let key = row["key"] as? String, let title = row["title"] as? String
+          else { return nil }
+          return WidgetStore.Dispatch(
+            key: key, title: title,
+            subtitle: row["subtitle"] as? String ?? "",
+            accent: (row["accent"] as? NSNumber)?.uint32Value ?? 0xFFF5A623)
+        }
+        var run: WidgetStore.Run?
+        if let r = args["run"] as? [String: Any],
+          let name = r["sectorName"] as? String,
+          let endsAtMs = (r["endsAtMs"] as? NSNumber)?.doubleValue
+        {
+          run = WidgetStore.Run(
+            sectorName: name,
+            accent: (r["accent"] as? NSNumber)?.uint32Value ?? 0xFFF5A623,
+            endsAt: Date(timeIntervalSince1970: endsAtMs / 1000))
+        }
+        WidgetStore.write(dispatches: dispatches, run: run)
+        WidgetCenter.shared.reloadAllTimelines()
+        result(nil)
       default:
         result(FlutterMethodNotImplemented)
       }
@@ -76,5 +103,37 @@ import UserNotifications
       DispatchQueue.main.async { shortcuts?.invokeMethod("pending", arguments: nil) }
     }
     shortcutsChannel = shortcuts
+
+    // A tap on the Dispatch widget arrives as a telos://dispatch/ link. It
+    // goes through the same relay as Shortcuts, so Dart starts every run the
+    // same way. Registered as a plugin scene delegate rather than overriding
+    // FlutterSceneDelegate, which handles URLs of its own.
+    if #available(iOS 13.0, *) {
+      registrar.addSceneDelegate(widgetLinks)
+    }
+  }
+
+  private let widgetLinks = WidgetLinkRelay()
+}
+
+/// Hands telos://dispatch/ links from the widget to ShortcutRelay: on a cold
+/// launch through the scene's connection options, otherwise as they open.
+final class WidgetLinkRelay: NSObject, FlutterSceneLifeCycleDelegate {
+  func scene(
+    _ scene: UIScene, willConnectTo session: UISceneSession,
+    options connectionOptions: UIScene.ConnectionOptions?
+  ) -> Bool {
+    relay(connectionOptions?.urlContexts ?? [])
+  }
+
+  func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) -> Bool {
+    relay(URLContexts)
+  }
+
+  private func relay(_ contexts: Set<UIOpenURLContext>) -> Bool {
+    guard let key = contexts.lazy.compactMap({ WidgetStore.key(from: $0.url) }).first
+    else { return false }
+    ShortcutRelay.shared.request(key)
+    return true
   }
 }

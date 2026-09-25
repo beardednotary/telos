@@ -32,18 +32,11 @@ final class ShortcutRelay {
 }
 
 /// The list Dart publishes whenever it changes - the same recent dispatches
-/// SEND AGAIN shows. The shared_preferences plugin stores its keys in the
-/// standard UserDefaults under a "flutter." prefix.
+/// SEND AGAIN shows - read from the App Group it shares with the widget.
 @available(iOS 16.0, *)
 private func publishedDispatches() -> [DispatchEntity] {
-  guard
-    let raw = UserDefaults.standard.string(forKey: "flutter.telos.launch_menu"),
-    let data = raw.data(using: .utf8),
-    let rows = try? JSONDecoder().decode([[String: String]].self, from: data)
-  else { return [] }
-  return rows.compactMap { row in
-    guard let key = row["key"], let title = row["title"] else { return nil }
-    return DispatchEntity(id: key, title: title, subtitle: row["subtitle"] ?? "")
+  WidgetStore.dispatches().map {
+    DispatchEntity(id: $0.key, title: $0.title, subtitle: $0.subtitle)
   }
 }
 

@@ -74,5 +74,21 @@
 	<true/>
 	<key>NSSupportsLiveActivities</key>
 	<true/>
+	<!-- telos://dispatch/<key>: a tap on the Dispatch widget. Handled
+	     natively (WidgetLinkRelay in AppDelegate.swift), so Flutter's own
+	     deep linking stays off; it would try to push the URL as a route. -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.dahvio.telos</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>telos</string>
+			</array>
+		</dict>
+	</array>
+	<key>FlutterDeepLinkingEnabled</key>
+	<false/>
 </dict>
 </plist>

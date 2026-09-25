@@ -150,19 +150,21 @@ private struct RunProgress: View {
     }
 }
 
-/// The subset of lib/theme/telos_theme.dart the lock screen uses.
-private enum Palette {
+/// The subset of lib/theme/telos_theme.dart the extension uses. Shared by
+/// the Live Activity and the Dispatch widget.
+enum Palette {
     static let black = Color(argb: 0xFF0B0C0E)
     static let text = Color(argb: 0xFFE6E8EB)
     static let amber = Color(argb: 0xFFF5A623)
     static let good = Color(argb: 0xFF3DD68C)
+    static let dim = Color(argb: 0xFF6B7280)
 
     static func accent(_ argb: UInt32) -> Color { Color(argb: argb) }
 }
 
 /// The same fonts as the app, bundled into the extension (see its Info.plist).
 /// If one ever fails to register, SwiftUI falls back to the system face.
-private enum Typeface {
+enum Typeface {
     static let micro = Font.custom("JetBrainsMono-Regular", size: 10)
 
     /// The countdown: Light, like T.big.
@@ -176,7 +178,7 @@ private enum Typeface {
     }
 }
 
-private extension Color {
+extension Color {
     init(argb: UInt32) {
         self.init(
             .sRGB,

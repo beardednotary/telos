@@ -113,8 +113,9 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
 
   String? _publishedLaunch;
 
-  /// Keeps the icon menu and the Shortcuts action offering what SEND AGAIN
-  /// offers. Runs on every save, and only reaches the platform on a change.
+  /// Keeps the icon menu, the Shortcuts action and the widget offering what
+  /// SEND AGAIN offers, and the widget showing a squad that is out. Runs on
+  /// every save, and only reaches the platform on a change.
   Future<void> _publishLaunchItems() async {
     final items = [
       for (final d in recentDispatches(_g))
@@ -124,12 +125,24 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
           subtitle: '${d.minutes} MIN · ${[
             for (final id in d.squad) _g.memberById(id)?.name
           ].whereType<String>().join(', ')}',
+          accent: sectorById(d.sectorId).accent,
         ),
     ];
-    final signature = jsonEncode([for (final i in items) i.toJson()]);
+    final live = _g.active;
+    final run = live == null
+        ? null
+        : LaunchRun(
+            sectorName: sectorById(live.sectorId).name,
+            accent: sectorById(live.sectorId).accent,
+            endsAt: live.endsAt,
+          );
+    final signature = jsonEncode({
+      'items': [for (final i in items) i.toJson()],
+      'run': run?.toJson(),
+    });
     if (signature == _publishedLaunch) return;
     _publishedLaunch = signature;
-    await _launch.publish(items);
+    await _launch.publish(items, run: run);
   }
 
   /// A dispatch picked from the icon menu or the Shortcuts action.
