@@ -15,6 +15,15 @@
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
+		E1A700012EA0000000000011 /* ExpeditionAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1A700012EA0000000000001 /* ExpeditionAttributes.swift */; };
+		E1A700012EA0000000000012 /* ExpeditionLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1A700012EA0000000000002 /* ExpeditionLiveActivity.swift */; };
+		E1A700012EA0000000000013 /* ExpeditionAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1A700012EA0000000000001 /* ExpeditionAttributes.swift */; };
+		E1A700012EA0000000000014 /* ExpeditionWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1A700012EA0000000000003 /* ExpeditionWidgetBundle.swift */; };
+		E1A700012EA0000000000015 /* ExpeditionLiveActivityWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1A700012EA0000000000004 /* ExpeditionLiveActivityWidget.swift */; };
+		E1A700012EA0000000000016 /* JetBrainsMono-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = E1A700012EA0000000000006 /* JetBrainsMono-Light.ttf */; };
+		E1A700012EA0000000000017 /* JetBrainsMono-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = E1A700012EA0000000000007 /* JetBrainsMono-Regular.ttf */; };
+		E1A700012EA0000000000018 /* Syne-Variable.ttf in Resources */ = {isa = PBXBuildFile; fileRef = E1A700012EA0000000000008 /* Syne-Variable.ttf */; };
+		E1A700012EA0000000000019 /* ExpeditionWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = E1A700012EA0000000000009 /* ExpeditionWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -24,6 +33,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 97C146ED1CF9000F007C117D;
 			remoteInfo = Runner;
+		};
+		E1A700012EA0000000000051 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 97C146E61CF9000F007C117D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E1A700012EA0000000000041;
+			remoteInfo = ExpeditionWidgetExtension;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -36,6 +52,17 @@
 			files = (
 			);
 			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E1A700012EA0000000000034 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				E1A700012EA0000000000019 /* ExpeditionWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -57,10 +84,26 @@
 		97C146FD1CF9000F007C117D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		97C147001CF9000F007C117D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		97C147021CF9000F007C117D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		E1A700012EA0000000000001 /* ExpeditionAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpeditionAttributes.swift; sourceTree = "<group>"; };
+		E1A700012EA0000000000002 /* ExpeditionLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpeditionLiveActivity.swift; sourceTree = "<group>"; };
+		E1A700012EA0000000000003 /* ExpeditionWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpeditionWidgetBundle.swift; sourceTree = "<group>"; };
+		E1A700012EA0000000000004 /* ExpeditionLiveActivityWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpeditionLiveActivityWidget.swift; sourceTree = "<group>"; };
+		E1A700012EA0000000000005 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		E1A700012EA0000000000006 /* JetBrainsMono-Light.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "JetBrainsMono-Light.ttf"; path = "../assets/fonts/JetBrainsMono-Light.ttf"; sourceTree = SOURCE_ROOT; };
+		E1A700012EA0000000000007 /* JetBrainsMono-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "JetBrainsMono-Regular.ttf"; path = "../assets/fonts/JetBrainsMono-Regular.ttf"; sourceTree = SOURCE_ROOT; };
+		E1A700012EA0000000000008 /* Syne-Variable.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Syne-Variable.ttf"; path = "../assets/fonts/Syne-Variable.ttf"; sourceTree = SOURCE_ROOT; };
+		E1A700012EA0000000000009 /* ExpeditionWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ExpeditionWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		97C146EB1CF9000F007C117D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E1A700012EA0000000000032 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -96,6 +139,8 @@
 				97C146F01CF9000F007C117D /* Runner */,
 				97C146EF1CF9000F007C117D /* Products */,
 				331C8082294A63A400263BE5 /* RunnerTests */,
+				E1A700012EA0000000000021 /* Shared */,
+				E1A700012EA0000000000022 /* ExpeditionWidget */,
 			);
 			sourceTree = "<group>";
 		};
@@ -104,6 +149,7 @@
 			children = (
 				97C146EE1CF9000F007C117D /* Runner.app */,
 				331C8081294A63A400263BE5 /* RunnerTests.xctest */,
+				E1A700012EA0000000000009 /* ExpeditionWidgetExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -119,9 +165,39 @@
 				1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */,
 				74858FAE1ED2DC5600515810 /* AppDelegate.swift */,
 				7884E8672EC3CC0400C636F2 /* SceneDelegate.swift */,
+				E1A700012EA0000000000002 /* ExpeditionLiveActivity.swift */,
 				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
 			);
 			path = Runner;
+			sourceTree = "<group>";
+		};
+		E1A700012EA0000000000021 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				E1A700012EA0000000000001 /* ExpeditionAttributes.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		E1A700012EA0000000000022 /* ExpeditionWidget */ = {
+			isa = PBXGroup;
+			children = (
+				E1A700012EA0000000000003 /* ExpeditionWidgetBundle.swift */,
+				E1A700012EA0000000000004 /* ExpeditionLiveActivityWidget.swift */,
+				E1A700012EA0000000000005 /* Info.plist */,
+				E1A700012EA0000000000023 /* Fonts */,
+			);
+			path = ExpeditionWidget;
+			sourceTree = "<group>";
+		};
+		E1A700012EA0000000000023 /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				E1A700012EA0000000000006 /* JetBrainsMono-Light.ttf */,
+				E1A700012EA0000000000007 /* JetBrainsMono-Regular.ttf */,
+				E1A700012EA0000000000008 /* Syne-Variable.ttf */,
+			);
+			name = Fonts;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -153,16 +229,35 @@
 				97C146EB1CF9000F007C117D /* Frameworks */,
 				97C146EC1CF9000F007C117D /* Resources */,
 				9705A1C41CF9048500538489 /* Embed Frameworks */,
+				E1A700012EA0000000000034 /* Embed Foundation Extensions */,
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				E1A700012EA0000000000052 /* PBXTargetDependency */,
 			);
 			name = Runner;
 			productName = Runner;
 			productReference = 97C146EE1CF9000F007C117D /* Runner.app */;
 			productType = "com.apple.product-type.application";
+		};
+		E1A700012EA0000000000041 /* ExpeditionWidgetExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E1A700012EA0000000000042 /* Build configuration list for PBXNativeTarget "ExpeditionWidgetExtension" */;
+			buildPhases = (
+				E1A700012EA0000000000031 /* Sources */,
+				E1A700012EA0000000000032 /* Frameworks */,
+				E1A700012EA0000000000033 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ExpeditionWidgetExtension;
+			productName = ExpeditionWidgetExtension;
+			productReference = E1A700012EA0000000000009 /* ExpeditionWidgetExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -174,6 +269,9 @@
 				LastUpgradeCheck = 1510;
 				ORGANIZATIONNAME = "";
 				TargetAttributes = {
+					E1A700012EA0000000000041 = {
+						CreatedOnToolsVersion = 16.0;
+					};
 					331C8080294A63A400263BE5 = {
 						CreatedOnToolsVersion = 14.0;
 						TestTargetID = 97C146ED1CF9000F007C117D;
@@ -199,6 +297,7 @@
 			targets = (
 				97C146ED1CF9000F007C117D /* Runner */,
 				331C8080294A63A400263BE5 /* RunnerTests */,
+				E1A700012EA0000000000041 /* ExpeditionWidgetExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -219,6 +318,16 @@
 				3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */,
 				97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */,
 				97C146FC1CF9000F007C117D /* Main.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E1A700012EA0000000000033 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E1A700012EA0000000000016 /* JetBrainsMono-Light.ttf in Resources */,
+				E1A700012EA0000000000017 /* JetBrainsMono-Regular.ttf in Resources */,
+				E1A700012EA0000000000018 /* Syne-Variable.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -274,6 +383,18 @@
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 				7884E8682EC3CC0700C636F2 /* SceneDelegate.swift in Sources */,
+				E1A700012EA0000000000011 /* ExpeditionAttributes.swift in Sources */,
+				E1A700012EA0000000000012 /* ExpeditionLiveActivity.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E1A700012EA0000000000031 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E1A700012EA0000000000013 /* ExpeditionAttributes.swift in Sources */,
+				E1A700012EA0000000000014 /* ExpeditionWidgetBundle.swift in Sources */,
+				E1A700012EA0000000000015 /* ExpeditionLiveActivityWidget.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -284,6 +405,11 @@
 			isa = PBXTargetDependency;
 			target = 97C146ED1CF9000F007C117D /* Runner */;
 			targetProxy = 331C8085294A63A400263BE5 /* PBXContainerItemProxy */;
+		};
+		E1A700012EA0000000000052 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E1A700012EA0000000000041 /* ExpeditionWidgetExtension */;
+			targetProxy = E1A700012EA0000000000051 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -581,6 +707,83 @@
 			};
 			name = Release;
 		};
+		E1A700012EA0000000000043 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9740EEB21CF90195004384FC /* Debug.xcconfig */;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ExpeditionWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.dahvio.telos.ExpeditionWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		E1A700012EA0000000000044 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 7AFA3C8E1D35360C0083082E /* Release.xcconfig */;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ExpeditionWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.dahvio.telos.ExpeditionWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		E1A700012EA0000000000045 /* Profile */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 7AFA3C8E1D35360C0083082E /* Release.xcconfig */;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = ExpeditionWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.dahvio.telos.ExpeditionWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Profile;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -610,6 +813,16 @@
 				97C147061CF9000F007C117D /* Debug */,
 				97C147071CF9000F007C117D /* Release */,
 				249021D4217E4FDB00AE95B9 /* Profile */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E1A700012EA0000000000042 /* Build configuration list for PBXNativeTarget "ExpeditionWidgetExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E1A700012EA0000000000043 /* Debug */,
+				E1A700012EA0000000000044 /* Release */,
+				E1A700012EA0000000000045 /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

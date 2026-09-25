@@ -9,15 +9,18 @@ import '../models/models.dart';
 import '../services/alerts.dart';
 import '../services/contracts.dart';
 import '../services/expedition_engine.dart';
+import '../services/lock_screen.dart';
 import '../services/persistence.dart';
 
 /// Owns the save file, the live run, and every mutation the UI can make.
 class GuildController extends ChangeNotifier with WidgetsBindingObserver {
-  GuildController(this._store, {Alerts? alerts})
-      : _alerts = alerts ?? NoopAlerts();
+  GuildController(this._store, {Alerts? alerts, LockScreen? lockScreen})
+      : _alerts = alerts ?? NoopAlerts(),
+        _lockScreen = lockScreen ?? NoopLockScreen();
 
   final Persistence _store;
   final Alerts _alerts;
+  final LockScreen _lockScreen;
 
   GuildState _g = GuildState.fresh();
   GuildState get g => _g;
@@ -48,6 +51,13 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
         sector: sectorById(restored.sectorId).name,
         squad: _squadLabel(restored.squad),
       );
+      // Same for the lock screen countdown, which a force stop can take
+      // with it.
+      await _showLockScreen(restored);
+    } else {
+      // Nothing live: sweep up any countdown left over from a run that ended
+      // while the app was dead.
+      await _lockScreen.clear();
     }
     _noteOpen();
     // The board is always full, so there is never a refresh to remember.
@@ -154,6 +164,17 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
     return '${names.first} and ${names.length - 1} others';
   }
 
+  Future<void> _showLockScreen(ActiveRun run) {
+    final sector = sectorById(run.sectorId);
+    return _lockScreen.show(
+      startedAt: run.startedAt,
+      endsAt: run.endsAt,
+      sector: sector.name,
+      designation: sector.designation,
+      accent: sector.accent,
+    );
+  }
+
   Future<void> startRun({
     required String sectorId,
     required String intent,
@@ -182,6 +203,7 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
       sector: sectorById(sectorId).name,
       squad: _squadLabel(squad),
     );
+    await _showLockScreen(_g.active!);
     await _save();
     notifyListeners();
   }
@@ -201,6 +223,7 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
     }
 
     await _alerts.cancel();
+    await _lockScreen.clear();
 
     final res = ExpeditionEngine.resolve(
       run: run,
@@ -457,6 +480,7 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
     _ticker?.cancel();
     _ticker = null;
     await _alerts.cancel();
+    await _lockScreen.clear();
     _g = state;
     // A run that was live when the backup was taken is long over; do not
     // resurrect a countdown from another phone.
@@ -470,6 +494,7 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
     _ticker?.cancel();
     _ticker = null;
     await _alerts.cancel();
+    await _lockScreen.clear();
     _g = GuildState.fresh();
     await _store.wipe();
     notifyListeners();
