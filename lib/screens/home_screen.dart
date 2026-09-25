@@ -354,7 +354,7 @@ class _Record extends StatelessWidget {
             children: [
               Expanded(child: small('EXPEDITIONS', '${g.log.length}')),
               Expanded(child: small('CLEAN RUNS', '${g.cleanRuns}')),
-              Expanded(child: small('DAY STREAK', '${g.streak}')),
+              Expanded(child: small('DAYS WORKED', '${g.daysWorked}')),
             ],
           ),
         ],

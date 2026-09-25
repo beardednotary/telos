@@ -206,29 +206,13 @@ class GuildState {
 
   int get spireFloors => minutesSinceSpire ~/ (kFloorHours * 60);
 
-  /// Consecutive days, ending today or yesterday, with at least one run.
-  int get streak {
-    if (log.isEmpty) return 0;
-    final days = log
-        .map((r) => DateTime(r.endedAt.year, r.endedAt.month, r.endedAt.day))
-        .toSet()
-        .toList()
-      ..sort((a, b) => b.compareTo(a));
-    final today = DateTime.now();
-    final t0 = DateTime(today.year, today.month, today.day);
-    if (days.first != t0 && days.first != t0.subtract(const Duration(days: 1))) {
-      return 0;
-    }
-    var count = 1;
-    for (var i = 1; i < days.length; i++) {
-      if (days[i - 1].difference(days[i]).inDays == 1) {
-        count++;
-      } else {
-        break;
-      }
-    }
-    return count;
-  }
+  /// Distinct days with at least one run. Deliberately not a streak: this
+  /// only ever goes up, so a day away costs nothing. A record shows what
+  /// someone did; a streak threatens what they will lose.
+  int get daysWorked => log
+      .map((r) => DateTime(r.endedAt.year, r.endedAt.month, r.endedAt.day))
+      .toSet()
+      .length;
 
   // -- serialisation ---------------------------------------------------------
 

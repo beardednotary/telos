@@ -72,8 +72,10 @@ void main() {
     expect(find.text('BEGIN EXPEDITION'), findsOneWidget);
 
     await t.tap(find.text('BEGIN EXPEDITION'));
-    await t.pump(); // startRun
-    await t.pump(const Duration(milliseconds: 500)); // pop transition
+    // startRun, then the pop, then its transition. Settling rather than a
+    // fixed wait, because how many frames startRun takes depends on how many
+    // services it awaits.
+    await t.pumpAndSettle();
 
     // Session
     expect(find.text('MOSSWOOD VERGE'), findsOneWidget);
