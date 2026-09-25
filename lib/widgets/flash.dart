@@ -72,7 +72,7 @@ void showFlash(
                           const SizedBox(height: 5),
                           Text(l,
                               style: T.mono.copyWith(
-                                  fontSize: 12, color: T.good, height: 1.4)),
+                                  fontSize: 13, color: T.good, height: 1.4)),
                         ],
                       ],
                     ),

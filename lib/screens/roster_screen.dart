@@ -138,7 +138,7 @@ class _MemberBand extends StatelessWidget {
                   runSpacing: 2,
                   children: [
                     for (final l in (cls.base + cls.windowBonus).lines)
-                      Text(l, style: T.mono.copyWith(fontSize: 11, color: T.dim)),
+                      Text(l, style: T.mono.copyWith(fontSize: 12, color: T.dim)),
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -217,7 +217,7 @@ class _MemberBand extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     child: Text('REMOVE CURRENT',
                         style: T.mono.copyWith(
-                            color: T.bad, fontSize: 12, letterSpacing: 2)),
+                            color: T.bad, fontSize: 13, letterSpacing: 2)),
                   ),
                 ),
               ),
@@ -283,7 +283,7 @@ class _Slot extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: T.mono.copyWith(
-                    fontSize: 12,
+                    fontSize: 13,
                     letterSpacing: 0.8,
                     color: filled ? T.text : T.dim)),
             const SizedBox(height: 3),
@@ -322,7 +322,7 @@ class _GearBand extends StatelessWidget {
               children: [
                 Text(def.name,
                     style: T.mono.copyWith(
-                        fontSize: 14, letterSpacing: 1.2, color: color)),
+                        fontSize: 16, letterSpacing: 1.2, color: color)),
                 const SizedBox(height: 3),
                 Text(def.bonus.lines.join('   '),
                     style: T.micro.copyWith(color: T.good, letterSpacing: 0.6)),

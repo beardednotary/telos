@@ -169,7 +169,7 @@ class _CraftBand extends StatelessWidget {
         padding: const EdgeInsets.only(right: 14),
         child: Text('$need $label',
             style: T.mono.copyWith(
-                fontSize: 11, color: ok ? hue : T.bad, letterSpacing: 0.6)),
+                fontSize: 12, color: ok ? hue : T.bad, letterSpacing: 0.6)),
       );
     }
 
@@ -234,7 +234,7 @@ class _CraftBand extends StatelessWidget {
                           ),
                           child: Text('FORGE',
                               style: T.mono.copyWith(
-                                  fontSize: 11,
+                                  fontSize: 12,
                                   letterSpacing: 2,
                                   color: can ? color : T.dim)),
                         ),
@@ -275,7 +275,7 @@ class _MeltBand extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(def.name,
-                    style: T.mono.copyWith(fontSize: 13, color: color)),
+                    style: T.mono.copyWith(fontSize: 15, color: color)),
                 const SizedBox(height: 3),
                 Text('RETURNS $value ALLOY', style: T.micro),
               ],
@@ -300,7 +300,7 @@ class _MeltBand extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
               child: Text('MELT',
                   style: T.mono.copyWith(
-                      fontSize: 11, letterSpacing: 2, color: T.bad)),
+                      fontSize: 12, letterSpacing: 2, color: T.bad)),
             ),
           ),
         ],
@@ -315,23 +315,23 @@ class _MeltBand extends StatelessWidget {
         backgroundColor: T.card,
         shape: const Border.fromBorderSide(BorderSide(color: T.line)),
         title: Text('MELT ${def.name}?',
-            style: T.mono.copyWith(fontSize: 15, letterSpacing: 1.5)),
+            style: T.mono.copyWith(fontSize: 16, letterSpacing: 1.5)),
         content: Text(
           'Destroyed for $value alloy. Forging it again costs '
           '${kCraftCost[def.rarity]!.alloy} alloy and '
           '${kCraftCost[def.rarity]!.intel} intel.',
-          style: T.mono.copyWith(fontSize: 13, height: 1.6),
+          style: T.mono.copyWith(fontSize: 15, height: 1.6),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             child: Text('KEEP',
-                style: T.mono.copyWith(color: T.amber, fontSize: 12)),
+                style: T.mono.copyWith(color: T.amber, fontSize: 13)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             child: Text('MELT',
-                style: T.mono.copyWith(color: T.bad, fontSize: 12)),
+                style: T.mono.copyWith(color: T.bad, fontSize: 13)),
           ),
         ],
       ),

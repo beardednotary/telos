@@ -92,9 +92,9 @@ class _Stat extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(label, style: T.micro.copyWith(fontSize: 8)),
+            Text(label, style: T.micro.copyWith(fontSize: 10)),
             const SizedBox(height: 4),
-            Text(value, style: T.mono.copyWith(fontSize: 15)),
+            Text(value, style: T.mono.copyWith(fontSize: 16)),
           ],
         ),
       );
@@ -139,7 +139,7 @@ class _LogBand extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(stamp, style: T.micro.copyWith(fontSize: 8)),
+                          Text(stamp, style: T.micro.copyWith(fontSize: 10)),
                           const SizedBox(height: 5),
                           Row(
                             children: [
@@ -151,7 +151,7 @@ class _LogBand extends StatelessWidget {
                               Flexible(
                                 child: Text(sector.name,
                                     style: T.title.copyWith(
-                                        fontSize: 15,
+                                        fontSize: 16,
                                         color: Color(sector.accent))),
                               ),
                             ],
@@ -183,7 +183,7 @@ class _LogBand extends StatelessWidget {
                       Expanded(
                         child: Text(r.intent,
                             style:
-                                T.mono.copyWith(fontSize: 12, height: 1.5)),
+                                T.mono.copyWith(fontSize: 13, height: 1.5)),
                       ),
                       if (r.progress != null) ...[
                         const SizedBox(width: 10),

@@ -269,7 +269,7 @@ class _SpendBand extends StatelessWidget {
                     Expanded(
                       child: Text(cost,
                           style: T.mono.copyWith(
-                              fontSize: 12,
+                              fontSize: 13,
                               letterSpacing: 0.8,
                               color: enabled ? T.text : T.dim)),
                     ),
@@ -288,7 +288,7 @@ class _SpendBand extends StatelessWidget {
                         ),
                         child: Text(action,
                             style: T.mono.copyWith(
-                                fontSize: 11,
+                                fontSize: 12,
                                 letterSpacing: 2,
                                 color: enabled ? accent : T.dim)),
                       ),

@@ -41,7 +41,7 @@ class SpireScreen extends StatelessWidget {
             'The top course was never finished. Cut stone stacked ready, '
             'mortar never mixed. Everyone who worked on it stopped, which is '
             'why nobody knows what it is for.',
-            style: T.mono.copyWith(fontSize: 13, height: 1.7, color: T.dim),
+            style: T.mono.copyWith(fontSize: 15, height: 1.7, color: T.dim),
           ),
           const SizedBox(height: 24),
           _Tower(mine: mine),
@@ -79,7 +79,7 @@ class SpireScreen extends StatelessWidget {
           Text(
             'One floor for every ${GuildState.kFloorHours} hours. It does not '
             'decay and it cannot be bought.',
-            style: T.mono.copyWith(fontSize: 12, height: 1.7, color: T.dim),
+            style: T.mono.copyWith(fontSize: 13, height: 1.7, color: T.dim),
           ),
         ],
       ),
@@ -164,7 +164,7 @@ class _Line extends StatelessWidget {
         Expanded(child: Text(label, style: T.micro)),
         Text(value, style: T.big.copyWith(fontSize: 30, color: accent)),
         const SizedBox(width: 5),
-        Text(unit, style: T.mono.copyWith(fontSize: 13, color: T.dim)),
+        Text(unit, style: T.mono.copyWith(fontSize: 15, color: T.dim)),
       ],
     );
   }

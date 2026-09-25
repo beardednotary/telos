@@ -209,12 +209,12 @@ class TChip extends StatelessWidget {
               label,
               style: T.mono.copyWith(
                 color: enabled ? (selected ? color : T.text) : T.dim,
-                fontSize: 12,
+                fontSize: 13,
                 letterSpacing: 1.2,
               ),
             ),
             if (sub != null)
-              Text(sub!, style: T.label.copyWith(fontSize: 9, letterSpacing: 0.8)),
+              Text(sub!, style: T.label.copyWith(fontSize: 11, letterSpacing: 0.8)),
           ],
         ),
       ),
@@ -246,7 +246,7 @@ class KV extends StatelessWidget {
                 '.' * 60,
                 maxLines: 1,
                 overflow: TextOverflow.clip,
-                style: T.mono.copyWith(color: T.line, fontSize: 11),
+                style: T.mono.copyWith(color: T.line, fontSize: 12),
               ),
             ),
           ),

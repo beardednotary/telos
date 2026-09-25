@@ -136,7 +136,7 @@ class _DebriefScreenState extends State<DebriefScreen>
                                                   color: T.amber)),
                                           Text('m',
                                               style: T.mono.copyWith(
-                                                  fontSize: 16, color: T.dim)),
+                                                  fontSize: 17, color: T.dim)),
                                         ],
                                       ),
                                     ],
@@ -209,7 +209,7 @@ class _DebriefScreenState extends State<DebriefScreen>
                                     Expanded(
                                       child: Text(line,
                                           style: T.mono.copyWith(
-                                              fontSize: 13, height: 1.65)),
+                                              fontSize: 15, height: 1.65)),
                                     ),
                                   ],
                                 ),
@@ -233,14 +233,14 @@ class _DebriefScreenState extends State<DebriefScreen>
                                 'Find out what the structure in Sector 05 is '
                                 'for.',
                                 style: T.mono.copyWith(
-                                    fontSize: 13, height: 1.65),
+                                    fontSize: 15, height: 1.65),
                               ),
                               const SizedBox(height: 14),
                               Text(
                                 'The line for the holder is blank. They never '
                                 'put their name to it.',
                                 style: T.mono.copyWith(
-                                    fontSize: 13, height: 1.65),
+                                    fontSize: 15, height: 1.65),
                               ),
                               const SizedBox(height: 16),
                               Text(
@@ -254,7 +254,7 @@ class _DebriefScreenState extends State<DebriefScreen>
                                 '${GuildState.kCharterHours} hours. Yours: '
                                 '${c.g.totalFocusMinutes ~/ 60}.',
                                 style: T.mono.copyWith(
-                                    fontSize: 13,
+                                    fontSize: 15,
                                     height: 1.65,
                                     color: T.dim),
                               ),
@@ -263,7 +263,7 @@ class _DebriefScreenState extends State<DebriefScreen>
                                 'The top course is unfinished. It is yours to '
                                 'carry on, or not.',
                                 style: T.mono.copyWith(
-                                    fontSize: 13, height: 1.65),
+                                    fontSize: 15, height: 1.65),
                               ),
                             ],
                             if (r.priorSurvey != null) ...[
@@ -276,7 +276,7 @@ class _DebriefScreenState extends State<DebriefScreen>
                               const SizedBox(height: 10),
                               Text(r.priorSurvey!,
                                   style: T.mono.copyWith(
-                                      fontSize: 13, height: 1.65)),
+                                      fontSize: 15, height: 1.65)),
                             ],
                           ],
                         ),
@@ -398,7 +398,7 @@ class _DebriefScreenState extends State<DebriefScreen>
                                   const SizedBox(height: 4),
                                   Text('For your log only. It changes nothing here.',
                                       style: T.micro.copyWith(
-                                          letterSpacing: 0.4, fontSize: 8)),
+                                          letterSpacing: 0.4, fontSize: 10)),
                                   const SizedBox(height: 10),
                                   Row(
                                     children: [
@@ -425,7 +425,7 @@ class _DebriefScreenState extends State<DebriefScreen>
                                   const SizedBox(height: 16),
                                   TextField(
                                     controller: _note,
-                                    style: T.mono.copyWith(fontSize: 13),
+                                    style: T.mono.copyWith(fontSize: 15),
                                     cursorColor: T.amber,
                                     maxLines: 2,
                                     maxLength: 160,
@@ -439,7 +439,7 @@ class _DebriefScreenState extends State<DebriefScreen>
                                       counterText: '',
                                       hintText: 'Add a note (optional)',
                                       hintStyle: T.mono
-                                          .copyWith(color: T.dim, fontSize: 13),
+                                          .copyWith(color: T.dim, fontSize: 15),
                                       border: const UnderlineInputBorder(
                                           borderSide:
                                               BorderSide(color: T.line)),
@@ -558,7 +558,7 @@ class _LootBand extends StatelessWidget {
                 const SizedBox(height: 10),
                 for (final l in def.bonus.lines)
                   Text(l,
-                      style: T.mono.copyWith(fontSize: 12, color: T.good)),
+                      style: T.mono.copyWith(fontSize: 13, color: T.good)),
               ],
             ),
           ),
@@ -615,7 +615,7 @@ class _MemberProgress extends StatelessWidget {
               else
                 Text('LV ${m.level}',
                     style: T.mono.copyWith(
-                        fontSize: 14,
+                        fontSize: 16,
                         fontWeight: FontWeight.w300,
                         color: T.dim)),
             ],
@@ -699,7 +699,7 @@ class _GuildLevelUp extends StatelessWidget {
                       Text('> ', style: T.mono.copyWith(color: T.good)),
                       Expanded(
                         child: Text(u,
-                            style: T.mono.copyWith(fontSize: 13, height: 1.5)),
+                            style: T.mono.copyWith(fontSize: 15, height: 1.5)),
                       ),
                     ],
                   ),

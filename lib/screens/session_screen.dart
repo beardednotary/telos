@@ -185,7 +185,7 @@ class SessionScreen extends StatelessWidget {
                     Text('INTENT', style: T.micro),
                     const SizedBox(height: 5),
                     Text(run.intent,
-                        style: T.mono.copyWith(fontSize: 14, height: 1.4)),
+                        style: T.mono.copyWith(fontSize: 16, height: 1.4)),
                   ],
                 ),
               ),
@@ -216,7 +216,7 @@ class SessionScreen extends StatelessWidget {
                             child: Text('RECALL SQUAD',
                                 style: T.mono.copyWith(
                                     color: T.bad,
-                                    fontSize: 12,
+                                    fontSize: 13,
                                     letterSpacing: 2.4)),
                           ),
                         ),
@@ -242,7 +242,7 @@ class SessionScreen extends StatelessWidget {
         backgroundColor: T.card,
         shape: const Border.fromBorderSide(BorderSide(color: T.line)),
         title: Text('RECALL SQUAD?',
-            style: T.mono.copyWith(fontSize: 16, letterSpacing: 2)),
+            style: T.mono.copyWith(fontSize: 17, letterSpacing: 2)),
         content: Text(
           short
               ? 'They are $elapsedMin minutes in. ${sector.name} needs '
@@ -250,18 +250,18 @@ class SessionScreen extends StatelessWidget {
                   'with scraps - but the time still counts in your log.'
               : 'They are $elapsedMin minutes in. You keep what they have '
                   'gathered so far, scaled to how far they got.',
-          style: T.mono.copyWith(fontSize: 13, height: 1.6),
+          style: T.mono.copyWith(fontSize: 15, height: 1.6),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             child: Text('KEEP GOING',
-                style: T.mono.copyWith(color: T.amber, fontSize: 12)),
+                style: T.mono.copyWith(color: T.amber, fontSize: 13)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             child: Text('RECALL',
-                style: T.mono.copyWith(color: T.bad, fontSize: 12)),
+                style: T.mono.copyWith(color: T.bad, fontSize: 13)),
           ),
         ],
       ),

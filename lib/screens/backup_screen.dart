@@ -104,7 +104,7 @@ class _BackupScreenState extends State<BackupScreen> {
                 child: Text('EXPORT A BACKUP',
                     style: T.mono.copyWith(
                         color: T.amber,
-                        fontSize: 16,
+                        fontSize: 17,
                         fontWeight: FontWeight.w300,
                         letterSpacing: 3)),
               ),
@@ -174,7 +174,7 @@ class _RestoreBand extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(name,
-                    style: T.mono.copyWith(fontSize: 12, letterSpacing: 0.4)),
+                    style: T.mono.copyWith(fontSize: 13, letterSpacing: 0.4)),
                 const SizedBox(height: 5),
                 Text(
                   info == null
@@ -214,7 +214,7 @@ class _RestoreBand extends StatelessWidget {
                     const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
                 child: Text('RESTORE',
                     style: T.mono.copyWith(
-                        fontSize: 11, letterSpacing: 2, color: T.good)),
+                        fontSize: 12, letterSpacing: 2, color: T.good)),
               ),
             ),
         ],
@@ -234,25 +234,25 @@ class _RestoreBand extends StatelessWidget {
         backgroundColor: T.card,
         shape: const Border.fromBorderSide(BorderSide(color: T.line)),
         title: Text('REPLACE THIS GUILD?',
-            style: T.mono.copyWith(fontSize: 15, letterSpacing: 1.5)),
+            style: T.mono.copyWith(fontSize: 16, letterSpacing: 1.5)),
         content: Text(
           'Restoring overwrites what is on this phone. You would lose '
           '${c.g.guildName} at level ${c.g.level}, ${c.g.log.length} '
           'expeditions and ${mins ~/ 60}h ${mins % 60}m of protected time, '
           'and take on ${info.guild} at level ${info.level} instead.\n\n'
           'Export first if you are not certain.',
-          style: T.mono.copyWith(fontSize: 13, height: 1.6),
+          style: T.mono.copyWith(fontSize: 15, height: 1.6),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
             child: Text('KEEP MINE',
-                style: T.mono.copyWith(color: T.amber, fontSize: 12)),
+                style: T.mono.copyWith(color: T.amber, fontSize: 13)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             child: Text('RESTORE',
-                style: T.mono.copyWith(color: T.bad, fontSize: 12)),
+                style: T.mono.copyWith(color: T.bad, fontSize: 13)),
           ),
         ],
       ),

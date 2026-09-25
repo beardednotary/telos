@@ -120,7 +120,7 @@ class _ContractBand extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(contractTitle(k),
-                    style: T.mono.copyWith(fontSize: 13, height: 1.5)),
+                    style: T.mono.copyWith(fontSize: 15, height: 1.5)),
                 const SizedBox(height: 10),
                 if (done)
                   Row(
@@ -154,7 +154,7 @@ class _ContractBand extends StatelessWidget {
                           ),
                           child: Text('CLAIM',
                               style: T.mono.copyWith(
-                                  fontSize: 11,
+                                  fontSize: 12,
                                   letterSpacing: 2,
                                   color: T.good)),
                         ),
@@ -169,16 +169,24 @@ class _ContractBand extends StatelessWidget {
                     color: accent,
                   ),
                   const SizedBox(height: 7),
-                  Row(
-                    children: [
-                      Text(contractProgress(k), style: T.micro),
-                      const Spacer(),
-                      Text(
-                        '${k.rewardCredits} CR  ${k.rewardAlloy} AL  '
-                        '${k.rewardIntel} IN',
-                        style: T.micro.copyWith(color: T.dim),
-                      ),
-                    ],
+                  // Spread apart when both fit; the reward drops to its own
+                  // line when a long progress label or large text would
+                  // otherwise run them together.
+                  SizedBox(
+                    width: double.infinity,
+                    child: Wrap(
+                      alignment: WrapAlignment.spaceBetween,
+                      spacing: 12,
+                      runSpacing: 4,
+                      children: [
+                        Text(contractProgress(k), style: T.micro),
+                        Text(
+                          '${k.rewardCredits} CR  ${k.rewardAlloy} AL  '
+                          '${k.rewardIntel} IN',
+                          style: T.micro.copyWith(color: T.dim),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ],

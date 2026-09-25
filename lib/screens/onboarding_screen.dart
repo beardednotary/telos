@@ -169,7 +169,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             : 'CONTINUE',
                         style: T.mono.copyWith(
                           color: T.amber,
-                          fontSize: 15,
+                          fontSize: 16,
                           fontWeight: FontWeight.w300,
                           letterSpacing: 3,
                         ),
@@ -217,7 +217,7 @@ class _PanelView extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 16),
             child: Text(
               line,
-              style: T.mono.copyWith(fontSize: 14, height: 1.7, color: T.text),
+              style: T.mono.copyWith(fontSize: 16, height: 1.7, color: T.text),
             ),
           ),
       ],

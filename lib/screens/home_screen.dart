@@ -240,7 +240,7 @@ class _DispatchBlock extends StatelessWidget {
               hasHistory
                   ? 'Squad at camp. Nothing in here advances while you watch it.'
                   : 'The outpost has reopened. Nobody has been sent out yet.',
-              style: T.mono.copyWith(fontSize: 12, height: 1.6, color: T.dim),
+              style: T.mono.copyWith(fontSize: 13, height: 1.6, color: T.dim),
             ),
           ],
         ),
@@ -323,12 +323,21 @@ class _Record extends StatelessWidget {
     final h = mins ~/ 60;
     final m = mins % 60;
 
+    // A label shrinks rather than running into its neighbour when the
+    // system text size is turned up.
     Widget small(String label, String v) => Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(label, style: T.micro),
+            Padding(
+              padding: const EdgeInsets.only(right: 10),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(label, style: T.micro),
+              ),
+            ),
             const SizedBox(height: 4),
-            Text(v, style: T.mono.copyWith(fontSize: 16)),
+            Text(v, style: T.mono.copyWith(fontSize: 17)),
           ],
         );
 
@@ -403,9 +412,10 @@ class _NavRow extends StatelessWidget {
                 ],
               ),
             ),
-            Text(value, style: T.mono.copyWith(color: T.dim, fontSize: 14)),
             const SizedBox(width: 12),
-            Text('>', style: T.mono.copyWith(color: T.line, fontSize: 16)),
+            Text(value, style: T.mono.copyWith(color: T.dim, fontSize: 16)),
+            const SizedBox(width: 12),
+            Text('>', style: T.mono.copyWith(color: T.line, fontSize: 17)),
           ],
         ),
       ),

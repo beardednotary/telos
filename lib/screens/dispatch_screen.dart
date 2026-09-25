@@ -54,8 +54,8 @@ class _DispatchScreenState extends State<DispatchScreen> {
     }
 
     final ready = _sectorId != null && _squad.isNotEmpty;
-    final outOfReach =
-        kSectors.where((s) => g.sectorUnlocked(s.id) && s.minMinutes > _minutes);
+    final outOfReach = kSectors
+        .where((s) => g.sectorUnlocked(s.id) && s.minMinutes > _minutes);
 
     return TerminalScaffold(
       title: 'DISPATCH',
@@ -88,7 +88,8 @@ class _DispatchScreenState extends State<DispatchScreen> {
               children: [
                 TextField(
                   controller: _intent,
-                  style: T.mono.copyWith(fontSize: 17, fontWeight: FontWeight.w300),
+                  style: T.mono
+                      .copyWith(fontSize: 17, fontWeight: FontWeight.w300),
                   cursorColor: T.amber,
                   textCapitalization: TextCapitalization.sentences,
                   maxLength: 80,
@@ -97,7 +98,9 @@ class _DispatchScreenState extends State<DispatchScreen> {
                     counterText: '',
                     hintText: 'What are you working on?',
                     hintStyle: T.mono.copyWith(
-                        color: T.dim, fontSize: 17, fontWeight: FontWeight.w300),
+                        color: T.dim,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w300),
                     border: const UnderlineInputBorder(
                         borderSide: BorderSide(color: T.line)),
                     enabledBorder: const UnderlineInputBorder(
@@ -131,7 +134,7 @@ class _DispatchScreenState extends State<DispatchScreen> {
                     Text('$_minutes',
                         style: T.big.copyWith(fontSize: 54, color: T.amber)),
                     const SizedBox(width: 6),
-                    Text('MIN', style: T.micro.copyWith(fontSize: 11)),
+                    Text('MIN', style: T.micro.copyWith(fontSize: 12)),
                   ],
                 ),
                 const SizedBox(height: 14),
@@ -140,12 +143,10 @@ class _DispatchScreenState extends State<DispatchScreen> {
                   runSpacing: 8,
                   children: [
                     for (final d in kDurations)
-                      TChip('$d MIN',
-                          selected: _minutes == d,
-                          onTap: () {
-                            HapticFeedback.selectionClick();
-                            setState(() => _minutes = d);
-                          }),
+                      TChip('$d MIN', selected: _minutes == d, onTap: () {
+                        HapticFeedback.selectionClick();
+                        setState(() => _minutes = d);
+                      }),
                     TChip('CUSTOM',
                         selected: !kDurations.contains(_minutes),
                         onTap: _pickCustom),
@@ -248,7 +249,7 @@ class _DispatchScreenState extends State<DispatchScreen> {
                   Text('${v.round()}',
                       style: T.big.copyWith(fontSize: 54, color: T.amber)),
                   const SizedBox(width: 6),
-                  Text('MIN', style: T.micro.copyWith(fontSize: 11)),
+                  Text('MIN', style: T.micro.copyWith(fontSize: 12)),
                   const Spacer(),
                   Text(durationTier(v.round()),
                       style: T.micro.copyWith(color: T.amber)),
@@ -372,9 +373,6 @@ class _SectorBand extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        // The lock reason can run long ("LOCKED - 320 INTEL,
-                        // GUILD LV 3"), so the designation yields rather than
-                        // overflowing the band on a narrow phone.
                         Flexible(
                           child: Text(
                               '${sector.designation}   //   ${sector.kind}',
@@ -383,16 +381,23 @@ class _SectorBand extends StatelessWidget {
                               style: T.micro
                                   .copyWith(color: selected ? sc : T.dim)),
                         ),
-                        const SizedBox(width: 10),
-                        Text(
-                          reason ?? '${(depth * 100).round()}% DEPTH',
-                          style: T.micro.copyWith(
-                              color: reason != null
-                                  ? T.dim
-                                  : (depth >= 1.0 ? T.good : sc)),
-                        ),
+                        if (reason == null) ...[
+                          const SizedBox(width: 10),
+                          Text(
+                            '${(depth * 100).round()}% DEPTH',
+                            style: T.micro
+                                .copyWith(color: depth >= 1.0 ? T.good : sc),
+                          ),
+                        ],
                       ],
                     ),
+                    // The lock reason can run long ("LOCKED - 320 INTEL,
+                    // GUILD LV 3"), so it takes its own line rather than
+                    // squeezing the designation off a narrow phone.
+                    if (reason != null) ...[
+                      const SizedBox(height: 4),
+                      Text(reason, style: T.micro.copyWith(color: T.dim)),
+                    ],
                     const SizedBox(height: 6),
                     Row(
                       children: [
@@ -406,7 +411,8 @@ class _SectorBand extends StatelessWidget {
                     ),
                     const SizedBox(height: 5),
                     Text(sector.blurb,
-                        style: T.micro.copyWith(letterSpacing: 0.4, height: 1.6)),
+                        style:
+                            T.micro.copyWith(letterSpacing: 0.4, height: 1.6)),
                     if (!blocked) ...[
                       const SizedBox(height: 11),
                       Meter(
@@ -456,7 +462,7 @@ class _Yield extends StatelessWidget {
       padding: const EdgeInsets.only(right: 16),
       child: Row(
         children: [
-          Text(label, style: T.micro.copyWith(fontSize: 8)),
+          Text(label, style: T.micro.copyWith(fontSize: 10)),
           const SizedBox(width: 5),
           for (var i = 0; i < 3; i++)
             Container(
@@ -499,8 +505,7 @@ class _MemberBand extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-                width: 4, height: 40, color: selected ? T.amber : T.line),
+            Container(width: 4, height: 40, color: selected ? T.amber : T.line),
             const SizedBox(width: 14),
             Padding(
               padding: const EdgeInsets.only(top: 2, right: 12),
@@ -517,10 +522,16 @@ class _MemberBand extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Text('${cls.name}   //   LV ${member.level}',
-                          style: T.micro
-                              .copyWith(color: selected ? T.amber : T.dim)),
-                      const Spacer(),
+                      // QUARTERMASTER is long, so the class yields to the
+                      // window label rather than pushing it off the card.
+                      Expanded(
+                        child: Text('${cls.name}   //   LV ${member.level}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: T.micro
+                                .copyWith(color: selected ? T.amber : T.dim)),
+                      ),
+                      const SizedBox(width: 10),
                       Text(inWindow ? 'IN WINDOW' : 'OFF WINDOW',
                           style: T.micro
                               .copyWith(color: inWindow ? T.good : T.dim)),
@@ -563,10 +574,8 @@ class _Projection extends StatelessWidget {
     final sector = sectorById(sectorId);
     final sc = Color(sector.accent);
 
-    final members = squad
-        .map((id) => c.g.memberById(id))
-        .whereType<Adventurer>()
-        .toList();
+    final members =
+        squad.map((id) => c.g.memberById(id)).whereType<Adventurer>().toList();
 
     final bonus = ExpeditionEngine.squadBonusFor(
       guild: c.g,
@@ -586,7 +595,7 @@ class _Projection extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(label, style: T.micro.copyWith(fontSize: 8)),
+            Text(label, style: T.micro.copyWith(fontSize: 10)),
             const SizedBox(height: 4),
             Text(
               '${pct >= 0 ? '+' : ''}$pct%',
@@ -633,7 +642,7 @@ class _Projection extends StatelessWidget {
               const SizedBox(width: 10),
               Text('${(rare * 100).round()}%',
                   style: T.mono.copyWith(
-                      fontSize: 15, fontWeight: FontWeight.w300, color: sc)),
+                      fontSize: 16, fontWeight: FontWeight.w300, color: sc)),
               const Spacer(),
               if (members.length > 1)
                 Text('SQUAD x${team.toStringAsFixed(2)}', style: T.micro),

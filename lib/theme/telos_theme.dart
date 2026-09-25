@@ -38,13 +38,13 @@ class T {
     fontFamily: monoFamily,
     fontFamilyFallback: monoFallback,
     color: text,
-    fontSize: 13,
+    fontSize: 15,
     height: 1.45,
   );
 
   static TextStyle label = mono.copyWith(
     color: dim,
-    fontSize: 11,
+    fontSize: 12,
     letterSpacing: 1.4,
   );
 
@@ -57,7 +57,7 @@ class T {
     letterSpacing: 2.6,
   );
 
-  static TextStyle data = mono.copyWith(fontSize: 13);
+  static TextStyle data = mono.copyWith(fontSize: 15);
 
   /// The countdown, and nothing else. It should dominate the screen it is on.
   static TextStyle big = mono.copyWith(
@@ -101,7 +101,7 @@ class T {
 
   static TextStyle micro = mono.copyWith(
     color: dim,
-    fontSize: 9,
+    fontSize: 11,
     letterSpacing: 1.6,
     height: 1.4,
   );
@@ -120,7 +120,7 @@ class T {
       ),
       textTheme: TextTheme(
         bodyMedium: mono,
-        bodySmall: mono.copyWith(fontSize: 12),
+        bodySmall: mono.copyWith(fontSize: 13),
         titleMedium: heading,
       ),
       appBarTheme: AppBarTheme(
