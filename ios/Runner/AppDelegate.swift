@@ -6,6 +6,8 @@ import UserNotifications
 @objc class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
   /// Dart side: lib/services/lock_screen.dart.
   private var liveActivityChannel: FlutterMethodChannel?
+  /// Dart side: lib/services/launch_actions.dart.
+  private var shortcutsChannel: FlutterMethodChannel?
 
   override func application(
     _ application: UIApplication,
@@ -57,5 +59,22 @@ import UserNotifications
       }
     }
     liveActivityChannel = channel
+
+    // A dispatch picked in Shortcuts or Siri (DispatchIntent.swift). Dart
+    // takes it on boot, and again whenever it is told one has arrived.
+    let shortcuts = FlutterMethodChannel(
+      name: "telos/shortcuts", binaryMessenger: registrar.messenger())
+    shortcuts.setMethodCallHandler { call, result in
+      switch call.method {
+      case "takePending":
+        result(ShortcutRelay.shared.take())
+      default:
+        result(FlutterMethodNotImplemented)
+      }
+    }
+    ShortcutRelay.shared.ping = { [weak shortcuts] in
+      DispatchQueue.main.async { shortcuts?.invokeMethod("pending", arguments: nil) }
+    }
+    shortcutsChannel = shortcuts
   }
 }

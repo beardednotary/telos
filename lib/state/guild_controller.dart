@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/widgets.dart';
@@ -9,19 +10,26 @@ import '../models/models.dart';
 import '../services/alerts.dart';
 import '../services/contracts.dart';
 import '../services/expedition_engine.dart';
+import '../services/launch_actions.dart';
 import '../services/lock_screen.dart';
 import '../services/persistence.dart';
 import '../services/redeploy.dart';
 
 /// Owns the save file, the live run, and every mutation the UI can make.
 class GuildController extends ChangeNotifier with WidgetsBindingObserver {
-  GuildController(this._store, {Alerts? alerts, LockScreen? lockScreen})
-      : _alerts = alerts ?? NoopAlerts(),
-        _lockScreen = lockScreen ?? NoopLockScreen();
+  GuildController(
+    this._store, {
+    Alerts? alerts,
+    LockScreen? lockScreen,
+    LaunchActions? launchActions,
+  })  : _alerts = alerts ?? NoopAlerts(),
+        _lockScreen = lockScreen ?? NoopLockScreen(),
+        _launch = launchActions ?? NoopLaunchActions();
 
   final Persistence _store;
   final Alerts _alerts;
   final LockScreen _lockScreen;
+  final LaunchActions _launch;
 
   GuildState _g = GuildState.fresh();
   GuildState get g => _g;
@@ -66,6 +74,7 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
     _ready = true;
     _syncTicker();
     notifyListeners();
+    await _launch.listen(launchPick);
   }
 
   /// One line of local bookkeeping per launch: how many times, and on which
@@ -95,7 +104,61 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
     super.dispose();
   }
 
-  Future<void> _save() => _store.save(_g);
+  Future<void> _save() async {
+    await _store.save(_g);
+    await _publishLaunchItems();
+  }
+
+  // -- launch actions: redeploy from outside the app --------------------------
+
+  String? _publishedLaunch;
+
+  /// Keeps the icon menu and the Shortcuts action offering what SEND AGAIN
+  /// offers. Runs on every save, and only reaches the platform on a change.
+  Future<void> _publishLaunchItems() async {
+    final items = [
+      for (final d in recentDispatches(_g))
+        LaunchItem(
+          key: d.key,
+          title: sectorById(d.sectorId).name,
+          subtitle: '${d.minutes} MIN · ${[
+            for (final id in d.squad) _g.memberById(id)?.name
+          ].whereType<String>().join(', ')}',
+        ),
+    ];
+    final signature = jsonEncode([for (final i in items) i.toJson()]);
+    if (signature == _publishedLaunch) return;
+    _publishedLaunch = signature;
+    await _launch.publish(items);
+  }
+
+  /// A dispatch picked from the icon menu or the Shortcuts action.
+  ///
+  /// It must start a run whenever one can start, because the player may have
+  /// set this off from a Focus automation and already put the phone down: a
+  /// debrief left open with no squad out would be a silent failure. So a run
+  /// that came back while the app was closed is received first, and a debrief
+  /// still waiting is skipped - its loot is already banked and it stays in
+  /// the field log. A run still out is simply shown.
+  Future<void> launchPick(String key) async {
+    if (!_ready || !_g.onboarded) return;
+    final live = _g.active;
+    if (live != null) {
+      if (!live.isComplete(DateTime.now())) return;
+      await finishRun(recalled: false);
+    }
+
+    final options = recentDispatches(_g);
+    final pick = key == LaunchActions.latest
+        ? options.firstOrNull
+        : options.where((d) => d.key == key).firstOrNull;
+    if (pick == null) {
+      notifyListeners();
+      return;
+    }
+    _g.pendingDebrief = null;
+    await redeploy(pick);
+  }
 
   // -- lifecycle: the integrity signal ---------------------------------------
 

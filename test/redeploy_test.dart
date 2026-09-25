@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:telos/main.dart';
 import 'package:telos/models/guild_state.dart';
 import 'package:telos/models/models.dart';
+import 'package:telos/services/launch_actions.dart';
 import 'package:telos/services/persistence.dart';
 import 'package:telos/services/redeploy.dart';
 import 'package:telos/state/guild_controller.dart';
@@ -157,6 +158,132 @@ void main() {
     });
   });
 
+  group('launch actions', () {
+    setUp(() => SharedPreferences.setMockInitialValues({}));
+
+    Future<(GuildController, _FakeLaunch)> booted(
+        List<RunRecord> newestFirst) async {
+      final launch = _FakeLaunch();
+      final c = GuildController(Persistence(), launchActions: launch);
+      await c.boot();
+      c.g.onboarded = true;
+      c.g.level = 10;
+      c.g.unlockedSectors.add('blackstone');
+      c.g.log.addAll(newestFirst);
+      return (c, launch);
+    }
+
+    ActiveRun ended(String sector, int minutes) => ActiveRun(
+          id: 'old',
+          sectorId: sector,
+          intent: '',
+          squad: const ['a1'],
+          startedAt: DateTime.now().subtract(Duration(minutes: minutes + 5)),
+          plannedMinutes: minutes,
+        );
+
+    test('the system is offered what SEND AGAIN offers, on each change',
+        () async {
+      final (c, launch) = await booted([]);
+      await c.noteManualSeen(); // any save
+      expect(launch.published.last, isEmpty);
+
+      c.g.log.add(rec(minutes: 25));
+      c.g.manualSeenAt = null;
+      await c.noteManualSeen();
+      final items = launch.published.last;
+      expect(items.single.title, 'MOSSWOOD VERGE');
+      expect(items.single.subtitle, '25 MIN · KAEL');
+
+      // Nothing changed, so nothing is sent to the platform again.
+      final before = launch.published.length;
+      c.g.manualSeenAt = null;
+      await c.noteManualSeen();
+      expect(launch.published.length, before);
+      c.dispose();
+    });
+
+    test('boot starts listening, so a pick that launched the app lands',
+        () async {
+      final (c, launch) = await booted([]);
+      expect(launch.onPick, isNotNull);
+      c.dispose();
+    });
+
+    test('latest sends the most recent dispatch; a key sends that one',
+        () async {
+      final (c, launch) = await booted([
+        rec(minutes: 25),
+        rec(sector: 'blackstone', minutes: 45),
+      ]);
+      await launch.pick(LaunchActions.latest);
+      expect(c.g.active!.plannedMinutes, 25);
+      await c.finishRun(recalled: true);
+      await c.dismissDebrief();
+
+      // The recall is now the newest entry, so take the 45 by its key.
+      final key = recentDispatches(c.g).firstWhere((d) => d.minutes == 45).key;
+      await launch.pick(key);
+      expect(c.g.active!.sectorId, 'blackstone');
+      await c.finishRun(recalled: true);
+      c.dispose();
+    });
+
+    test('a key that no longer fits starts nothing', () async {
+      final (c, launch) = await booted([rec(minutes: 25)]);
+      await launch.pick('blackstone|a9|15');
+      expect(c.hasActiveRun, isFalse);
+      c.dispose();
+    });
+
+    test('nothing starts before the manual has been read', () async {
+      final (c, launch) = await booted([rec(minutes: 25)]);
+      c.g.onboarded = false;
+      await launch.pick(LaunchActions.latest);
+      expect(c.hasActiveRun, isFalse);
+      c.dispose();
+    });
+
+    test('a run still out is left alone', () async {
+      final (c, launch) = await booted([rec(minutes: 25)]);
+      await launch.pick(LaunchActions.latest);
+      final id = c.g.active!.id;
+      await launch.pick(LaunchActions.latest);
+      expect(c.g.active!.id, id);
+      await c.finishRun(recalled: true);
+      c.dispose();
+    });
+
+    test('a run that came back while closed is received, then the next sent',
+        () async {
+      final (c, launch) = await booted([rec(minutes: 25)]);
+      c.g.active = ended('blackstone', 45);
+      final logged = c.g.log.length;
+
+      await launch.pick(LaunchActions.latest);
+
+      // The returned run is banked and logged, its debrief skipped...
+      expect(c.g.log.length, logged + 1);
+      expect(c.g.log.first.id, 'old');
+      expect(c.pendingDebrief, isNull);
+      // ...and a new run is out. The 45 at Blackstone is now the newest.
+      expect(c.g.active!.id, isNot('old'));
+      expect(c.g.active!.plannedMinutes, 45);
+      await c.finishRun(recalled: true);
+      c.dispose();
+    });
+
+    test('a debrief still waiting does not stop the run', () async {
+      final (c, launch) = await booted([rec(minutes: 25)]);
+      c.g.pendingDebrief = rec(minutes: 25);
+      await launch.pick(LaunchActions.latest);
+      expect(c.hasActiveRun, isTrue);
+      expect(c.pendingDebrief, isNull);
+      await c.finishRun(recalled: true);
+      c.dispose();
+    });
+  });
+
   testWidgets('one tap on home goes straight into the session', (t) async {
     SharedPreferences.setMockInitialValues({});
     final c = GuildController(Persistence());
@@ -182,4 +309,25 @@ void main() {
     await c.finishRun(recalled: true);
     c.dispose();
   });
+}
+
+class _FakeLaunch implements LaunchActions {
+  final published = <List<LaunchItem>>[];
+  void Function(String key)? onPick;
+
+  @override
+  Future<void> publish(List<LaunchItem> items) async => published.add(items);
+
+  @override
+  Future<void> listen(void Function(String key) onPick) async =>
+      this.onPick = onPick;
+
+  /// What the platform does when the player picks something.
+  Future<void> pick(String key) async {
+    onPick!(key);
+    // launchPick is async; let it run to completion.
+    for (var i = 0; i < 20; i++) {
+      await Future<void>.delayed(Duration.zero);
+    }
+  }
 }

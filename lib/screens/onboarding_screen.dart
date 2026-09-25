@@ -79,6 +79,24 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     ),
   ];
 
+  /// Only in the reopened manual. On the first run there is nothing to send
+  /// again yet, so this would be a page about a feature the player cannot
+  /// use, standing between them and the outpost.
+  static const _sendAgain = _Panel(
+    kicker: 'V  //  SEND AGAIN',
+    title: 'Skip the\ndispatch screen',
+    body: [
+      'Your last three dispatches wait under DISPATCH on the outpost. One tap '
+          'sends the squad; there is nothing to choose.',
+      'The same three are on the Telos icon: press and hold it.',
+      'On iPhone, the Shortcuts app has a Dispatch action. Attach it to a Focus '
+          'and turning the Focus on sends them out.',
+    ],
+  );
+
+  List<_Panel> get _shown =>
+      widget.asReview ? const [..._panels, _sendAgain] : _panels;
+
   @override
   void initState() {
     super.initState();
@@ -106,7 +124,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final last = _index == _panels.length - 1;
+    final last = _index == _shown.length - 1;
 
     return Scaffold(
       body: SafeArea(
@@ -118,12 +136,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 Expanded(
                   child: PageView.builder(
                     controller: _pages,
-                    itemCount: _panels.length,
+                    itemCount: _shown.length,
                     onPageChanged: (i) {
                       HapticFeedback.selectionClick();
                       setState(() => _index = i);
                     },
-                    itemBuilder: (_, i) => _PanelView(panel: _panels[i]),
+                    itemBuilder: (_, i) => _PanelView(panel: _shown[i]),
                   ),
                 ),
 
@@ -131,7 +149,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    for (var i = 0; i < _panels.length; i++)
+                    for (var i = 0; i < _shown.length; i++)
                       Container(
                         width: i == _index ? 22 : 8,
                         height: 2,

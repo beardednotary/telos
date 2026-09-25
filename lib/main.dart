@@ -10,6 +10,7 @@ import 'screens/home_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/session_screen.dart';
 import 'services/alerts.dart';
+import 'services/launch_actions.dart';
 import 'services/lock_screen.dart';
 import 'services/persistence.dart';
 import 'state/guild_controller.dart';
@@ -41,6 +42,7 @@ Future<void> main() async {
     Persistence(),
     alerts: LocalAlerts(),
     lockScreen: SystemLockScreen(),
+    launchActions: SystemLaunchActions(),
   );
   await controller.boot();
 

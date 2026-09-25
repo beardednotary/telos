@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 
 import '../data/content.dart';
@@ -129,6 +130,19 @@ class OutpostScreen extends StatelessWidget {
                 ],
               ),
             ),
+          ),
+          // Which build this is, so a tester can say without guessing.
+          FutureBuilder<PackageInfo>(
+            future: PackageInfo.fromPlatform(),
+            builder: (context, snap) {
+              final info = snap.data;
+              if (info == null) return const SizedBox(height: 24);
+              return Padding(
+                padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
+                child: Text('TELOS ${info.version} (${info.buildNumber})',
+                    style: T.micro),
+              );
+            },
           ),
         ],
       ),
