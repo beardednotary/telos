@@ -283,6 +283,36 @@ void main() {
     c.g.xp = 130;
     // One contract already finished, so the claim state is visible too.
     c.g.contracts.first.progress = c.g.contracts.first.target;
+    // A guild this far along has sent runs, so SEND AGAIN has rows.
+    c.g.unlockedSectors.add('blackstone');
+    for (final (sector, minutes, squad, intent) in [
+      ('blackstone', 45, ['a1', 'a2'], 'Write the methods chapter'),
+      ('mosswood', 25, ['a2'], 'Inbox and invoices'),
+      ('blackstone', 90, ['a1'], ''),
+    ]) {
+      c.g.log.add(RunRecord(
+        id: 'h$minutes',
+        sectorId: sector,
+        intent: intent,
+        squad: squad,
+        startedAt: DateTime(2026, 9, 1),
+        endedAt: DateTime(2026, 9, 1).add(Duration(minutes: minutes)),
+        plannedMinutes: minutes,
+        elapsedSeconds: minutes * 60,
+        integrity: 1,
+        recalled: false,
+        scraps: false,
+        credits: 0,
+        alloy: 0,
+        intel: 0,
+        loot: const [],
+        xpGained: const {},
+        levelUps: const [],
+        guildXp: 0,
+        guildLevelUps: 0,
+        journal: const [],
+      ));
+    }
 
     await t.pumpWidget(_phone(c, const HomeScreen()));
     await t.pumpAndSettle();

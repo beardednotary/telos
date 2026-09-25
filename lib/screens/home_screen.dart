@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/guild_state.dart';
+import '../data/content.dart';
 import '../models/models.dart';
+import '../services/redeploy.dart';
 import '../state/guild_controller.dart';
 import '../theme/telos_theme.dart';
 import '../widgets/contract_board.dart';
@@ -32,11 +34,13 @@ class HomeScreen extends StatelessWidget {
             _Resources(g: g),
             const SizedBox(height: 26),
 
-            // The only action on this screen, sized like it.
+            // The main action on this screen, sized like it. The repeats
+            // below it are the fast path: the same dispatch again, one tap.
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: _DispatchBlock(hasHistory: g.log.isNotEmpty),
             ),
+            _RedeployList(dispatches: recentDispatches(g)),
 
             const SizedBox(height: 30),
             const ContractBoardPanel(),
@@ -242,6 +246,108 @@ class _DispatchBlock extends StatelessWidget {
                   : 'The outpost has reopened. Nobody has been sent out yet.',
               style: T.mono.copyWith(fontSize: 13, height: 1.6, color: T.dim),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Recent dispatches, sent again in one tap with no dispatch screen.
+///
+/// Tapping starts the run; the root router then shows the session because a
+/// run is live, so there is nothing to navigate. Nothing here is a reminder:
+/// it shows what was sent before, never that nothing has been sent lately.
+class _RedeployList extends StatelessWidget {
+  const _RedeployList({required this.dispatches});
+  final List<Redeploy> dispatches;
+
+  @override
+  Widget build(BuildContext context) {
+    if (dispatches.isEmpty) return const SizedBox.shrink();
+    final c = context.read<GuildController>();
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('SEND AGAIN', style: T.micro),
+          const SizedBox(height: 8),
+          for (final d in dispatches)
+            _RedeployRow(
+              dispatch: d,
+              squad: d.squad
+                  .map((id) => c.g.memberById(id)?.name)
+                  .whereType<String>()
+                  .join(', '),
+              onTap: () => c.redeploy(d),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _RedeployRow extends StatelessWidget {
+  const _RedeployRow({
+    required this.dispatch,
+    required this.squad,
+    required this.onTap,
+  });
+
+  final Redeploy dispatch;
+  final String squad;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final sector = sectorById(dispatch.sectorId);
+    final sc = Color(sector.accent);
+    final detail = [
+      squad,
+      if (dispatch.intent.isNotEmpty) dispatch.intent,
+    ].join('   //   ');
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 6),
+        decoration: BoxDecoration(
+          color: sc.withValues(alpha: 0.055),
+          border: Border(left: BorderSide(color: sc, width: 3)),
+        ),
+        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(sector.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: T.title.copyWith(fontSize: 17)),
+                  const SizedBox(height: 3),
+                  // The duration leads the detail line rather than sitting
+                  // beside the name, which needs the full width.
+                  Text.rich(
+                    TextSpan(children: [
+                      TextSpan(
+                          text: '${dispatch.minutes} MIN   ',
+                          style: TextStyle(color: sc)),
+                      TextSpan(text: detail),
+                    ]),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: T.micro.copyWith(letterSpacing: 0.4),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text('>', style: T.mono.copyWith(color: sc, fontSize: 17)),
           ],
         ),
       ),

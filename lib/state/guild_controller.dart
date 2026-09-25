@@ -11,6 +11,7 @@ import '../services/contracts.dart';
 import '../services/expedition_engine.dart';
 import '../services/lock_screen.dart';
 import '../services/persistence.dart';
+import '../services/redeploy.dart';
 
 /// Owns the save file, the live run, and every mutation the UI can make.
 class GuildController extends ChangeNotifier with WidgetsBindingObserver {
@@ -206,6 +207,19 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
     await _showLockScreen(_g.active!);
     await _save();
     notifyListeners();
+  }
+
+  /// Sends an earlier dispatch again. Every way into this - the home screen
+  /// today, the widget and Shortcuts later - may fire while a run is live,
+  /// and none of them may start a second one.
+  Future<void> redeploy(Redeploy d) async {
+    if (hasActiveRun) return;
+    await startRun(
+      sectorId: d.sectorId,
+      intent: d.intent,
+      squad: List.of(d.squad),
+      minutes: d.minutes,
+    );
   }
 
   /// Ends the run and banks everything. [recalled] = the user stopped early.
