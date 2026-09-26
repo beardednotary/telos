@@ -29,7 +29,8 @@ class SectorScene extends StatelessWidget {
 
   /// Sectors with a scene drawn. The rest keep their sigil plate for now.
   static bool has(String sectorId) =>
-      const {'mosswood', 'blackstone', 'cinder'}.contains(sectorId);
+      const {'mosswood', 'blackstone', 'cinder', 'riftline'}
+          .contains(sectorId);
 
   final String sectorId;
 
@@ -96,6 +97,8 @@ class _ScenePainter extends CustomPainter {
         _blackstone(canvas, size);
       case 'cinder':
         _cinder(canvas, size);
+      case 'riftline':
+        _riftline(canvas, size);
     }
   }
 
@@ -149,7 +152,7 @@ class _ScenePainter extends CustomPainter {
     canvas.drawLine(Offset(w * 0.64, ground - 7),
         Offset(w * 0.64 + 18, ground - 7), far);
 
-    _stakes(canvas, size, ground);
+    _stakes(canvas, size, (_) => ground);
   }
 
   // BLACKSTONE HOLLOW - the works in section: the winch house's headframe
@@ -232,7 +235,7 @@ class _ScenePainter extends CustomPainter {
     canvas.drawLine(
         Offset(ex + 2, floor - 7), Offset(ex + 25, floor - 8), far);
 
-    _stakes(canvas, size, floor);
+    _stakes(canvas, size, (_) => floor);
   }
 
   // THE CINDER ARCHIVE - the stacks in elevation: bays of shelving, some
@@ -302,14 +305,83 @@ class _ScenePainter extends CustomPainter {
       }
     }
 
-    _stakes(canvas, size, floor);
+    _stakes(canvas, size, (_) => floor);
+  }
+
+  // RIFTLINE DESCENT - the way down in section: ledges stepping into the
+  // split, the far wall above, their anchors set at every ledge, and stores
+  // cached at the last depth mark. Each stake stands on the ledge its depth
+  // reached, so runs past full depth go on down where theirs never did.
+  void _riftline(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+    final land = _stroke(color.withValues(alpha: 0.5), 1.2);
+    final far = _stroke(color.withValues(alpha: 0.2), 1.0);
+    final rng = Random(404);
+
+    // Ledges of uneven width and drop, fixed by the seed.
+    const steps = 8;
+    final top = h * 0.30;
+    final span = h * 0.92 - top;
+    final widths = [for (var i = 0; i < steps; i++) 0.7 + rng.nextDouble() * 0.6];
+    final drops = [for (var i = 0; i < steps - 1; i++) 0.6 + rng.nextDouble() * 0.8];
+    final wSum = widths.reduce((a, b) => a + b);
+    final dSum = drops.reduce((a, b) => a + b);
+    final xs = <double>[0];
+    for (final v in widths) {
+      xs.add(xs.last + w * v / wSum);
+    }
+    final ys = <double>[top];
+    for (final v in drops) {
+      ys.add(ys.last + span * v / dSum);
+    }
+    double ledge(double x) {
+      for (var i = 0; i < steps; i++) {
+        if (x < xs[i + 1]) return ys[i];
+      }
+      return ys.last;
+    }
+
+    for (var i = 0; i < steps; i++) {
+      final x0 = xs[i], x1 = xs[i + 1], y = ys[i];
+      canvas.drawLine(Offset(x0, y), Offset(x1, y), land);
+      if (i < steps - 1) {
+        canvas.drawLine(Offset(x1, y), Offset(x1, ys[i + 1]), land);
+      }
+      // Rock under the ledge: a band of hatching.
+      for (var x = x0 + 3; x < x1 - 2; x += 6) {
+        canvas.drawLine(Offset(x, y + 3), Offset(x - 5, y + 9), far);
+      }
+      // Their anchor at the lip of every ledge.
+      canvas.drawCircle(Offset(x0 + 5, y - 2.5), 2, land);
+    }
+
+    // The far wall, jagged, keeping its distance above the ledges.
+    final wall = Path()..moveTo(0, top - 44);
+    for (var x = 0.0; x <= w; x += 8 + rng.nextDouble() * 8) {
+      wall.lineTo(x, ledge(x) - 40 + (rng.nextDouble() - 0.5) * 10);
+    }
+    canvas.drawPath(wall, far);
+
+    // Stores at the last depth mark: a sealed case, strapped.
+    final sx = _x(1.04, w);
+    final sy = ledge(sx);
+    canvas.drawRect(Rect.fromLTWH(sx, sy - 10, 16, 10), land);
+    canvas.drawLine(Offset(sx, sy - 10), Offset(sx + 16, sy), far);
+    canvas.drawLine(Offset(sx + 16, sy - 10), Offset(sx, sy), far);
+
+    _stakes(canvas, size, ledge);
   }
 
   /// Survey stakes, each with its pennant. Never a crossbar: a row of those
   /// reads as graves.
-  void _stakes(Canvas canvas, Size size, double ground) {
+  ///
+  /// [groundAt] gives the height of the route at x, so a stake stands on
+  /// the ledge its depth reached in a sector that goes down.
+  void _stakes(Canvas canvas, Size size, double Function(double x) groundAt) {
     final w = size.width;
     Path stake(double x, double tall) {
+      final ground = groundAt(x);
       final top = ground - tall;
       return Path()
         ..moveTo(x, ground)
