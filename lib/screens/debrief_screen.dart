@@ -107,6 +107,8 @@ class _DebriefScreenState extends State<DebriefScreen>
                                           sector.nominalMinutes,
                                 ],
                                 latest: depth,
+                                floors:
+                                    c.g.spireComplete ? c.g.spireFloors : 0,
                               ),
                             ] else
                               Row(

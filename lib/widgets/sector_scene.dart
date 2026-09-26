@@ -24,13 +24,19 @@ class SectorScene extends StatelessWidget {
     required this.color,
     this.depths = const [],
     this.latest,
+    this.floors = 0,
     this.height = 132,
   });
 
-  /// Sectors with a scene drawn. The rest keep their sigil plate for now.
-  static bool has(String sectorId) =>
-      const {'mosswood', 'blackstone', 'cinder', 'riftline'}
-          .contains(sectorId);
+  /// Sectors with a scene drawn. Any added later keep their sigil plate
+  /// until theirs is.
+  static bool has(String sectorId) => const {
+        'mosswood',
+        'blackstone',
+        'cinder',
+        'riftline',
+        'spire'
+      }.contains(sectorId);
 
   final String sectorId;
 
@@ -43,13 +49,17 @@ class SectorScene extends StatelessWidget {
   /// The run being debriefed. Its stake is drawn bright and carved in.
   final double? latest;
 
+  /// Floors the player has raised on the Spire since the ending. Only the
+  /// Spire's scene draws them.
+  final int floors;
+
   final double height;
 
   @override
   Widget build(BuildContext context) {
     CustomPaint paint(double t) => CustomPaint(
           size: Size.fromHeight(height),
-          painter: _ScenePainter(sectorId, color, depths, latest, t),
+          painter: _ScenePainter(sectorId, color, depths, latest, floors, t),
         );
 
     return SizedBox(
@@ -68,13 +78,14 @@ class SectorScene extends StatelessWidget {
 }
 
 class _ScenePainter extends CustomPainter {
-  _ScenePainter(
-      this.sectorId, this.color, this.depths, this.latest, this.progress);
+  _ScenePainter(this.sectorId, this.color, this.depths, this.latest,
+      this.floors, this.progress);
 
   final String sectorId;
   final Color color;
   final List<double> depths;
   final double? latest;
+  final int floors;
   final double progress;
 
   /// Where a depth stands along the road.
@@ -99,6 +110,8 @@ class _ScenePainter extends CustomPainter {
         _cinder(canvas, size);
       case 'riftline':
         _riftline(canvas, size);
+      case 'spire':
+        _spire(canvas, size);
     }
   }
 
@@ -115,8 +128,7 @@ class _ScenePainter extends CustomPainter {
 
     // Ground and the road's two edges running along it.
     canvas.drawLine(Offset(0, ground), Offset(w, ground), land);
-    canvas.drawLine(
-        Offset(0, ground + 7), Offset(w, ground + 7), far);
+    canvas.drawLine(Offset(0, ground + 7), Offset(w, ground + 7), far);
 
     // The treeline, two ranks deep, with a clearing round the cache.
     void tree(double x, double top, Paint p) {
@@ -147,10 +159,9 @@ class _ScenePainter extends CustomPainter {
     }
 
     // The cache in the clearing: a stocked box, lid square.
-    canvas.drawRect(
-        Rect.fromLTWH(w * 0.64, ground - 11, 18, 11), land);
-    canvas.drawLine(Offset(w * 0.64, ground - 7),
-        Offset(w * 0.64 + 18, ground - 7), far);
+    canvas.drawRect(Rect.fromLTWH(w * 0.64, ground - 11, 18, 11), land);
+    canvas.drawLine(
+        Offset(w * 0.64, ground - 7), Offset(w * 0.64 + 18, ground - 7), far);
 
     _stakes(canvas, size, (_) => ground);
   }
@@ -232,8 +243,7 @@ class _ScenePainter extends CustomPainter {
           ..lineTo(ex + 22, floor - 16)
           ..lineTo(ex + 27, floor),
         land);
-    canvas.drawLine(
-        Offset(ex + 2, floor - 7), Offset(ex + 25, floor - 8), far);
+    canvas.drawLine(Offset(ex + 2, floor - 7), Offset(ex + 25, floor - 8), far);
 
     _stakes(canvas, size, (_) => floor);
   }
@@ -286,8 +296,8 @@ class _ScenePainter extends CustomPainter {
       if (burned) {
         final rag = Path()..moveTo(x, cut);
         for (var i = 1; i <= 4; i++) {
-          rag.lineTo(x + bay * i / 4,
-              cut + (i.isOdd ? -5 : 3) * rng.nextDouble());
+          rag.lineTo(
+              x + bay * i / 4, cut + (i.isOdd ? -5 : 3) * rng.nextDouble());
         }
         canvas.drawPath(rag, land);
       } else {
@@ -297,7 +307,9 @@ class _ScenePainter extends CustomPainter {
       // Shelves, each packed with spines.
       for (var y = floor - 12.0; y > cut + 6; y -= 12) {
         canvas.drawLine(Offset(x, y), Offset(x + bay, y), far);
-        for (var bx = x + 2; bx < x + bay - 1; bx += 1.8 + rng.nextDouble() * 1.4) {
+        for (var bx = x + 2;
+            bx < x + bay - 1;
+            bx += 1.8 + rng.nextDouble() * 1.4) {
           if (rng.nextDouble() < 0.1) continue;
           canvas.drawLine(
               Offset(bx, y), Offset(bx, y - 6 - rng.nextDouble() * 3), far);
@@ -323,8 +335,12 @@ class _ScenePainter extends CustomPainter {
     const steps = 8;
     final top = h * 0.30;
     final span = h * 0.92 - top;
-    final widths = [for (var i = 0; i < steps; i++) 0.7 + rng.nextDouble() * 0.6];
-    final drops = [for (var i = 0; i < steps - 1; i++) 0.6 + rng.nextDouble() * 0.8];
+    final widths = [
+      for (var i = 0; i < steps; i++) 0.7 + rng.nextDouble() * 0.6
+    ];
+    final drops = [
+      for (var i = 0; i < steps - 1; i++) 0.6 + rng.nextDouble() * 0.8
+    ];
     final wSum = widths.reduce((a, b) => a + b);
     final dSum = drops.reduce((a, b) => a + b);
     final xs = <double>[0];
@@ -371,6 +387,119 @@ class _ScenePainter extends CustomPainter {
     canvas.drawLine(Offset(sx + 16, sy - 10), Offset(sx, sy), far);
 
     _stakes(canvas, size, ledge);
+  }
+
+  // THE SPIRE OF TELOS - the approach: steps cut and dressed for the
+  // first stretch and rough after, rising to the old company's camp at the
+  // base, and the Spire behind it, every stage finished to a different
+  // standard, the top course unfinished. Runs past full depth stand on its
+  // first steps.
+  void _spire(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+    // Faint: this gold sits right next to the player's amber.
+    final land = _stroke(color.withValues(alpha: 0.34), 1.2);
+    final far = _stroke(color.withValues(alpha: 0.14), 1.0);
+    final rng = Random(505);
+
+    double route(double x) => h * 0.92 - (x / w) * h * 0.20;
+
+    // The Spire, behind everything, in the Spire screen's own courses: cut
+    // blocks in a running bond, tapering, with a band wherever the work
+    // stopped and restarted - each stage laid to its own course height.
+    final cx = w * 0.845;
+    final baseY = route(cx) + 1;
+    // After the ending the player's own floors go on top in amber, up to
+    // eight courses, the way they do on the Spire screen. The silhouette
+    // stays the same; the old stone just stops lower.
+    const floorH = 4.5;
+    final crown = h * 0.03;
+    final ours = min(floors, 8);
+    final topY = crown + ours * floorH;
+    final baseHalf = w * 0.12;
+    final topHalf = w * 0.04;
+    double halfAt(double y) =>
+        topHalf + (baseHalf - topHalf) * (y - crown) / (baseY - crown);
+    canvas.drawLine(
+        Offset(cx - baseHalf, baseY), Offset(cx - halfAt(topY), topY), land);
+    canvas.drawLine(
+        Offset(cx + baseHalf, baseY), Offset(cx + halfAt(topY), topY), land);
+    var y = baseY;
+    var course = 0;
+    var stage = 5.0;
+    while (y - stage > topY + 1) {
+      if (course % 6 == 0) stage = 4 + rng.nextDouble() * 3;
+      final next = y - stage;
+      final half = halfAt(next);
+      canvas.drawLine(Offset(cx - half, next), Offset(cx + half, next),
+          course % 6 == 5 ? land : far);
+      final blocks = max(2, (half * 2 / 12).round());
+      final bw = half * 2 / blocks;
+      final shift = course.isOdd ? bw / 2 : 0.0;
+      for (var b = 1; b < blocks + 1; b++) {
+        final jx = cx - half + shift + b * bw;
+        if (jx > cx - halfAt(y) + 2 && jx < cx + half - 2) {
+          canvas.drawLine(Offset(jx, y), Offset(jx, next), far);
+        }
+      }
+      y = next;
+      course++;
+    }
+    canvas.drawLine(
+        Offset(cx - halfAt(topY), topY), Offset(cx + halfAt(topY), topY), land);
+
+    // The player's floors.
+    final mine = _stroke(T.amber.withValues(alpha: 0.8), 1.1);
+    for (var k = 0; k < ours; k++) {
+      final y0 = topY - k * floorH;
+      final y1 = y0 - floorH;
+      final h0 = halfAt(y0), h1 = halfAt(y1);
+      canvas.drawLine(Offset(cx - h0, y0), Offset(cx - h1, y1), mine);
+      canvas.drawLine(Offset(cx + h0, y0), Offset(cx + h1, y1), mine);
+      canvas.drawLine(Offset(cx - h1, y1), Offset(cx + h1, y1), mine);
+      final jx = cx + (k.isOdd ? -h1 * 0.3 : h1 * 0.35);
+      canvas.drawLine(Offset(jx, y0), Offset(jx, y1), mine);
+    }
+
+    // The top course, whoever laid it: cut stone stacked ready.
+    canvas.drawRect(Rect.fromLTWH(cx + 1, crown - 4, 8, 4), land);
+
+    // The approach. The first stretch is cut and dressed: a course of
+    // blocks under the path. After that the stone is as it was.
+    final dressedTo = w * 0.42;
+    canvas.drawLine(
+        Offset(0, route(0)), Offset(dressedTo, route(dressedTo)), land);
+    canvas.drawLine(
+        Offset(0, route(0) + 5), Offset(dressedTo, route(dressedTo) + 5), far);
+    for (var x = 0.0; x < dressedTo; x += 9) {
+      canvas.drawLine(Offset(x, route(x)), Offset(x, route(x) + 5), far);
+    }
+    // Its own seed, so the path never shifts as the player's floors change
+    // how many courses the tower draws.
+    final stone = Random(506);
+    final rough = Path()..moveTo(dressedTo, route(dressedTo));
+    for (var x = dressedTo; x < w; x += 6 + stone.nextDouble() * 8) {
+      rough.lineTo(x, route(x) + (stone.nextDouble() - 0.5) * 3);
+    }
+    rough.lineTo(w, route(w));
+    canvas.drawPath(rough, land);
+
+    // Their camp at the base, built to last: stone footings under a roof
+    // frame, just past full depth.
+    final camp = _x(1.02, w);
+    final cy = route(camp);
+    for (final f in [0.0, 12.0, 24.0]) {
+      canvas.drawRect(Rect.fromLTWH(camp + f, cy - 4, 5, 4), land);
+    }
+    canvas.drawPath(
+        Path()
+          ..moveTo(camp - 2, cy - 4)
+          ..lineTo(camp + 14.5, cy - 20)
+          ..lineTo(camp + 31, cy - 4),
+        land);
+    canvas.drawLine(Offset(camp + 6, cy - 12), Offset(camp + 23, cy - 12), far);
+
+    _stakes(canvas, size, route);
   }
 
   /// Survey stakes, each with its pennant. Never a crossbar: a row of those
@@ -431,5 +560,6 @@ class _ScenePainter extends CustomPainter {
       old.color != color ||
       old.depths != depths ||
       old.latest != latest ||
+      old.floors != floors ||
       old.progress != progress;
 }
