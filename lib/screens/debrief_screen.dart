@@ -7,6 +7,7 @@ import '../models/guild_state.dart';
 import '../models/models.dart';
 import '../state/guild_controller.dart';
 import '../theme/telos_theme.dart';
+import '../widgets/sector_scene.dart';
 import '../widgets/sigil.dart';
 import '../widgets/terminal.dart';
 
@@ -87,21 +88,42 @@ class _DebriefScreenState extends State<DebriefScreen>
                               ],
                             ),
                             const SizedBox(height: 14),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Text(sector.name,
-                                      style: T.title
-                                          .copyWith(fontSize: 24, color: sc)),
-                                ),
-                                const SizedBox(width: 14),
-                                SigilPlate(
-                                    sectorId: sector.id,
-                                    color: sc,
-                                    size: 72,
-                                    animate: true),
-                              ],
-                            ),
+                            if (SectorScene.has(sector.id)) ...[
+                              Text(sector.name,
+                                  style: T.title
+                                      .copyWith(fontSize: 24, color: sc)),
+                              const SizedBox(height: 16),
+                              // Where this run got to, among every run the
+                              // player has made here.
+                              SectorScene(
+                                sectorId: sector.id,
+                                color: sc,
+                                depths: [
+                                  for (final p in c.g.log)
+                                    if (p.sectorId == r.sectorId &&
+                                        p.id != r.id)
+                                      p.elapsedSeconds /
+                                          60 /
+                                          sector.nominalMinutes,
+                                ],
+                                latest: depth,
+                              ),
+                            ] else
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(sector.name,
+                                        style: T.title
+                                            .copyWith(fontSize: 24, color: sc)),
+                                  ),
+                                  const SizedBox(width: 14),
+                                  SigilPlate(
+                                      sectorId: sector.id,
+                                      color: sc,
+                                      size: 72,
+                                      animate: true),
+                                ],
+                              ),
                           ],
                         ),
                       ),
