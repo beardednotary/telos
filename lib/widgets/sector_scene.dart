@@ -29,7 +29,7 @@ class SectorScene extends StatelessWidget {
 
   /// Sectors with a scene drawn. The rest keep their sigil plate for now.
   static bool has(String sectorId) =>
-      const {'mosswood', 'blackstone'}.contains(sectorId);
+      const {'mosswood', 'blackstone', 'cinder'}.contains(sectorId);
 
   final String sectorId;
 
@@ -94,6 +94,8 @@ class _ScenePainter extends CustomPainter {
         _mosswood(canvas, size);
       case 'blackstone':
         _blackstone(canvas, size);
+      case 'cinder':
+        _cinder(canvas, size);
     }
   }
 
@@ -229,6 +231,76 @@ class _ScenePainter extends CustomPainter {
         land);
     canvas.drawLine(
         Offset(ex + 2, floor - 7), Offset(ex + 25, floor - 8), far);
+
+    _stakes(canvas, size, floor);
+  }
+
+  // THE CINDER ARCHIVE - the stacks in elevation: bays of shelving, some
+  // standing and some burned down to a ragged line, the door of the sealed
+  // reading room past full depth, and the fire still going under the floor.
+  void _cinder(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+    final floor = h * 0.80;
+    final land = _stroke(color.withValues(alpha: 0.45), 1.2);
+    final far = _stroke(color.withValues(alpha: 0.2), 1.0);
+    final rng = Random(303);
+
+    canvas.drawLine(Offset(0, floor), Offset(w, floor), land);
+
+    // The fire below: a low flicker running under the whole floor.
+    final ember = _stroke(T.amber.withValues(alpha: 0.28), 1.0);
+    final flicker = Path()..moveTo(0, floor + 12);
+    for (var x = 0.0; x < w; x += 5 + rng.nextDouble() * 5) {
+      flicker.lineTo(x, floor + 8 + rng.nextDouble() * 9);
+    }
+    canvas.drawPath(flicker, ember);
+
+    // The door to the sealed reading room: a frame, a lintel, shut.
+    final dx = w * 0.64;
+    canvas.drawRect(Rect.fromLTWH(dx, floor - 38, 22, 38), land);
+    canvas.drawLine(
+        Offset(dx - 4, floor - 42), Offset(dx + 26, floor - 42), land);
+    canvas.drawLine(Offset(dx + 16, floor - 20), Offset(dx + 18, floor - 20),
+        land); // the handle
+
+    // The bays: bookcases of one height with an overhanging top, pushed
+    // back to the faint tone so the stakes stand in front of them. About a
+    // half burned down to a ragged line, with what is left of the shelves.
+    final bay = w * 0.075;
+    final top = h * 0.16;
+    var i = 0;
+    for (var x = w * 0.015; x + bay < w; x += bay + 3) {
+      if (x + bay > dx - 6 && x < dx + 30) continue;
+      // Two in every five, spread out rather than left to the dice.
+      final burned = (i++ * 3 + 1) % 5 < 2;
+      final cut = burned
+          ? floor - (floor - top) * (0.3 + rng.nextDouble() * 0.35)
+          : top;
+
+      canvas.drawLine(Offset(x, floor), Offset(x, cut), far);
+      canvas.drawLine(Offset(x + bay, floor), Offset(x + bay, cut), far);
+      if (burned) {
+        final rag = Path()..moveTo(x, cut);
+        for (var i = 1; i <= 4; i++) {
+          rag.lineTo(x + bay * i / 4,
+              cut + (i.isOdd ? -5 : 3) * rng.nextDouble());
+        }
+        canvas.drawPath(rag, land);
+      } else {
+        canvas.drawLine(Offset(x - 2, top), Offset(x + bay + 2, top), land);
+      }
+
+      // Shelves, each packed with spines.
+      for (var y = floor - 12.0; y > cut + 6; y -= 12) {
+        canvas.drawLine(Offset(x, y), Offset(x + bay, y), far);
+        for (var bx = x + 2; bx < x + bay - 1; bx += 1.8 + rng.nextDouble() * 1.4) {
+          if (rng.nextDouble() < 0.1) continue;
+          canvas.drawLine(
+              Offset(bx, y), Offset(bx, y - 6 - rng.nextDouble() * 3), far);
+        }
+      }
+    }
 
     _stakes(canvas, size, floor);
   }
