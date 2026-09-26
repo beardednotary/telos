@@ -28,7 +28,8 @@ class SectorScene extends StatelessWidget {
   });
 
   /// Sectors with a scene drawn. The rest keep their sigil plate for now.
-  static bool has(String sectorId) => sectorId == 'mosswood';
+  static bool has(String sectorId) =>
+      const {'mosswood', 'blackstone'}.contains(sectorId);
 
   final String sectorId;
 
@@ -91,6 +92,8 @@ class _ScenePainter extends CustomPainter {
     switch (sectorId) {
       case 'mosswood':
         _mosswood(canvas, size);
+      case 'blackstone':
+        _blackstone(canvas, size);
     }
   }
 
@@ -145,6 +148,89 @@ class _ScenePainter extends CustomPainter {
         Offset(w * 0.64 + 18, ground - 7), far);
 
     _stakes(canvas, size, ground);
+  }
+
+  // BLACKSTONE HOLLOW - the works in section: the winch house's headframe
+  // over the shaft, the gallery running off it under the seam, its shoring
+  // re-cut and holding, and the equipment stacked and sheeted past full
+  // depth. The stakes stand on the gallery floor.
+  void _blackstone(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+    final surface = h * 0.24;
+    final roof = h * 0.50;
+    final floor = h * 0.86;
+    // Fainter than the other sectors: this orange sits close to the
+    // player's amber, and the stakes have to win.
+    final land = _stroke(color.withValues(alpha: 0.38), 1.2);
+    final far = _stroke(color.withValues(alpha: 0.18), 1.0);
+    final rng = Random(202);
+
+    // The surface: rough ground, broken where the shaft goes down.
+    final shaftL = w * 0.035;
+    final shaftR = w * 0.085;
+    canvas.drawLine(Offset(0, surface), Offset(shaftL, surface), land);
+    final ground = Path()..moveTo(shaftR, surface);
+    for (var x = shaftR + 10; x < w; x += 12 + rng.nextDouble() * 14) {
+      ground.lineTo(x, surface - rng.nextDouble() * 9);
+    }
+    ground.lineTo(w, surface - 4);
+    canvas.drawPath(ground, land);
+
+    // Headframe over the shaft: two legs and the wheel.
+    final hx = (shaftL + shaftR) / 2;
+    final apex = Offset(hx, surface - 24);
+    canvas.drawLine(Offset(shaftL - 4, surface), apex, land);
+    canvas.drawLine(Offset(shaftR + 4, surface), apex, land);
+    canvas.drawCircle(apex, 5, land);
+    canvas.drawLine(apex, Offset(hx, roof), far); // the cable
+
+    // The shaft, open on its right into the gallery.
+    canvas.drawLine(Offset(shaftL, surface), Offset(shaftL, floor), land);
+    canvas.drawLine(Offset(shaftR, surface), Offset(shaftR, roof), land);
+
+    // Gallery roof and floor.
+    canvas.drawLine(Offset(shaftR, roof), Offset(w, roof), land);
+    canvas.drawLine(Offset(0, floor), Offset(w, floor), land);
+
+    // The seam in the rock above: richer than the old survey said, so it
+    // runs thick. Two jagged bands.
+    for (final (y, p) in [(h * 0.36, land), (h * 0.42, far)]) {
+      final seam = Path()..moveTo(w * 0.22, y);
+      for (var x = w * 0.22; x < w; x += 9 + rng.nextDouble() * 8) {
+        seam.lineTo(x, y + (rng.nextDouble() - 0.5) * 7);
+      }
+      canvas.drawPath(seam, p);
+    }
+
+    // Shoring: timber sets down the gallery, a post each side of a cap.
+    // One on level two gave way and hangs at an angle.
+    var n = 0;
+    for (var x = w * 0.14; x < w - 6; x += w * 0.085) {
+      n++;
+      if (x > w * 0.58 && x < w * 0.72) continue; // the stack is here
+      canvas.drawLine(Offset(x - 6, floor), Offset(x - 6, roof), far);
+      canvas.drawLine(Offset(x + 6, floor), Offset(x + 6, roof), far);
+      if (n == 3) {
+        canvas.drawLine(Offset(x - 9, roof + 1), Offset(x + 9, roof + 9), land);
+      } else {
+        canvas.drawLine(Offset(x - 9, roof + 1), Offset(x + 9, roof + 1), land);
+      }
+    }
+
+    // Equipment stacked and sheeted: a covered load, tied down.
+    final ex = w * 0.635;
+    canvas.drawPath(
+        Path()
+          ..moveTo(ex, floor)
+          ..lineTo(ex + 4, floor - 14)
+          ..lineTo(ex + 22, floor - 16)
+          ..lineTo(ex + 27, floor),
+        land);
+    canvas.drawLine(
+        Offset(ex + 2, floor - 7), Offset(ex + 25, floor - 8), far);
+
+    _stakes(canvas, size, floor);
   }
 
   /// Survey stakes, each with its pennant. Never a crossbar: a row of those
