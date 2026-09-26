@@ -7,6 +7,7 @@ import '../models/guild_state.dart';
 import '../models/models.dart';
 import '../state/guild_controller.dart';
 import '../theme/telos_theme.dart';
+import '../widgets/run_card.dart';
 import '../widgets/sector_scene.dart';
 import '../widgets/sigil.dart';
 import '../widgets/terminal.dart';
@@ -51,7 +52,21 @@ class _DebriefScreenState extends State<DebriefScreen>
     final depth =
         (r.elapsedSeconds / 60 / sector.nominalMinutes).clamp(0.0, 1.6);
     final sc = Color(sector.accent);
+    // Where every earlier run here got to, for the scene and the card.
+    final pastDepths = [
+      for (final p in c.g.log)
+        if (p.sectorId == r.sectorId && p.id != r.id)
+          p.elapsedSeconds / 60 / sector.nominalMinutes,
+    ];
+    final floors = c.g.spireComplete ? c.g.spireFloors : 0;
     final clean = r.integrity >= 0.999;
+    final status = r.scraps
+        ? 'BELOW SECTOR MINIMUM'
+        : r.recalled
+            ? 'RECALLED EARLY'
+            : clean
+                ? 'CLEAN RUN'
+                : 'PLANNED ${r.plannedMinutes}m';
     final iColor = clean
         ? T.good
         : r.integrity >= 0.7
@@ -98,17 +113,9 @@ class _DebriefScreenState extends State<DebriefScreen>
                               SectorScene(
                                 sectorId: sector.id,
                                 color: sc,
-                                depths: [
-                                  for (final p in c.g.log)
-                                    if (p.sectorId == r.sectorId &&
-                                        p.id != r.id)
-                                      p.elapsedSeconds /
-                                          60 /
-                                          sector.nominalMinutes,
-                                ],
+                                depths: pastDepths,
                                 latest: depth,
-                                floors:
-                                    c.g.spireComplete ? c.g.spireFloors : 0,
+                                floors: floors,
                               ),
                             ] else
                               Row(
@@ -191,13 +198,7 @@ class _DebriefScreenState extends State<DebriefScreen>
                                     style: T.micro),
                                 const Spacer(),
                                 Text(
-                                  r.scraps
-                                      ? 'BELOW SECTOR MINIMUM'
-                                      : r.recalled
-                                          ? 'RECALLED EARLY'
-                                          : clean
-                                              ? 'CLEAN RUN'
-                                              : 'PLANNED ${r.plannedMinutes}m',
+                                  status,
                                   style: T.micro.copyWith(
                                       color: (r.scraps || r.recalled)
                                           ? T.bad
@@ -481,6 +482,35 @@ class _DebriefScreenState extends State<DebriefScreen>
                           ],
                         ),
                       ),
+
+                    // -- 7. share, if they want to --------------------------
+                    // Offered, never asked: no prompt, nothing for doing it.
+                    _beat(
+                      7,
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: TButton(
+                            'SHARE',
+                            color: T.dim,
+                            dense: true,
+                            expand: false,
+                            onTap: () => showRunCard(
+                              context,
+                              RunCard(
+                                record: r,
+                                sector: sector,
+                                guildName: c.g.guildName,
+                                depths: pastDepths,
+                                floors: floors,
+                                status: status,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),

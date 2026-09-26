@@ -26,6 +26,7 @@ class SectorScene extends StatelessWidget {
     this.latest,
     this.floors = 0,
     this.height = 132,
+    this.animate = true,
   });
 
   /// Sectors with a scene drawn. Any added later keep their sigil plate
@@ -55,6 +56,9 @@ class SectorScene extends StatelessWidget {
 
   final double height;
 
+  /// Carve the latest stake in. Off for a still, like the share card.
+  final bool animate;
+
   @override
   Widget build(BuildContext context) {
     CustomPaint paint(double t) => CustomPaint(
@@ -65,7 +69,7 @@ class SectorScene extends StatelessWidget {
     return SizedBox(
       height: height,
       width: double.infinity,
-      child: latest == null
+      child: latest == null || !animate
           ? paint(1)
           : TweenAnimationBuilder<double>(
               tween: Tween(begin: 0, end: 1),

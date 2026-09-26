@@ -17,6 +17,7 @@ import 'package:telos/screens/spire_screen.dart';
 import 'package:telos/services/persistence.dart';
 import 'package:telos/state/guild_controller.dart';
 import 'package:telos/theme/telos_theme.dart';
+import 'package:telos/widgets/run_card.dart';
 import 'package:telos/widgets/sigil.dart';
 
 /// Renders screens to PNG so the look can be checked without a device.
@@ -192,6 +193,56 @@ void main() {
       matchesGoldenFile('goldens/debrief.png'),
     );
     c.dispose();
+  });
+
+  // The share card for the same run, among a few earlier ones, at the size
+  // it is shared (1080 x 1350 once captured at 3x).
+  testWidgets('run card', (t) async {
+    await frame(t);
+    t.view.physicalSize = RunCard.size * 3;
+    t.view.devicePixelRatio = 3;
+    final sector = sectorById('blackstone');
+    final rec = RunRecord(
+      id: 'card',
+      sectorId: 'blackstone',
+      intent: 'Never on the card',
+      squad: const ['a1'],
+      startedAt: DateTime(2026, 9, 20, 14),
+      endedAt: DateTime(2026, 9, 20, 14, 52),
+      plannedMinutes: 60,
+      elapsedSeconds: 52 * 60,
+      integrity: 1.0,
+      recalled: false,
+      scraps: false,
+      credits: 318,
+      alloy: 121,
+      intel: 14,
+      loot: const [],
+      xpGained: const {},
+      levelUps: const [],
+      guildXp: 130,
+      guildLevelUps: 0,
+      journal: const [],
+    );
+    await t.pumpWidget(MaterialApp(
+      theme: T.theme(),
+      debugShowCheckedModeBanner: false,
+      home: Center(
+        child: RunCard(
+          record: rec,
+          sector: sector,
+          guildName: 'THE SILVER LANTERN',
+          depths: const [1.0, 0.98, 1.0, 0.6, 1.1, 0.56, 1.0, 0.8],
+          floors: 0,
+          status: 'CLEAN RUN',
+        ),
+      ),
+    ));
+    await t.pumpAndSettle();
+    await expectLater(
+      find.byType(RunCard),
+      matchesGoldenFile('goldens/run_card.png'),
+    );
   });
 
   // Every mark at the sizes it actually has to survive.
