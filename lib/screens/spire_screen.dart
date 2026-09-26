@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../models/guild_state.dart';
 import '../state/guild_controller.dart';
 import '../theme/telos_theme.dart';
+import '../widgets/spire_drawing.dart';
 import '../widgets/terminal.dart';
 
 /// What is left after the ending.
@@ -87,57 +88,33 @@ class SpireScreen extends StatelessWidget {
   }
 }
 
-/// The structure itself, newest course at the top. The player's own floors
-/// are the ones in amber - at first a rounding error against the centuries,
-/// and after a few years genuinely a share of it.
+/// The structure itself. The player's own floors are the ones in amber - at
+/// first a rounding error against the centuries, and after a few years
+/// genuinely a share of it.
 class _Tower extends StatelessWidget {
   const _Tower({required this.mine});
   final int mine;
 
   @override
   Widget build(BuildContext context) {
-    // Enough of the old structure to read as mass without scrolling forever.
-    const shown = 24;
     return Container(
       color: T.band,
-      padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
+      padding: const EdgeInsets.fromLTRB(16, 18, 16, 14),
       child: Column(
         children: [
           Text('UNFINISHED', style: T.micro.copyWith(color: T.dim)),
-          const SizedBox(height: 10),
-          for (var i = 0; i < mine.clamp(0, 40); i++)
-            const _Course(color: T.amber, width: 0.74),
-          if (mine > 40) ...[
+          if (mine > SpireDrawing.maxShown) ...[
             const SizedBox(height: 6),
-            Text('+ ${mine - 40} more', style: T.micro.copyWith(color: T.amber)),
-            const SizedBox(height: 6),
+            Text('+ ${mine - SpireDrawing.maxShown} more above',
+                style: T.micro.copyWith(color: T.amber)),
           ],
+          const SizedBox(height: 4),
+          SpireDrawing(historical: GuildState.kHistoricalFloors, mine: mine),
           if (mine == 0) ...[
-            Text('nothing yet', style: T.micro.copyWith(color: T.dim)),
             const SizedBox(height: 8),
+            Text('nothing of yours yet', style: T.micro.copyWith(color: T.dim)),
           ],
-          for (var i = 0; i < shown; i++)
-            _Course(color: T.line, width: 0.8 + i * 0.008),
-          Text('+ ${GuildState.kHistoricalFloors - shown} below',
-              style: T.micro.copyWith(color: T.dim)),
         ],
-      ),
-    );
-  }
-}
-
-class _Course extends StatelessWidget {
-  const _Course({required this.color, required this.width});
-  final Color color;
-  final double width;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 3),
-      child: FractionallySizedBox(
-        widthFactor: width,
-        child: Container(height: 4, color: color),
       ),
     );
   }
