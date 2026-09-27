@@ -364,3 +364,41 @@ class Staged extends StatelessWidget {
     );
   }
 }
+
+
+/// The one way a section is introduced anywhere in the app: a label, a
+/// hairline running to the edge, and optionally a value on the right.
+///
+/// Home used to introduce its five sections three different ways - a filled
+/// band, a bare label, and this pattern written out by hand in two separate
+/// files. Three devices now have three jobs and do not overlap:
+///
+///   * a full-bleed band is identity - who the guild is, what they have done
+///   * an inset band is an item, and items are tappable
+///   * a hairline is a section boundary, and that is all it is
+class SectionHead extends StatelessWidget {
+  const SectionHead(this.label, {super.key, this.trailing, this.trailingColor});
+
+  final String label;
+  final String? trailing;
+  final Color? trailingColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
+      child: Row(
+        children: [
+          Text(label, style: T.micro.copyWith(color: T.steel)),
+          const SizedBox(width: 12),
+          Expanded(child: Container(height: 1, color: T.line)),
+          if (trailing != null) ...[
+            const SizedBox(width: 12),
+            Text(trailing!,
+                style: T.micro.copyWith(color: trailingColor ?? T.amber)),
+          ],
+        ],
+      ),
+    );
+  }
+}

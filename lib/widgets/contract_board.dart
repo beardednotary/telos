@@ -59,19 +59,10 @@ class ContractBoardPanel extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
-          child: Row(
-            children: [
-              Text('CONTRACTS', style: T.micro.copyWith(color: T.steel)),
-              const SizedBox(width: 12),
-              Expanded(child: Container(height: 1, color: T.line)),
-              if (ready > 0) ...[
-                const SizedBox(width: 12),
-                Text('$ready READY', style: T.micro.copyWith(color: T.good)),
-              ],
-            ],
-          ),
+        SectionHead(
+          'CONTRACTS',
+          trailing: ready > 0 ? '$ready READY' : null,
+          trailingColor: T.good,
         ),
         for (final k in c.contracts) _ContractBand(contract: k),
       ],

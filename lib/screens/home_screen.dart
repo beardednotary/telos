@@ -51,7 +51,7 @@ class HomeScreen extends StatelessWidget {
             ],
 
             _Record(g: g),
-            const SizedBox(height: 30),
+            const SizedBox(height: 26),
 
             _NavRow(
               label: 'ROSTER',
@@ -268,21 +268,28 @@ class _RedeployList extends StatelessWidget {
     final c = context.read<GuildController>();
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
+      padding: const EdgeInsets.fromLTRB(0, 18, 0, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('SEND AGAIN', style: T.micro),
-          const SizedBox(height: 8),
-          for (final d in dispatches)
-            _RedeployRow(
-              dispatch: d,
-              squad: d.squad
-                  .map((id) => c.g.memberById(id)?.name)
-                  .whereType<String>()
-                  .join(', '),
-              onTap: () => c.redeploy(d),
+          const SectionHead('SEND AGAIN'),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (final d in dispatches)
+                  _RedeployRow(
+                    dispatch: d,
+                    squad: d.squad
+                        .map((id) => c.g.memberById(id)?.name)
+                        .whereType<String>()
+                        .join(', '),
+                    onTap: () => c.redeploy(d),
+                  ),
+              ],
             ),
+          ),
         ],
       ),
     );
@@ -443,28 +450,51 @@ class _Record extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 4),
-            Text(v, style: T.mono.copyWith(fontSize: 17)),
+            Text(v, style: T.mono.copyWith(fontSize: 20)),
           ],
         );
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+    // A full-bleed band, the same device as the guild header, because this
+    // is the same kind of thing: not a section of the game but a statement
+    // about the player. The two bookend the screen - who the guild is at the
+    // top, what they have actually done at the bottom.
+    //
+    // No meter and no target under the number. A bar implies somewhere to
+    // get to, and there is nowhere to get to: this is a record of hours
+    // already protected, and it only ever goes up.
+    return Container(
+      width: double.infinity,
+      color: T.band,
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('PROTECTED TIME', style: T.micro),
-          const SizedBox(height: 8),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              Text('$h', style: T.big.copyWith(fontSize: 52, color: T.amber)),
-              Text('h ', style: T.mono.copyWith(fontSize: 18, color: T.dim)),
-              Text('$m', style: T.big.copyWith(fontSize: 52)),
-              Text('m', style: T.mono.copyWith(fontSize: 18, color: T.dim)),
-            ],
+          Text('PROTECTED TIME', style: T.micro.copyWith(color: T.steel)),
+          const SizedBox(height: 10),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Text('$h', style: T.big.copyWith(fontSize: 68, color: T.amber)),
+                Text('h ', style: T.mono.copyWith(fontSize: 22, color: T.dim)),
+                Text('$m', style: T.big.copyWith(fontSize: 68)),
+                Text('m', style: T.mono.copyWith(fontSize: 22, color: T.dim)),
+              ],
+            ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 6),
+          Text(
+            g.log.isEmpty
+                ? 'Nothing yet.'
+                : 'Time the squad was out and you were working.',
+            style: T.micro.copyWith(letterSpacing: 0.4, height: 1.6),
+          ),
+          const SizedBox(height: 22),
+          Container(height: 1, color: T.line),
+          const SizedBox(height: 18),
           Row(
             children: [
               Expanded(child: small('EXPEDITIONS', '${g.log.length}')),
