@@ -164,6 +164,7 @@ class _DispatchScreenState extends State<DispatchScreen> {
               sector: s,
               minutes: _minutes,
               unlocked: g.sectorUnlocked(s.id),
+              surveyed: (g.surveyRead[s.id] ?? 0) >= s.priorSurvey.length,
               selected: _sectorId == s.id,
               onTap: g.sectorUnlocked(s.id) && s.minMinutes <= _minutes
                   ? () {
@@ -318,6 +319,7 @@ class _SectorBand extends StatelessWidget {
     required this.sector,
     required this.minutes,
     required this.unlocked,
+    required this.surveyed,
     required this.selected,
     required this.onTap,
   });
@@ -325,6 +327,13 @@ class _SectorBand extends StatelessWidget {
   final Sector sector;
   final int minutes;
   final bool unlocked;
+
+  /// Every trace the first company left in this sector has been recovered.
+  /// Worth saying out loud: a sector that has quietly stopped yielding
+  /// records reads as the story being broken rather than finished. This is a
+  /// state, not a tally - it never says how many there were.
+  final bool surveyed;
+
   final bool selected;
   final VoidCallback? onTap;
 
@@ -413,6 +422,12 @@ class _SectorBand extends StatelessWidget {
                     Text(sector.blurb,
                         style:
                             T.micro.copyWith(letterSpacing: 0.4, height: 1.6)),
+                    if (unlocked && surveyed) ...[
+                      const SizedBox(height: 7),
+                      Text('NOTHING FURTHER TO RECOVER HERE',
+                          style: T.micro.copyWith(
+                              color: T.dim, letterSpacing: 0.4)),
+                    ],
                     if (!blocked) ...[
                       const SizedBox(height: 11),
                       Meter(

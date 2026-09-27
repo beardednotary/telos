@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:telos/data/content.dart';
 import 'package:telos/main.dart';
 import 'package:telos/models/models.dart';
+import 'package:telos/screens/dispatch_screen.dart';
 import 'package:telos/screens/log_screen.dart';
 import 'package:telos/screens/outpost_screen.dart';
 import 'package:telos/screens/roster_screen.dart';
@@ -37,6 +38,7 @@ Widget wrap(GuildController c, Widget child) => ChangeNotifierProvider.value(
 
 void main() {
   _spireTests();
+  _exhaustedSectorTests();
 
   testWidgets('full loop: home -> dispatch -> session -> debrief', (t) async {
     tallSurface(t);
@@ -269,6 +271,29 @@ void _spireTests() {
     final afterArrival = c.g.totalFocusMinutes - c.g.spireCompletionMinutes;
     expect(afterArrival, 3 * 90, reason: 'only the runs after it count');
     expect(c.g.spireFloors, 0, reason: '4.5 hours is not yet a floor');
+    c.dispose();
+  });
+}
+
+void _exhaustedSectorTests() {
+  testWidgets('a sector with nothing left to recover says so', (t) async {
+    tallSurface(t);
+    final c = await bootController();
+    final mosswood = sectorById('mosswood');
+
+    // Records still outstanding: the line must stay off the screen.
+    c.g.surveyRead['mosswood'] = mosswood.priorSurvey.length - 1;
+    await t.pumpWidget(wrap(c, const DispatchScreen()));
+    await t.pumpAndSettle();
+    expect(find.text('NOTHING FURTHER TO RECOVER HERE'), findsNothing);
+
+    // Every trace recovered. The sector is still perfectly dispatchable - it
+    // just has no story left, and saying nothing reads as a bug.
+    c.g.surveyRead['mosswood'] = mosswood.priorSurvey.length;
+    await t.pumpWidget(wrap(c, const DispatchScreen()));
+    await t.pumpAndSettle();
+    expect(find.text('NOTHING FURTHER TO RECOVER HERE'), findsOneWidget);
+
     c.dispose();
   });
 }
