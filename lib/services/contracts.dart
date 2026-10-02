@@ -18,7 +18,12 @@ import '../models/models.dart';
 ///   - Never pay gear. Salvage is what expeditions are for; paying it out
 ///     here would cheapen the debrief reveal.
 ///   - Only ask for things the player can actually do right now - sectors
-///     they have opened, members they actually have.
+///     they have opened, members they actually have, gear in the vault.
+///
+/// The story has one more rule of its own: record lines exist only in the
+/// debrief, and are never counted at the player. So [ContractKind.sectorReturn]
+/// is offered only where a sector still has lines to give, and says nothing
+/// about why - it reads as an ordinary order to go back.
 class ContractBoard {
   static const int slots = 3;
 
@@ -44,6 +49,15 @@ class ContractBoard {
         .whereType<String>()
         .toSet();
     final depth = rec.elapsedSeconds / 60 / sector.nominalMinutes;
+    final squad =
+        rec.squad.map(g.memberById).whereType<Adventurer>().toList();
+    // Kit cannot change while a run is out, so what is equipped now is what
+    // went into the field.
+    final carried = {
+      for (final m in squad)
+        for (final uid in m.equipped)
+          g.vault.where((v) => v.uid == uid).firstOrNull?.defId,
+    };
 
     for (final c in g.contracts) {
       if (c.done) continue;
@@ -69,6 +83,32 @@ class ContractBoard {
           if (classes.contains(c.classId) && !rec.scraps) c.progress += 1;
         case ContractKind.fullDepth:
           if (rec.sectorId == c.sectorId && depth >= 1.0) c.progress += 1;
+        case ContractKind.sectorReturn:
+          if (rec.sectorId == c.sectorId && !rec.scraps) c.progress += 1;
+        case ContractKind.memberLevel:
+          // Runs bank XP before contracts advance, so this is the new level.
+          final m = g.memberById(c.memberId!);
+          if (m != null && m.level > c.progress) c.progress = m.level;
+        case ContractKind.carryGear:
+          if (rec.sectorId == c.sectorId &&
+              carried.contains(c.gearDefId) &&
+              !rec.scraps) {
+            c.progress += 1;
+          }
+        case ContractKind.fullKit:
+          if (squad.isNotEmpty &&
+              squad.every((m) => m.equipped.length >= kGearSlots) &&
+              !rec.scraps) {
+            c.progress += 1;
+          }
+        case ContractKind.pairRun:
+          if (rec.squad.contains(c.memberId) &&
+              rec.squad.contains(c.partnerId) &&
+              !rec.scraps) {
+            c.progress += 1;
+          }
+        case ContractKind.intentRuns:
+          if (rec.intent.trim().isNotEmpty && !rec.scraps) c.progress += 1;
       }
       if (c.progress > c.target) c.progress = c.target;
     }
@@ -80,6 +120,17 @@ class ContractBoard {
     final open = kSectors.where((s) => g.sectorUnlocked(s.id)).toList();
     if (open.isEmpty) return null;
 
+    // Sectors with record lines still unread. Never named as such.
+    final untold = open
+        .where((s) => (g.surveyRead[s.id] ?? 0) < s.priorSurvey.length)
+        .toList();
+    // Gear the guild owns that came from a sector it can still reach.
+    final carriable = {
+      for (final v in g.vault)
+        if (open.any((s) => s.lootPool.contains(v.defId))) v.defId,
+    }.toList();
+    final byLevel = [...g.roster]..sort((a, b) => a.level.compareTo(b.level));
+
     final kinds = <ContractKind>[
       ContractKind.sectorRuns,
       ContractKind.haul,
@@ -88,6 +139,18 @@ class ContractBoard {
       ContractKind.minutes,
       if (g.roster.isNotEmpty) ContractKind.classRuns,
       ContractKind.fullDepth,
+      if (untold.isNotEmpty) ContractKind.sectorReturn,
+      // Only when someone has fallen behind - otherwise it is just "level up".
+      if (byLevel.length >= 2 && byLevel.last.level > byLevel.first.level)
+        ContractKind.memberLevel,
+      if (carriable.isNotEmpty) ContractKind.carryGear,
+      if (g.vault.length >= kGearSlots) ContractKind.fullKit,
+      if (g.squadSlots >= 2 &&
+          byLevel.length >= 2 &&
+          byLevel.last.level > byLevel.first.level)
+        ContractKind.pairRun,
+      // Kept rare: it sits closest to a habit tracker of anything here.
+      if (r.nextInt(3) == 0) ContractKind.intentRuns,
     ];
     final kind = kinds[r.nextInt(kinds.length)];
     final sector = open[r.nextInt(open.length)];
@@ -133,6 +196,38 @@ class ContractBoard {
 
       case ContractKind.fullDepth:
         return _make(g, id, kind, tier, sectorId: sector.id, target: tier);
+
+      case ContractKind.sectorReturn:
+        final s = untold[r.nextInt(untold.length)];
+        return _make(g, id, kind, 1, sectorId: s.id, target: 1);
+
+      case ContractKind.memberLevel:
+        // Whoever is furthest behind, a level or two - never past the lead.
+        final m = byLevel.first;
+        final t = min(1 + (tier > 1 ? 1 : 0), byLevel.last.level - m.level);
+        final c = _make(g, id, kind, t,
+            memberId: m.id, target: m.level + t);
+        c.progress = m.level;
+        return c;
+
+      case ContractKind.carryGear:
+        final def = carriable[r.nextInt(carriable.length)];
+        final home = open.firstWhere((s) => s.lootPool.contains(def));
+        return _make(g, id, kind, tier,
+            sectorId: home.id, gearDefId: def, target: tier);
+
+      case ContractKind.fullKit:
+        return _make(g, id, kind, tier, target: tier);
+
+      case ContractKind.pairRun:
+        // The newest hand goes out with the most experienced one.
+        return _make(g, id, kind, tier,
+            memberId: byLevel.first.id,
+            partnerId: byLevel.last.id,
+            target: tier);
+
+      case ContractKind.intentRuns:
+        return _make(g, id, kind, tier, target: 1 + tier);
     }
   }
 
@@ -144,6 +239,9 @@ class ContractBoard {
     String? sectorId,
     String? classId,
     Res? res,
+    String? memberId,
+    String? partnerId,
+    String? gearDefId,
     required int target,
   }) {
     // Rewards scale with the guild so a contract stays worth doing, but stay
@@ -155,6 +253,9 @@ class ContractBoard {
       sectorId: sectorId,
       classId: classId,
       res: res,
+      memberId: memberId,
+      partnerId: partnerId,
+      gearDefId: gearDefId,
       target: target,
       tier: tier,
       rewardCredits: base * tier,

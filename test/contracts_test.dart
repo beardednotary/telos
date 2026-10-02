@@ -1,9 +1,11 @@
 import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:telos/data/content.dart';
 import 'package:telos/models/guild_state.dart';
 import 'package:telos/models/models.dart';
 import 'package:telos/services/contracts.dart';
+import 'package:telos/widgets/contract_board.dart';
 
 RunRecord rec({
   String sector = 'mosswood',
@@ -14,11 +16,12 @@ RunRecord rec({
   int alloy = 20,
   int intel = 5,
   List<String> squad = const ['a1'],
+  String intent = '',
 }) =>
     RunRecord(
       id: 'r',
       sectorId: sector,
-      intent: '',
+      intent: intent,
       squad: squad,
       startedAt: DateTime(2026, 1, 1, 9),
       endedAt: DateTime(2026, 1, 1, 9).add(Duration(minutes: minutes)),
@@ -37,6 +40,35 @@ RunRecord rec({
       guildLevelUps: 0,
       journal: const [],
     );
+
+Contract adjacent(
+  GuildState g,
+  ContractKind kind, {
+  int target = 1,
+  String? sectorId,
+  String? memberId,
+  String? partnerId,
+  String? gearDefId,
+}) {
+  final c = Contract(
+    id: 'x',
+    kind: kind,
+    sectorId: sectorId,
+    memberId: memberId,
+    partnerId: partnerId,
+    gearDefId: gearDefId,
+    target: target,
+    tier: 1,
+    rewardCredits: 100,
+    rewardAlloy: 20,
+    rewardIntel: 10,
+    rewardXp: 40,
+  );
+  g.contracts
+    ..clear()
+    ..add(c);
+  return c;
+}
 
 Contract only(GuildState g, ContractKind kind, {int target = 2, Res? res}) {
   final c = Contract(
@@ -170,6 +202,168 @@ void main() {
     });
   });
 
+  group('adjacent contracts', () {
+    List<Contract> board(GuildState g, int seeds) => [
+          for (var seed = 0; seed < seeds; seed++)
+            ...() {
+              g.contracts.clear();
+              ContractBoard.refill(g, rng: Random(seed));
+              return [...g.contracts];
+            }(),
+        ];
+
+    test('going back is only offered where records are left, and says so '
+        'nowhere', () {
+      final g = GuildState.fresh();
+      g.unlockedSectors.add('blackstone');
+      g.surveyRead['mosswood'] = sectorById('mosswood').priorSurvey.length;
+      final returns =
+          board(g, 200).where((c) => c.kind == ContractKind.sectorReturn);
+      expect(returns, isNotEmpty);
+      for (final c in returns) {
+        expect(c.sectorId, 'blackstone');
+        expect(contractTitle(c, g).toLowerCase(), isNot(contains('record')));
+      }
+
+      g.surveyRead['blackstone'] = sectorById('blackstone').priorSurvey.length;
+      expect(
+          board(g, 200).where((c) => c.kind == ContractKind.sectorReturn),
+          isEmpty);
+    });
+
+    test('going back counts a real run in that sector', () {
+      final g = GuildState.fresh();
+      final c = adjacent(g, ContractKind.sectorReturn, sectorId: 'mosswood');
+      ContractBoard.applyRun(g, rec(sector: 'mosswood', scraps: true));
+      expect(c.progress, 0);
+      ContractBoard.applyRun(g, rec(sector: 'mosswood'));
+      expect(c.done, isTrue);
+    });
+
+    test('bringing someone up targets whoever is behind, and tracks level',
+        () {
+      final g = GuildState.fresh();
+      g.memberById('a1')!.level = 4;
+      final ups = board(g, 200).where((c) => c.kind == ContractKind.memberLevel);
+      expect(ups, isNotEmpty);
+      for (final c in ups) {
+        expect(c.memberId, 'a2');
+        expect(c.progress, 1);
+        expect(c.target, inInclusiveRange(2, 4));
+      }
+
+      final c = adjacent(g, ContractKind.memberLevel,
+          memberId: 'a2', target: 3);
+      g.memberById('a2')!.level = 3;
+      ContractBoard.applyRun(g, rec(squad: ['a2']));
+      expect(c.done, isTrue);
+    });
+
+    test('nobody behind, no level contract', () {
+      final g = GuildState.fresh(); // both level 1
+      expect(board(g, 100).where((c) => c.kind == ContractKind.memberLevel),
+          isEmpty);
+    });
+
+    test('carrying gear asks only for gear in the vault, in its home sector',
+        () {
+      final g = GuildState.fresh();
+      expect(board(g, 100).where((c) => c.kind == ContractKind.carryGear),
+          isEmpty);
+
+      g.vault.add(Gear('g0', 'scav_cord'));
+      final carry = board(g, 200).where((c) => c.kind == ContractKind.carryGear);
+      expect(carry, isNotEmpty);
+      for (final c in carry) {
+        expect(c.gearDefId, 'scav_cord');
+        expect(c.sectorId, 'mosswood');
+      }
+
+      final c = adjacent(g, ContractKind.carryGear,
+          sectorId: 'mosswood', gearDefId: 'scav_cord');
+      ContractBoard.applyRun(g, rec(sector: 'mosswood'));
+      expect(c.progress, 0, reason: 'owned but not equipped');
+      g.memberById('a1')!.equipped.add('g0');
+      ContractBoard.applyRun(g, rec(sector: 'blackstone'));
+      expect(c.progress, 0, reason: 'wrong sector');
+      ContractBoard.applyRun(g, rec(sector: 'mosswood'));
+      expect(c.done, isTrue);
+    });
+
+    test('a full kit means every member out has every slot filled', () {
+      final g = GuildState.fresh();
+      g.vault.addAll([Gear('g0', 'scav_cord'), Gear('g1', 'field_optic')]);
+      final c = adjacent(g, ContractKind.fullKit);
+      g.memberById('a1')!.equipped.addAll(['g0', 'g1']);
+      ContractBoard.applyRun(g, rec(squad: ['a1', 'a2']));
+      expect(c.progress, 0, reason: 'MIRA went out empty-handed');
+      ContractBoard.applyRun(g, rec(squad: ['a1']));
+      expect(c.done, isTrue);
+    });
+
+    test('a pairing pairs the newest with the most experienced', () {
+      final g = GuildState.fresh();
+      g.level = 3; // two squad slots
+      g.memberById('a1')!.level = 5;
+      final pairs = board(g, 200).where((c) => c.kind == ContractKind.pairRun);
+      expect(pairs, isNotEmpty);
+      for (final c in pairs) {
+        expect([c.memberId, c.partnerId], ['a2', 'a1']);
+      }
+
+      final c = adjacent(g, ContractKind.pairRun,
+          memberId: 'a2', partnerId: 'a1');
+      ContractBoard.applyRun(g, rec(squad: ['a2']));
+      expect(c.progress, 0);
+      ContractBoard.applyRun(g, rec(squad: ['a1', 'a2']));
+      expect(c.done, isTrue);
+    });
+
+    test('no pairing while only one can go out', () {
+      final g = GuildState.fresh(); // level 1, one slot
+      g.memberById('a1')!.level = 5;
+      expect(board(g, 100).where((c) => c.kind == ContractKind.pairRun),
+          isEmpty);
+    });
+
+    test('an intent counts when one was set, whatever the answer after', () {
+      final g = GuildState.fresh();
+      final c = adjacent(g, ContractKind.intentRuns, target: 2);
+      ContractBoard.applyRun(g, rec());
+      ContractBoard.applyRun(g, rec(intent: '   '));
+      expect(c.progress, 0);
+      ContractBoard.applyRun(g, rec(intent: 'Write the README', scraps: true));
+      expect(c.progress, 0, reason: 'scraps do not count');
+      ContractBoard.applyRun(g, rec(intent: 'Write the README'));
+      ContractBoard.applyRun(g, rec(intent: 'Fix the build'));
+      expect(c.done, isTrue);
+    });
+
+    test('every kind has a title', () {
+      final g = GuildState.fresh();
+      g.vault.add(Gear('g0', 'scav_cord'));
+      for (final kind in ContractKind.values) {
+        final c = Contract(
+          id: 'x',
+          kind: kind,
+          sectorId: 'mosswood',
+          classId: 'vanguard',
+          res: Res.credits,
+          memberId: 'a1',
+          partnerId: 'a2',
+          gearDefId: 'scav_cord',
+          target: 2,
+          tier: 1,
+          rewardCredits: 1,
+          rewardAlloy: 1,
+          rewardIntel: 1,
+          rewardXp: 1,
+        );
+        expect(contractTitle(c, g), isNotEmpty);
+      }
+    });
+  });
+
   test('contracts survive a save round trip', () {
     final g = GuildState.fresh();
     ContractBoard.refill(g, rng: Random(11));
@@ -180,5 +374,26 @@ void main() {
     expect(back.contracts.first.progress, 2);
     expect(back.contracts.first.kind, g.contracts.first.kind);
     expect(back.contracts.first.target, g.contracts.first.target);
+  });
+
+  test('the new fields survive a save round trip', () {
+    final g = GuildState.fresh();
+    adjacent(g, ContractKind.pairRun, memberId: 'a2', partnerId: 'a1');
+    g.contracts.add(Contract(
+      id: 'y',
+      kind: ContractKind.carryGear,
+      sectorId: 'mosswood',
+      gearDefId: 'scav_cord',
+      target: 1,
+      tier: 1,
+      rewardCredits: 1,
+      rewardAlloy: 1,
+      rewardIntel: 1,
+      rewardXp: 1,
+    ));
+    final back = GuildState.fromJson(g.toJson()).contracts;
+    expect(back[0].kind, ContractKind.pairRun);
+    expect([back[0].memberId, back[0].partnerId], ['a2', 'a1']);
+    expect(back[1].gearDefId, 'scav_cord');
   });
 }

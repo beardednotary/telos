@@ -558,6 +558,14 @@ enum ContractKind {
   minutes,
   classRuns,
   fullDepth,
+  // Adjacent: direction from the story, the roster and the vault rather than
+  // from where and how long.
+  sectorReturn,
+  memberLevel,
+  carryGear,
+  fullKit,
+  pairRun,
+  intentRuns,
 }
 
 class Contract {
@@ -566,6 +574,9 @@ class Contract {
   final String? sectorId;
   final String? classId;
   final Res? res;
+  final String? memberId;
+  final String? partnerId;
+  final String? gearDefId;
   final int target;
   final int tier;
   final int rewardCredits;
@@ -586,6 +597,9 @@ class Contract {
     this.sectorId,
     this.classId,
     this.res,
+    this.memberId,
+    this.partnerId,
+    this.gearDefId,
     this.progress = 0,
   });
 
@@ -597,7 +611,10 @@ class Contract {
       kind == o.kind &&
       sectorId == o.sectorId &&
       classId == o.classId &&
-      res == o.res;
+      res == o.res &&
+      memberId == o.memberId &&
+      partnerId == o.partnerId &&
+      gearDefId == o.gearDefId;
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -605,6 +622,9 @@ class Contract {
         'sectorId': sectorId,
         'classId': classId,
         'res': res?.name,
+        'memberId': memberId,
+        'partnerId': partnerId,
+        'gearDefId': gearDefId,
         'target': target,
         'tier': tier,
         'rewardCredits': rewardCredits,
@@ -626,6 +646,9 @@ class Contract {
             ? null
             : Res.values.firstWhere((r) => r.name == j['res'],
                 orElse: () => Res.credits),
+        memberId: j['memberId'] as String?,
+        partnerId: j['partnerId'] as String?,
+        gearDefId: j['gearDefId'] as String?,
         target: j['target'] as int? ?? 1,
         tier: j['tier'] as int? ?? 1,
         rewardCredits: j['rewardCredits'] as int? ?? 0,

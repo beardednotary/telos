@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../data/content.dart';
+import '../models/guild_state.dart';
 import '../models/models.dart';
 import '../state/guild_controller.dart';
 import '../theme/telos_theme.dart';
@@ -12,9 +13,13 @@ import 'terminal.dart';
 /// How a contract reads. Written as an order given to a guild, not as a
 /// checklist item - "Bring back 180 alloy from Blackstone Hollow in a single
 /// run" rather than "Alloy: 0/180".
-String contractTitle(Contract c) {
+String contractTitle(Contract c, GuildState g) {
   final sector = c.sectorId == null ? null : sectorById(c.sectorId!);
   final cls = c.classId == null ? null : kClasses[c.classId!];
+  String name(String? id) =>
+      (id == null ? null : g.memberById(id)?.name) ?? 'the newest hand';
+  String times(String order) =>
+      c.target == 1 ? order : '$order ${c.target} times';
 
   switch (c.kind) {
     case ContractKind.sectorRuns:
@@ -34,6 +39,19 @@ String contractTitle(Contract c) {
       return c.target == 1
           ? 'Reach the far end of ${sector!.name}'
           : 'Reach the far end of ${sector!.name} ${c.target} times';
+    case ContractKind.sectorReturn:
+      return 'Go back into ${sector!.name}';
+    case ContractKind.memberLevel:
+      return 'Bring ${name(c.memberId)} up to level ${c.target}';
+    case ContractKind.carryGear:
+      return times('Take the ${gearById(c.gearDefId!).name} back into '
+          '${sector!.name}');
+    case ContractKind.fullKit:
+      return times('Send a squad out with every kit slot filled');
+    case ContractKind.pairRun:
+      return times('Send ${name(c.memberId)} out with ${name(c.partnerId)}');
+    case ContractKind.intentRuns:
+      return 'Set an intent on ${c.target} runs';
   }
 }
 
@@ -42,6 +60,7 @@ String contractProgress(Contract c) => switch (c.kind) {
       ContractKind.haul => '${c.progress} / ${c.target} ${c.res!.label}',
       ContractKind.longRun => '${c.progress} / ${c.target} MIN, BEST RUN',
       ContractKind.minutes => '${c.progress} / ${c.target} MIN',
+      ContractKind.memberLevel => 'LEVEL ${c.progress} / ${c.target}',
       _ => '${c.progress} / ${c.target}',
     };
 
@@ -77,6 +96,9 @@ class _ContractBand extends StatelessWidget {
     final sector = k.sectorId == null ? null : sectorById(k.sectorId!);
     final accent =
         done ? T.good : (sector != null ? Color(sector.accent) : T.steel);
+    // A contract about a person carries their class mark.
+    final emblem = k.classId ??
+        (k.memberId == null ? null : ctrl.g.memberById(k.memberId!)?.classId);
 
     return Container(
       color: done ? T.good.withValues(alpha: 0.10) : null,
@@ -91,10 +113,10 @@ class _ContractBand extends StatelessWidget {
               padding: const EdgeInsets.only(top: 2, right: 12),
               child: Sigil(sectorId: sector.id, color: accent, size: 22),
             ),
-          ] else if (k.classId != null) ...[
+          ] else if (emblem != null) ...[
             Padding(
               padding: const EdgeInsets.only(top: 2, right: 12),
-              child: ClassEmblem(classId: k.classId!, color: accent, size: 22),
+              child: ClassEmblem(classId: emblem, color: accent, size: 22),
             ),
           ] else
             const SizedBox(width: 2),
@@ -102,7 +124,7 @@ class _ContractBand extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(contractTitle(k),
+                Text(contractTitle(k, ctrl.g),
                     style: T.mono.copyWith(fontSize: 15, height: 1.5)),
                 const SizedBox(height: 10),
                 if (done)
@@ -118,7 +140,7 @@ class _ContractBand extends StatelessWidget {
                           showFlash(
                             context,
                             kicker: 'CONTRACT PAID',
-                            title: contractTitle(claimed),
+                            title: contractTitle(claimed, ctrl.g),
                             lines: [
                               '+${claimed.rewardCredits} CR   '
                                   '+${claimed.rewardAlloy} AL   '
