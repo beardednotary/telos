@@ -84,7 +84,8 @@ void main() {
     expect(find.text('KAEL'), findsOneWidget);
     expect(find.text('INTEGRITY'), findsOneWidget);
     expect(find.text('100%'), findsOneWidget);
-    expect(find.text('RECALL SQUAD'), findsOneWidget);
+    // Just dispatched, so the way out is still a clean cancel.
+    expect(find.textContaining('CANCEL DISPATCH'), findsOneWidget);
     expect(find.text('Refactor the auth flow'), findsOneWidget);
 
     // Recalling resolves the run and hands back a debrief.

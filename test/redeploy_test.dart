@@ -317,7 +317,8 @@ void main() {
     await t.pump();
 
     expect(c.hasActiveRun, isTrue);
-    expect(find.text('RECALL SQUAD'), findsOneWidget);
+    // Just dispatched, so the way out is still a clean cancel.
+    expect(find.textContaining('CANCEL DISPATCH'), findsOneWidget);
     expect(find.text('Write the methods chapter'), findsOneWidget);
 
     await c.finishRun(recalled: true);

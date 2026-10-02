@@ -178,18 +178,36 @@ class SessionScreen extends StatelessWidget {
                             textAlign: TextAlign.center,
                             style: T.micro.copyWith(letterSpacing: 0.4)),
                         const SizedBox(height: 14),
-                        GestureDetector(
-                          onTap: () => _confirmRecall(context, c),
-                          behavior: HitTestBehavior.opaque,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            child: Text('RECALL SQUAD',
-                                style: T.mono.copyWith(
-                                    color: T.bad,
-                                    fontSize: 13,
-                                    letterSpacing: 2.4)),
+                        // For the first moments the run can still be taken
+                        // back outright - a wrong pick is not a short session.
+                        if (c.canCancel(now))
+                          GestureDetector(
+                            onTap: c.cancelRun,
+                            behavior: HitTestBehavior.opaque,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              child: Text(
+                                  'CANCEL DISPATCH · '
+                                  '${(GuildController.cancelWindow - now.difference(run.startedAt)).inSeconds + 1}',
+                                  style: T.mono.copyWith(
+                                      color: T.dim,
+                                      fontSize: 13,
+                                      letterSpacing: 2.4)),
+                            ),
+                          )
+                        else
+                          GestureDetector(
+                            onTap: () => _confirmRecall(context, c),
+                            behavior: HitTestBehavior.opaque,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              child: Text('RECALL SQUAD',
+                                  style: T.mono.copyWith(
+                                      color: T.bad,
+                                      fontSize: 13,
+                                      letterSpacing: 2.4)),
+                            ),
                           ),
-                        ),
                       ],
                     ),
             ),

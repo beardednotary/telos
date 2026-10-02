@@ -80,14 +80,24 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
   /// One line of local bookkeeping per launch: how many times, and on which
   /// distinct days. Never sent anywhere.
   void _noteOpen() {
-    final now = DateTime.now();
-    _g.installedAt ??= now;
+    _g.installedAt ??= DateTime.now();
     _g.appOpens++;
+    _noteDay();
+    unawaited(_save());
+  }
+
+  /// Stamps today as a day the app was used. Called on launch and on every
+  /// return from the background: iOS keeps the app suspended for days, so a
+  /// launch-only stamp misses most of the days a player actually came back.
+  /// Returns whether today was new.
+  bool _noteDay() {
+    final now = DateTime.now();
     final day = '${now.year}-${now.month.toString().padLeft(2, '0')}'
         '-${now.day.toString().padLeft(2, '0')}';
-    if (!_g.openDays.contains(day)) _g.openDays.add(day);
+    if (_g.openDays.contains(day)) return false;
+    _g.openDays.add(day);
     if (_g.openDays.length > 400) _g.openDays.removeAt(0);
-    unawaited(_save());
+    return true;
   }
 
   /// Called when the manual is first shown, so bouncing off it is visible.
@@ -177,6 +187,9 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && _ready && _noteDay()) {
+      unawaited(_save());
+    }
     final run = _g.active;
     if (run == null) return;
     final t = DateTime.now();
@@ -296,6 +309,29 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
       squad: List.of(d.squad),
       minutes: d.minutes,
     );
+  }
+
+  /// How long after BEGIN EXPEDITION the run can still be taken back as if it
+  /// was never sent: long enough to notice the wrong sector, length or squad.
+  static const cancelWindow = Duration(seconds: 30);
+
+  bool canCancel(DateTime t) {
+    final run = _g.active;
+    return run != null && t.difference(run.startedAt) < cancelWindow;
+  }
+
+  /// Takes back a dispatch made by mistake. Unlike a recall it leaves no
+  /// trace: no log entry, no expedition counted, no survey line spent.
+  Future<bool> cancelRun() async {
+    if (!canCancel(DateTime.now())) return false;
+    _g.active = null;
+    _g.runCounter--;
+    await _alerts.cancel();
+    await _lockScreen.clear();
+    _syncTicker();
+    await _save();
+    notifyListeners();
+    return true;
   }
 
   /// Ends the run and banks everything. [recalled] = the user stopped early.
