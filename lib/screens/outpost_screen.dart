@@ -26,110 +26,71 @@ class OutpostScreen extends StatelessWidget {
     return TerminalScaffold(
       title: 'FACILITIES',
       child: ListView(
-        padding: const EdgeInsets.only(bottom: 40),
+        padding: const EdgeInsets.only(top: 4, bottom: 24),
         children: [
-          _Balances(g: g),
-          const SizedBox(height: 18),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 18),
-            child: Text(
-              'Upgrades apply to every run from now on. BARRACKS raises how '
-              'many members you can keep, FORGE how deep it can work, ARCHIVE '
-              'how much INTEL comes home.',
-              style: T.micro.copyWith(letterSpacing: 0.4, height: 1.7),
-            ),
+          Section(child: _Balances(g: g)),
+
+          Section(
+            label: 'UPGRADES',
+            rows: [
+              Section.note(
+                'Upgrades apply to every run from now on. BARRACKS raises how '
+                'many members you can keep, FORGE how deep it can work, '
+                'ARCHIVE how much INTEL comes home.',
+              ),
+              for (final f in Facility.values) _FacilityBand(facility: f),
+            ],
           ),
 
-          const _SectionRule('UPGRADES'),
-          for (final f in Facility.values) _FacilityBand(facility: f),
-
-          const SizedBox(height: 26),
-          _SectionRule('RECRUITING', trailing: '${g.roster.length}/${g.rosterSlots} SLOTS'),
-          if (recruitableClasses(g).isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Text(
-                'No new archetypes available yet. The ARCHIVIST opens up at '
-                'guild level 2.',
-                style: T.micro.copyWith(letterSpacing: 0.4),
-              ),
-            )
-          else
-            for (final cls in recruitableClasses(g)) _RecruitBand(cls: cls),
-
-          const SizedBox(height: 26),
-          const _SectionRule('SECTOR ACCESS', color: T.cyan),
-          if (locked.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Text('Every charted sector is open.',
-                  style: T.micro.copyWith(letterSpacing: 0.4)),
-            )
-          else
-            for (final s in locked) _SectorBand(sector: s),
-
-          const SizedBox(height: 26),
-          const _SectionRule('ABOUT'),
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const BackupScreen()),
-            ),
-            child: Container(
-              margin: const EdgeInsets.only(bottom: 2),
-              color: T.band,
-              padding: const EdgeInsets.fromLTRB(0, 16, 20, 16),
-              child: Row(
-                children: [
-                  Container(width: 4, height: 40, color: T.steel),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('SAVE DATA', style: T.title.copyWith(fontSize: 18)),
-                        const SizedBox(height: 4),
-                        Text('Export a backup, or restore one',
-                            style: T.micro.copyWith(letterSpacing: 0.4)),
-                      ],
-                    ),
-                  ),
-                  Text('>', style: T.mono.copyWith(color: T.dim)),
-                ],
-              ),
-            ),
+          Section(
+            label: 'RECRUITING',
+            trailing: '${g.roster.length}/${g.rosterSlots} SLOTS',
+            rows: [
+              if (recruitableClasses(g).isEmpty)
+                Section.note(
+                  'No new archetypes available yet. The ARCHIVIST opens up at '
+                  'guild level 2.',
+                )
+              else
+                for (final cls in recruitableClasses(g)) _RecruitBand(cls: cls),
+            ],
           ),
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const OnboardingScreen(asReview: true),
+
+          Section(
+            label: 'SECTOR ACCESS',
+            labelColor: T.cyan,
+            rows: [
+              if (locked.isEmpty)
+                Section.note('Every charted sector is open.')
+              else
+                for (final s in locked) _SectorBand(sector: s),
+            ],
+          ),
+
+          Section(
+            label: 'ABOUT',
+            rows: [
+              _LinkRow(
+                accent: T.steel,
+                title: 'SAVE DATA',
+                hint: 'Export a backup, or restore one',
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const BackupScreen()),
+                ),
               ),
-            ),
-            child: Container(
-              color: T.band,
-              padding: const EdgeInsets.fromLTRB(0, 16, 20, 16),
-              child: Row(
-                children: [
-                  Container(width: 4, height: 40, color: T.amber),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('FIELD MANUAL', style: T.title.copyWith(fontSize: 18)),
-                        const SizedBox(height: 4),
-                        Text('How this works, and why not opening it is the point',
-                            style: T.micro.copyWith(letterSpacing: 0.4)),
-                      ],
-                    ),
+              _LinkRow(
+                accent: T.amber,
+                title: 'FIELD MANUAL',
+                hint: 'How this works, and why not opening it is the point',
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const OnboardingScreen(asReview: true),
                   ),
-                  Text('>', style: T.mono.copyWith(color: T.dim)),
-                ],
+                ),
               ),
-            ),
+            ],
           ),
           // Which build this is, so a tester can say without guessing.
           FutureBuilder<PackageInfo>(
@@ -138,7 +99,7 @@ class OutpostScreen extends StatelessWidget {
               final info = snap.data;
               if (info == null) return const SizedBox(height: 24);
               return Padding(
-                padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
+                padding: const EdgeInsets.fromLTRB(20, 2, 20, 24),
                 child: Text('TELOS ${info.version} (${info.buildNumber})',
                     style: T.micro),
               );
@@ -150,26 +111,42 @@ class OutpostScreen extends StatelessWidget {
   }
 }
 
-class _SectionRule extends StatelessWidget {
-  const _SectionRule(this.label, {this.trailing, this.color});
-  final String label;
-  final String? trailing;
-  final Color? color;
+class _LinkRow extends StatelessWidget {
+  const _LinkRow({
+    required this.accent,
+    required this.title,
+    required this.hint,
+    required this.onTap,
+  });
+  final Color accent;
+  final String title;
+  final String hint;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-      child: Row(
-        children: [
-          Text(label, style: T.micro.copyWith(color: color ?? T.steel)),
-          const SizedBox(width: 12),
-          Expanded(child: Container(height: 1, color: T.line)),
-          if (trailing != null) ...[
-            const SizedBox(width: 12),
-            Text(trailing!, style: T.micro),
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(0, 16, 16, 16),
+        child: Row(
+          children: [
+            Container(width: 4, height: 40, color: accent),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: T.title.copyWith(fontSize: 18)),
+                  const SizedBox(height: 4),
+                  Text(hint, style: T.micro.copyWith(letterSpacing: 0.4)),
+                ],
+              ),
+            ),
+            Text('>', style: T.mono.copyWith(color: T.dim)),
           ],
-        ],
+        ),
       ),
     );
   }
@@ -197,16 +174,12 @@ class _Balances extends StatelessWidget {
           ),
         );
 
-    return Container(
-      color: T.band,
-      padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
-      child: Row(
-        children: [
-          cell('CREDITS', g.credits, T.amber),
-          cell('ALLOY', g.alloy, T.steel),
-          cell('INTEL', g.intel, T.cyan),
-        ],
-      ),
+    return Row(
+      children: [
+        cell('CREDITS', g.credits, T.amber),
+        cell('ALLOY', g.alloy, T.steel),
+        cell('INTEL', g.intel, T.cyan),
+      ],
     );
   }
 }
@@ -241,10 +214,8 @@ class _SpendBand extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 2),
-      color: T.band,
-      padding: const EdgeInsets.fromLTRB(0, 16, 20, 16),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0, 16, 16, 16),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

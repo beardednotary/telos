@@ -29,58 +29,78 @@ class SpireScreen extends StatelessWidget {
       title: 'THE SPIRE',
       actions: [Text('SECTOR 05', style: T.micro)],
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
+        padding: const EdgeInsets.only(top: 4, bottom: 24),
         children: [
-          if (g.spireCharterName != null) ...[
-            Text('HOLDER OF THE LAST CHARTER', style: T.micro),
-            const SizedBox(height: 8),
-            Text(g.spireCharterName!,
-                style: T.title.copyWith(fontSize: 21, color: T.amber)),
-            const SizedBox(height: 22),
-          ],
-          Text(
-            'The top course was never finished. Cut stone stacked ready, '
-            'mortar never mixed. Everyone who worked on it stopped, which is '
-            'why nobody knows what it is for.',
-            style: T.mono.copyWith(fontSize: 15, height: 1.7, color: T.dim),
+          Section(
+            label: g.spireCharterName != null
+                ? 'HOLDER OF THE LAST CHARTER'
+                : null,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (g.spireCharterName != null) ...[
+                  Text(g.spireCharterName!,
+                      style: T.title.copyWith(fontSize: 21, color: T.amber)),
+                  const SizedBox(height: 14),
+                ],
+                Text(
+                  'The top course was never finished. Cut stone stacked '
+                  'ready, mortar never mixed. Everyone who worked on it '
+                  'stopped, which is why nobody knows what it is for.',
+                  style:
+                      T.mono.copyWith(fontSize: 15, height: 1.7, color: T.dim),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 24),
-          _Tower(mine: mine),
-          const SizedBox(height: 28),
-          _Line(
-            label: 'RAISED BY YOU',
-            value: '$mine',
-            unit: mine == 1 ? 'floor' : 'floors',
-            accent: T.amber,
+          Section(label: 'UNFINISHED', child: _Tower(mine: mine)),
+          Section(
+            label: 'FLOORS',
+            child: Column(
+              children: [
+                _Line(
+                  label: 'RAISED BY YOU',
+                  value: '$mine',
+                  unit: mine == 1 ? 'floor' : 'floors',
+                  accent: T.amber,
+                ),
+                const SizedBox(height: 14),
+                const _Line(
+                  label: 'STANDING BEFORE YOU',
+                  value: '${GuildState.kHistoricalFloors}',
+                  unit: 'floors',
+                  accent: T.dim,
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 14),
-          const _Line(
-            label: 'STANDING BEFORE YOU',
-            value: '${GuildState.kHistoricalFloors}',
-            unit: 'floors',
-            accent: T.dim,
-          ),
-          const SizedBox(height: 26),
-          Container(height: 1, color: T.line),
-          const SizedBox(height: 26),
-          _Line(
-            label: 'YOUR HOURS ON THIS CHARTER',
-            value: '$hours',
-            unit: 'h',
-            accent: T.text,
-          ),
-          const SizedBox(height: 14),
-          const _Line(
-            label: 'THEIRS',
-            value: '${GuildState.kCharterHours}',
-            unit: 'h',
-            accent: T.dim,
-          ),
-          const SizedBox(height: 28),
-          Text(
-            'One floor for every ${GuildState.kFloorHours} hours. It does not '
-            'decay and it cannot be bought.',
-            style: T.mono.copyWith(fontSize: 13, height: 1.7, color: T.dim),
+          Section(
+            label: 'HOURS',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _Line(
+                  label: 'YOURS ON THIS CHARTER',
+                  value: '$hours',
+                  unit: 'h',
+                  accent: T.text,
+                ),
+                const SizedBox(height: 14),
+                const _Line(
+                  label: 'THEIRS',
+                  value: '${GuildState.kCharterHours}',
+                  unit: 'h',
+                  accent: T.dim,
+                ),
+                const SizedBox(height: 18),
+                Text(
+                  'One floor for every ${GuildState.kFloorHours} hours. It '
+                  'does not decay and it cannot be bought.',
+                  style:
+                      T.mono.copyWith(fontSize: 13, height: 1.7, color: T.dim),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -97,25 +117,19 @@ class _Tower extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: T.band,
-      padding: const EdgeInsets.fromLTRB(16, 18, 16, 14),
-      child: Column(
-        children: [
-          Text('UNFINISHED', style: T.micro.copyWith(color: T.dim)),
-          if (mine > SpireDrawing.maxShown) ...[
-            const SizedBox(height: 6),
-            Text('+ ${mine - SpireDrawing.maxShown} more above',
-                style: T.micro.copyWith(color: T.amber)),
-          ],
+    return Column(
+      children: [
+        if (mine > SpireDrawing.maxShown) ...[
+          Text('+ ${mine - SpireDrawing.maxShown} more above',
+              style: T.micro.copyWith(color: T.amber)),
           const SizedBox(height: 4),
-          SpireDrawing(historical: GuildState.kHistoricalFloors, mine: mine),
-          if (mine == 0) ...[
-            const SizedBox(height: 8),
-            Text('nothing of yours yet', style: T.micro.copyWith(color: T.dim)),
-          ],
         ],
-      ),
+        SpireDrawing(historical: GuildState.kHistoricalFloors, mine: mine),
+        if (mine == 0) ...[
+          const SizedBox(height: 8),
+          Text('nothing of yours yet', style: T.micro.copyWith(color: T.dim)),
+        ],
+      ],
     );
   }
 }

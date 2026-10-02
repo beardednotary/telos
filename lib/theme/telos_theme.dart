@@ -85,9 +85,9 @@ class T {
   /// Syne, used ONLY for names: sectors, the guild, screen titles. It has no
   /// Light weight, and that is deliberate - a heavy carved display set against
   /// thin machine readout is the whole contrast. Numbers stay in the mono.
-  static TextStyle display = const TextStyle(
+  static TextStyle display = TextStyle(
     fontFamily: 'Syne',
-    fontVariations: [FontVariation('wght', 700)],
+    fontVariations: const [FontVariation('wght', 700)],
     color: text,
     fontSize: 22,
     letterSpacing: 1.0,
@@ -97,6 +97,11 @@ class T {
     // which is what actually leaves room for the descender.
     height: 1.3,
     leadingDistribution: TextLeadingDistribution.even,
+    // Syne's default g hangs its tail off the bowl as a separate hooked
+    // stroke, which at title size reads as two glyphs overlapping. Stylistic
+    // set 4 swaps in the font's own closed two-storey g, and touches nothing
+    // else.
+    fontFeatures: [FontFeature.stylisticSet(4)],
   );
 
   static TextStyle micro = mono.copyWith(

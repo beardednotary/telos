@@ -56,16 +56,11 @@ class ContractBoardPanel extends StatelessWidget {
     if (c.contracts.isEmpty) return const SizedBox.shrink();
     final ready = c.claimableContracts;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SectionHead(
-          'CONTRACTS',
-          trailing: ready > 0 ? '$ready READY' : null,
-          trailingColor: T.good,
-        ),
-        for (final k in c.contracts) _ContractBand(contract: k),
-      ],
+    return Section(
+      label: 'CONTRACTS',
+      trailing: ready > 0 ? '$ready READY' : null,
+      trailingColor: T.good,
+      rows: [for (final k in c.contracts) _ContractBand(contract: k)],
     );
   }
 }
@@ -84,11 +79,8 @@ class _ContractBand extends StatelessWidget {
         done ? T.good : (sector != null ? Color(sector.accent) : T.steel);
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 2),
-      decoration: BoxDecoration(
-        color: done ? T.good.withValues(alpha: 0.10) : T.band,
-      ),
-      padding: const EdgeInsets.fromLTRB(0, 14, 20, 14),
+      color: done ? T.good.withValues(alpha: 0.10) : null,
+      padding: const EdgeInsets.fromLTRB(0, 14, 16, 14),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

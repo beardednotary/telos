@@ -45,16 +45,13 @@ class _BackupScreenState extends State<BackupScreen> {
     return TerminalScaffold(
       title: 'SAVE DATA',
       child: ListView(
-        padding: const EdgeInsets.only(bottom: 40),
+        padding: const EdgeInsets.only(top: 4, bottom: 24),
         children: [
-          Container(
-            color: T.band,
-            padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+          Section(
+            label: 'THIS PHONE',
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('THIS PHONE', style: T.micro),
-                const SizedBox(height: 8),
                 Text(g.guildName, style: T.title.copyWith(fontSize: 20)),
                 const SizedBox(height: 10),
                 Text(
@@ -65,82 +62,66 @@ class _BackupScreenState extends State<BackupScreen> {
               ],
             ),
           ),
-          const SizedBox(height: 18),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Text(
-              'Everything lives on this phone and nothing is sent anywhere. '
-              'That means a backup is the only thing standing between a '
-              'deleted app and the whole record of what you have protected.',
-              style: T.micro.copyWith(letterSpacing: 0.4, height: 1.7),
-            ),
-          ),
-          const SizedBox(height: 22),
-
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () async {
-                await Backup.export(c.g);
-                await _refresh();
-                if (!context.mounted) return;
-                showFlash(
-                  context,
-                  kicker: 'EXPORTED',
-                  title: 'Backup written',
-                  lines: const ['Keep it somewhere that is not this phone'],
-                  color: T.amber,
-                );
-              },
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: T.amber.withValues(alpha: 0.12),
-                  border: Border.all(color: T.amber, width: 1.4),
-                ),
-                child: Text('EXPORT A BACKUP',
-                    style: T.mono.copyWith(
-                        color: T.amber,
-                        fontSize: 17,
-                        fontWeight: FontWeight.w300,
-                        letterSpacing: 3)),
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 28),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
-            child: Row(
+          Section(
+            label: 'EXPORT',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('RESTORE', style: T.micro.copyWith(color: T.steel)),
-                const SizedBox(width: 12),
-                Expanded(child: Container(height: 1, color: T.line)),
+                Text(
+                  'Everything lives on this phone and nothing is sent '
+                  'anywhere. That means a backup is the only thing standing '
+                  'between a deleted app and the whole record of what you '
+                  'have protected.',
+                  style: T.micro.copyWith(letterSpacing: 0.4, height: 1.7),
+                ),
+                const SizedBox(height: 16),
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () async {
+                    await Backup.export(c.g);
+                    await _refresh();
+                    if (!context.mounted) return;
+                    showFlash(
+                      context,
+                      kicker: 'EXPORTED',
+                      title: 'Backup written',
+                      lines: const ['Keep it somewhere that is not this phone'],
+                      color: T.amber,
+                    );
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: T.amber.withValues(alpha: 0.12),
+                      border: Border.all(color: T.amber, width: 1.4),
+                    ),
+                    child: Text('EXPORT A BACKUP',
+                        style: T.mono.copyWith(
+                            color: T.amber,
+                            fontSize: 17,
+                            fontWeight: FontWeight.w300,
+                            letterSpacing: 3)),
+                  ),
+                ),
               ],
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 14),
-            child: Text(
-              'Put a backup file into the Telos folder in the Files app and it '
-              'will appear here.',
-              style: T.micro.copyWith(letterSpacing: 0.4, height: 1.7),
-            ),
-          ),
 
-          if (!_looked)
-            const SizedBox.shrink()
-          else if (_found.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Text('No backup files found.',
-                  style: T.micro.copyWith(letterSpacing: 0.4)),
-            )
-          else
-            for (final f in _found) _RestoreBand(file: f, onDone: _refresh),
+          Section(
+            label: 'RESTORE',
+            rows: [
+              Section.note(
+                'Put a backup file into the Telos folder in the Files app and '
+                'it will appear here.',
+              ),
+              if (_looked && _found.isEmpty)
+                Section.note('No backup files found.')
+              else
+                for (final f in _found) _RestoreBand(file: f, onDone: _refresh),
+            ],
+          ),
         ],
       ),
     );
@@ -159,10 +140,8 @@ class _RestoreBand extends StatelessWidget {
     final info = Backup.inspect(text);
     final name = file.path.split(RegExp(r'[/\\]')).last;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 2),
-      color: T.band,
-      padding: const EdgeInsets.fromLTRB(0, 14, 20, 14),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0, 14, 16, 14),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

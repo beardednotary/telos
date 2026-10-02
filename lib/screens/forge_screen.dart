@@ -29,11 +29,9 @@ class ForgeScreen extends StatelessWidget {
       title: 'FORGE',
       actions: [Text('LV ${c.forgeLevel}', style: T.micro)],
       child: ListView(
-        padding: const EdgeInsets.only(bottom: 40),
+        padding: const EdgeInsets.only(top: 4, bottom: 24),
         children: [
-          Container(
-            color: T.band,
-            padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+          Section(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -55,43 +53,41 @@ class ForgeScreen extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 22),
 
           if (catalogue.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Text(
-                'Nothing to work from yet. Charting a sector is what teaches '
-                'you to build its equipment.',
-                style: T.micro.copyWith(letterSpacing: 0.4, height: 1.6),
-              ),
+            Section(
+              rows: [
+                Section.note(
+                  'Nothing to work from yet. Charting a sector is what '
+                  'teaches you to build its equipment.',
+                ),
+              ],
             )
           else
-            for (final r in Rarity.values) ...[
-              if (catalogue.any((d) => d.rarity == r)) ...[
-                _Rule(
+            for (final r in Rarity.values)
+              if (catalogue.any((d) => d.rarity == r))
+                Section(
                   label: r.label,
-                  color: rarityColor(r),
+                  labelColor: rarityColor(r),
                   trailing: c.forgeCanWork(r)
                       ? null
                       : 'NEEDS FORGE LV ${kForgeLevelFor[r]}',
+                  rows: [
+                    for (final def in catalogue.where((d) => d.rarity == r))
+                      _CraftBand(def: def),
+                  ],
                 ),
-                for (final def in catalogue.where((d) => d.rarity == r))
-                  _CraftBand(def: def),
-                const SizedBox(height: 20),
-              ],
-            ],
 
-          const _Rule(
-              label: 'VAULT', color: T.steel, trailing: 'MELT FOR ALLOY'),
-          if (spare.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Text('Nothing unassigned.',
-                  style: T.micro.copyWith(letterSpacing: 0.4)),
-            )
-          else
-            for (final gear in spare) _MeltBand(gear: gear),
+          Section(
+            label: 'VAULT',
+            trailing: 'MELT FOR ALLOY',
+            rows: [
+              if (spare.isEmpty)
+                Section.note('Nothing unassigned.')
+              else
+                for (final gear in spare) _MeltBand(gear: gear),
+            ],
+          ),
         ],
       ),
     );
@@ -128,29 +124,6 @@ class _Bal extends StatelessWidget {
       );
 }
 
-class _Rule extends StatelessWidget {
-  const _Rule({required this.label, required this.color, this.trailing});
-  final String label;
-  final Color color;
-  final String? trailing;
-
-  @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
-        child: Row(
-          children: [
-            Text(label, style: T.micro.copyWith(color: color)),
-            const SizedBox(width: 12),
-            Expanded(child: Container(height: 1, color: T.line)),
-            if (trailing != null) ...[
-              const SizedBox(width: 12),
-              Text(trailing!, style: T.micro),
-            ],
-          ],
-        ),
-      );
-}
-
 class _CraftBand extends StatelessWidget {
   const _CraftBand({required this.def});
   final GearDef def;
@@ -175,10 +148,8 @@ class _CraftBand extends StatelessWidget {
 
     return Opacity(
       opacity: gated ? 0.4 : 1,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 2),
-        color: T.band,
-        padding: const EdgeInsets.fromLTRB(0, 14, 20, 14),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(0, 14, 16, 14),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -262,10 +233,8 @@ class _MeltBand extends StatelessWidget {
     final color = rarityColor(def.rarity);
     final value = kMeltValue[def.rarity]!;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 2),
-      color: T.band,
-      padding: const EdgeInsets.fromLTRB(0, 12, 20, 12),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0, 12, 16, 12),
       child: Row(
         children: [
           Container(width: 3, height: 32, color: color),

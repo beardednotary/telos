@@ -31,66 +31,68 @@ class HomeScreen extends StatelessWidget {
           padding: EdgeInsets.zero,
           children: [
             _Header(g: g),
-            _Resources(g: g),
-            const SizedBox(height: 26),
+            const SizedBox(height: 16),
+            Section(child: _Resources(g: g)),
 
             // The main action on this screen, sized like it. The repeats
             // below it are the fast path: the same dispatch again, one tap.
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: Section.margin,
               child: _DispatchBlock(hasHistory: g.log.isNotEmpty),
             ),
             _RedeployList(dispatches: recentDispatches(g)),
 
-            const SizedBox(height: 30),
             const ContractBoardPanel(),
-            const SizedBox(height: 30),
-            if (g.nextGoal != null) ...[
-              _GoalBand(goal: g.nextGoal!),
-              const SizedBox(height: 30),
-            ],
+            if (g.nextGoal != null) _GoalBand(goal: g.nextGoal!),
 
-            _Record(g: g),
-            const SizedBox(height: 26),
+            // The player's own record, so it carries their colour. It and
+            // the guild header bookend the screen: who the guild is at the
+            // top, what they have actually done at the bottom.
+            Section(
+                label: 'PROTECTED TIME', accent: T.amber, child: _Record(g: g)),
 
-            _NavRow(
-              label: 'ROSTER',
-              value: '${g.roster.length}/${g.rosterSlots}',
-              hint: 'Squad, levels, gear',
-              onTap: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => const RosterScreen())),
+            Section(
+              label: 'OUTPOST',
+              rows: [
+                _NavRow(
+                  label: 'ROSTER',
+                  value: '${g.roster.length}/${g.rosterSlots}',
+                  hint: 'Squad, levels, gear',
+                  onTap: () => Navigator.push(context,
+                      MaterialPageRoute(builder: (_) => const RosterScreen())),
+                ),
+                _NavRow(
+                  label: 'FACILITIES',
+                  value: 'LV ${g.facilities.values.reduce((a, b) => a + b)}',
+                  hint: 'Upgrades, recruiting, sectors',
+                  onTap: () => Navigator.push(context,
+                      MaterialPageRoute(builder: (_) => const OutpostScreen())),
+                ),
+                _NavRow(
+                  label: 'FORGE',
+                  value: 'LV ${g.facilities[Facility.forge]}',
+                  hint: 'Build gear from what you have charted',
+                  onTap: () => Navigator.push(context,
+                      MaterialPageRoute(builder: (_) => const ForgeScreen())),
+                ),
+                if (g.spireComplete)
+                  _NavRow(
+                    label: 'THE SPIRE',
+                    value: '${g.spireFloors}',
+                    hint: 'What your hours have raised since you got there',
+                    onTap: () => Navigator.push(context,
+                        MaterialPageRoute(builder: (_) => const SpireScreen())),
+                  ),
+                _NavRow(
+                  label: 'FIELD LOG',
+                  value: '${g.log.length}',
+                  hint: 'Every session, and what you said you were doing',
+                  onTap: () => Navigator.push(context,
+                      MaterialPageRoute(builder: (_) => const LogScreen())),
+                ),
+              ],
             ),
-            _NavRow(
-              label: 'FACILITIES',
-              value: 'LV ${g.facilities.values.reduce((a, b) => a + b)}',
-              hint: 'Upgrades, recruiting, sectors',
-              onTap: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => const OutpostScreen())),
-            ),
-            _NavRow(
-              label: 'FORGE',
-              value: 'LV ${g.facilities[Facility.forge]}',
-              hint: 'Build gear from what you have charted',
-              onTap: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => const ForgeScreen())),
-            ),
-            if (g.spireComplete)
-              _NavRow(
-                label: 'THE SPIRE',
-                value: '${g.spireFloors}',
-                hint: 'What your hours have raised since you got there',
-                onTap: () => Navigator.push(context,
-                    MaterialPageRoute(builder: (_) => const SpireScreen())),
-              ),
-            _NavRow(
-              label: 'FIELD LOG',
-              value: '${g.log.length}',
-              hint: 'Every session, and what you said you were doing',
-              onTap: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => const LogScreen())),
-              last: true,
-            ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 24),
           ],
         ),
       ),
@@ -153,7 +155,7 @@ class _Header extends StatelessWidget {
   }
 }
 
-/// Three big numbers. No boxes - the size and the colour do the work.
+/// Three big numbers, the size and the colour doing the work.
 class _Resources extends StatelessWidget {
   const _Resources({required this.g});
   final GuildState g;
@@ -182,18 +184,15 @@ class _Resources extends StatelessWidget {
           color: T.line,
         );
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          cell('CREDITS', g.credits, T.amber),
-          rule(),
-          cell('ALLOY', g.alloy, T.steel),
-          rule(),
-          cell('INTEL', g.intel, T.cyan),
-        ],
-      ),
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        cell('CREDITS', g.credits, T.amber),
+        rule(),
+        cell('ALLOY', g.alloy, T.steel),
+        rule(),
+        cell('INTEL', g.intel, T.cyan),
+      ],
     );
   }
 }
@@ -267,31 +266,19 @@ class _RedeployList extends StatelessWidget {
     if (dispatches.isEmpty) return const SizedBox.shrink();
     final c = context.read<GuildController>();
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(0, 18, 0, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SectionHead('SEND AGAIN'),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                for (final d in dispatches)
-                  _RedeployRow(
-                    dispatch: d,
-                    squad: d.squad
-                        .map((id) => c.g.memberById(id)?.name)
-                        .whereType<String>()
-                        .join(', '),
-                    onTap: () => c.redeploy(d),
-                  ),
-              ],
-            ),
+    return Section(
+      label: 'SEND AGAIN',
+      rows: [
+        for (final d in dispatches)
+          _RedeployRow(
+            dispatch: d,
+            squad: d.squad
+                .map((id) => c.g.memberById(id)?.name)
+                .whereType<String>()
+                .join(', '),
+            onTap: () => c.redeploy(d),
           ),
-        ],
-      ),
+      ],
     );
   }
 }
@@ -320,12 +307,11 @@ class _RedeployRow extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 6),
         decoration: BoxDecoration(
           color: sc.withValues(alpha: 0.055),
           border: Border(left: BorderSide(color: sc, width: 3)),
         ),
-        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+        padding: const EdgeInsets.fromLTRB(13, 12, 16, 12),
         child: Row(
           children: [
             Expanded(
@@ -362,7 +348,8 @@ class _RedeployRow extends StatelessWidget {
   }
 }
 
-/// The middle horizon, given a thick accent bar instead of another card.
+/// The middle horizon: its own card, edged in the colour of whether it can
+/// be reached yet.
 class _GoalBand extends StatelessWidget {
   const _GoalBand({required this.goal});
   final NextGoal goal;
@@ -372,55 +359,24 @@ class _GoalBand extends StatelessWidget {
     final reachable = goal.blocked == null;
     final accent = reachable ? T.cyan : T.dim;
 
-    return Container(
-      color: T.band,
-      padding: const EdgeInsets.symmetric(vertical: 18),
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Container(width: 4, color: accent),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text('NEXT  //  ${goal.kind}',
-                          style: T.micro.copyWith(color: accent)),
-                      const Spacer(),
-                      Text(
-                        goal.blocked ??
-                            (goal.progress >= 1.0
-                                ? 'READY'
-                                : '${(goal.progress * 100).round()}%'),
-                        style: T.micro.copyWith(
-                            color: goal.progress >= 1.0 && reachable
-                                ? T.good
-                                : accent),
-                      ),
-                      const SizedBox(width: 20),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Text(goal.label, style: T.title.copyWith(fontSize: 19)),
-                  const SizedBox(height: 12),
-                  Padding(
-                    padding: const EdgeInsets.only(right: 20),
-                    child: Meter(
-                        value: goal.progress,
-                        segments: 26,
-                        height: 4,
-                        color: accent),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(goal.detail, style: T.micro),
-                ],
-              ),
-            ),
-          ],
-        ),
+    return Section(
+      label: 'NEXT  //  ${goal.kind}',
+      labelColor: accent,
+      trailing: goal.blocked ??
+          (goal.progress >= 1.0
+              ? 'READY'
+              : '${(goal.progress * 100).round()}%'),
+      trailingColor: goal.progress >= 1.0 && reachable ? T.good : accent,
+      accent: accent,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(goal.label, style: T.title.copyWith(fontSize: 19)),
+          const SizedBox(height: 12),
+          Meter(value: goal.progress, segments: 26, height: 4, color: accent),
+          const SizedBox(height: 8),
+          Text(goal.detail, style: T.micro),
+        ],
       ),
     );
   }
@@ -454,56 +410,44 @@ class _Record extends StatelessWidget {
           ],
         );
 
-    // A full-bleed band, the same device as the guild header, because this
-    // is the same kind of thing: not a section of the game but a statement
-    // about the player. The two bookend the screen - who the guild is at the
-    // top, what they have actually done at the bottom.
-    //
     // No meter and no target under the number. A bar implies somewhere to
     // get to, and there is nowhere to get to: this is a record of hours
     // already protected, and it only ever goes up.
-    return Container(
-      width: double.infinity,
-      color: T.band,
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('PROTECTED TIME', style: T.micro.copyWith(color: T.steel)),
-          const SizedBox(height: 10),
-          FittedBox(
-            fit: BoxFit.scaleDown,
-            alignment: Alignment.centerLeft,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
-              children: [
-                Text('$h', style: T.big.copyWith(fontSize: 68, color: T.amber)),
-                Text('h ', style: T.mono.copyWith(fontSize: 22, color: T.dim)),
-                Text('$m', style: T.big.copyWith(fontSize: 68)),
-                Text('m', style: T.mono.copyWith(fontSize: 22, color: T.dim)),
-              ],
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            g.log.isEmpty
-                ? 'Nothing yet.'
-                : 'Time the squad was out and you were working.',
-            style: T.micro.copyWith(letterSpacing: 0.4, height: 1.6),
-          ),
-          const SizedBox(height: 22),
-          Container(height: 1, color: T.line),
-          const SizedBox(height: 18),
-          Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
             children: [
-              Expanded(child: small('EXPEDITIONS', '${g.log.length}')),
-              Expanded(child: small('CLEAN RUNS', '${g.cleanRuns}')),
-              Expanded(child: small('DAYS WORKED', '${g.daysWorked}')),
+              Text('$h', style: T.big.copyWith(fontSize: 68, color: T.amber)),
+              Text('h ', style: T.mono.copyWith(fontSize: 22, color: T.dim)),
+              Text('$m', style: T.big.copyWith(fontSize: 68)),
+              Text('m', style: T.mono.copyWith(fontSize: 22, color: T.dim)),
             ],
           ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          g.log.isEmpty
+              ? 'Nothing yet.'
+              : 'Time the squad was out and you were working.',
+          style: T.micro.copyWith(letterSpacing: 0.4, height: 1.6),
+        ),
+        const SizedBox(height: 22),
+        Container(height: 1, color: T.line),
+        const SizedBox(height: 18),
+        Row(
+          children: [
+            Expanded(child: small('EXPEDITIONS', '${g.log.length}')),
+            Expanded(child: small('CLEAN RUNS', '${g.cleanRuns}')),
+            Expanded(child: small('DAYS WORKED', '${g.daysWorked}')),
+          ],
+        ),
+      ],
     );
   }
 }
@@ -514,28 +458,20 @@ class _NavRow extends StatelessWidget {
     required this.value,
     required this.hint,
     required this.onTap,
-    this.last = false,
   });
 
   final String label;
   final String value;
   final String hint;
   final VoidCallback onTap;
-  final bool last;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
-        decoration: BoxDecoration(
-          border: Border(
-            top: const BorderSide(color: T.line),
-            bottom: last ? const BorderSide(color: T.line) : BorderSide.none,
-          ),
-        ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
         child: Row(
           children: [
             Expanded(
@@ -551,7 +487,7 @@ class _NavRow extends StatelessWidget {
             const SizedBox(width: 12),
             Text(value, style: T.mono.copyWith(color: T.dim, fontSize: 16)),
             const SizedBox(width: 12),
-            Text('>', style: T.mono.copyWith(color: T.line, fontSize: 17)),
+            Text('>', style: T.mono.copyWith(color: T.dim, fontSize: 17)),
           ],
         ),
       ),

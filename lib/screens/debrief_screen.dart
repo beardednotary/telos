@@ -139,10 +139,10 @@ class _DebriefScreenState extends State<DebriefScreen>
                     ),
 
                     // -- 1. the two numbers that matter ---------------------
+                    const SizedBox(height: 16),
                     _beat(
                       1,
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+                      Section(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -212,17 +212,13 @@ class _DebriefScreenState extends State<DebriefScreen>
                     ),
 
                     // -- 2. journal ----------------------------------------
-                    const SizedBox(height: 26),
                     _beat(
                       2,
-                      Container(
-                        color: T.band,
-                        padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+                      Section(
+                        label: 'FIELD JOURNAL',
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('FIELD JOURNAL', style: T.micro),
-                            const SizedBox(height: 12),
                             for (final line in r.journal)
                               Padding(
                                 padding: const EdgeInsets.only(bottom: 9),
@@ -309,32 +305,15 @@ class _DebriefScreenState extends State<DebriefScreen>
                     ),
 
                     // -- 3. yield ------------------------------------------
-                    const SizedBox(height: 26),
                     _beat(
                       3,
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                      Section(
+                        label: 'RECOVERED',
+                        child: Row(
                           children: [
-                            Row(
-                              children: [
-                                Text('RECOVERED',
-                                    style: T.micro.copyWith(color: T.steel)),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                    child:
-                                        Container(height: 1, color: T.line)),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-                            Row(
-                              children: [
-                                _Gain('CREDITS', r.credits, T.amber),
-                                _Gain('ALLOY', r.alloy, T.steel),
-                                _Gain('INTEL', r.intel, T.cyan),
-                              ],
-                            ),
+                            _Gain('CREDITS', r.credits, T.amber),
+                            _Gain('ALLOY', r.alloy, T.steel),
+                            _Gain('INTEL', r.intel, T.cyan),
                           ],
                         ),
                       ),
@@ -344,19 +323,14 @@ class _DebriefScreenState extends State<DebriefScreen>
                     if (r.loot.isNotEmpty)
                       _beat(
                         4,
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 28),
-                            Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 20),
-                              child: Text(
-                                  '> and something else came back with them',
-                                  style: T.micro.copyWith(
-                                      color: T.amber, letterSpacing: 0.4)),
-                            ),
-                            const SizedBox(height: 12),
+                        Section(
+                          label: 'SALVAGE',
+                          labelColor: T.amber,
+                          border: T.amber.withValues(alpha: 0.5),
+                          rows: [
+                            Section.note(
+                                '> and something else came back with them',
+                                color: T.amber),
                             for (final uid in r.loot) _LootBand(uid: uid),
                           ],
                         ),
@@ -367,28 +341,16 @@ class _DebriefScreenState extends State<DebriefScreen>
                       _beat(5, _GuildLevelUp(record: r, level: c.g.level)),
 
                     // -- 6. progression -------------------------------------
-                    const SizedBox(height: 28),
                     _beat(
                       6,
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                      Section(
+                        label: 'PROGRESSION',
+                        trailing: '+${r.guildXp} GUILD XP',
+                        trailingColor: T.amber,
+                        padding: const EdgeInsets.fromLTRB(16, 14, 16, 2),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
-                              children: [
-                                Text('PROGRESSION',
-                                    style: T.micro.copyWith(color: T.steel)),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                    child:
-                                        Container(height: 1, color: T.line)),
-                                const SizedBox(width: 12),
-                                Text('+${r.guildXp} GUILD XP',
-                                    style: T.micro.copyWith(color: T.amber)),
-                              ],
-                            ),
-                            const SizedBox(height: 14),
                             for (final id in r.squad)
                               _MemberProgress(id: id, rec: r),
                           ],
@@ -402,17 +364,11 @@ class _DebriefScreenState extends State<DebriefScreen>
                         7,
                         Column(
                           children: [
-                            const SizedBox(height: 28),
-                            Container(
-                              width: double.infinity,
-                              color: T.band,
-                              padding:
-                                  const EdgeInsets.fromLTRB(20, 18, 20, 20),
+                            Section(
+                              label: 'YOU SET OUT TO',
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text('YOU SET OUT TO', style: T.micro),
-                                  const SizedBox(height: 8),
                                   Text(r.intent,
                                       style: T.mono.copyWith(
                                           fontSize: 17,
@@ -488,7 +444,7 @@ class _DebriefScreenState extends State<DebriefScreen>
                     _beat(
                       7,
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: Align(
                           alignment: Alignment.centerRight,
                           child: TButton(
@@ -587,9 +543,8 @@ class _LootBand extends StatelessWidget {
     final color = rarityColor(def.rarity);
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 2),
       color: color.withValues(alpha: 0.06),
-      padding: const EdgeInsets.fromLTRB(0, 16, 20, 16),
+      padding: const EdgeInsets.fromLTRB(0, 16, 16, 16),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -707,17 +662,14 @@ class _GuildLevelUp extends StatelessWidget {
     }
 
     return Padding(
-      padding: const EdgeInsets.only(top: 28),
+      padding: Section.margin,
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
           color: T.good.withValues(alpha: 0.10),
-          border: const Border(
-            top: BorderSide(color: T.good, width: 1.4),
-            bottom: BorderSide(color: T.good, width: 1.4),
-          ),
+          border: Border.all(color: T.good, width: 1.4),
         ),
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 22),
+        padding: const EdgeInsets.fromLTRB(16, 18, 16, 20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

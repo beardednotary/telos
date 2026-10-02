@@ -135,37 +135,18 @@ class SessionScreen extends StatelessWidget {
             const Spacer(flex: 2),
 
             // -- integrity -------------------------------------------------
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+            Section(
+              label: 'INTEGRITY',
+              trailing: run.checkIns == 0
+                  ? 'UNTOUCHED'
+                  : '${run.checkIns} CHECK-IN'
+                      '${run.checkIns == 1 ? '' : 'S'}',
+              trailingColor: run.checkIns == 0 ? T.good : T.amber,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('INTEGRITY', style: T.micro),
-                          const SizedBox(height: 4),
-                          Text('${(integrity * 100).round()}%',
-                              style: T.numeric.copyWith(color: iColor)),
-                        ],
-                      ),
-                      const Spacer(),
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 4),
-                        child: Text(
-                          run.checkIns == 0
-                              ? 'UNTOUCHED'
-                              : '${run.checkIns} CHECK-IN'
-                                  '${run.checkIns == 1 ? '' : 'S'}',
-                          style: T.micro.copyWith(
-                              color: run.checkIns == 0 ? T.good : T.amber),
-                        ),
-                      ),
-                    ],
-                  ),
+                  Text('${(integrity * 100).round()}%',
+                      style: T.numeric.copyWith(color: iColor)),
                   const SizedBox(height: 12),
                   Meter(
                       value: integrity, segments: 24, height: 5, color: iColor),
@@ -173,23 +154,12 @@ class SessionScreen extends StatelessWidget {
               ),
             ),
 
-            if (run.intent.isNotEmpty) ...[
-              const SizedBox(height: 24),
-              Container(
-                width: double.infinity,
-                color: T.band,
-                padding: const EdgeInsets.fromLTRB(20, 14, 20, 14),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('INTENT', style: T.micro),
-                    const SizedBox(height: 5),
-                    Text(run.intent,
-                        style: T.mono.copyWith(fontSize: 16, height: 1.4)),
-                  ],
-                ),
+            if (run.intent.isNotEmpty)
+              Section(
+                label: 'INTENT',
+                child: Text(run.intent,
+                    style: T.mono.copyWith(fontSize: 16, height: 1.4)),
               ),
-            ],
 
             const Spacer(flex: 1),
 

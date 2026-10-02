@@ -24,44 +24,33 @@ class RosterScreen extends StatelessWidget {
         Text('${g.roster.length}/${g.rosterSlots}', style: T.micro),
       ],
       child: ListView(
-        padding: const EdgeInsets.only(bottom: 40),
+        padding: const EdgeInsets.only(top: 4, bottom: 24),
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-            child: Text(
-              'Members gain XP on every run they go on. Levels add a flat '
-              'bonus; the two KIT slots add more. Gear does nothing until it '
-              'is assigned to someone.',
-              style: T.micro.copyWith(letterSpacing: 0.4, height: 1.7),
-            ),
-          ),
-          for (final m in g.roster) _MemberBand(member: m),
-          const SizedBox(height: 28),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              children: [
-                Text('VAULT', style: T.micro.copyWith(color: T.steel)),
-                const SizedBox(width: 12),
-                Expanded(child: Container(height: 1, color: T.line)),
-                const SizedBox(width: 12),
-                Text('${spare.length} UNASSIGNED', style: T.micro),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
-          if (spare.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Text(
-                'Nothing spare. Salvage turns up on runs past a sector '
-                'minimum, and melting one down at the FORGE is the only way '
-                'to lose a piece.',
-                style: T.micro.copyWith(letterSpacing: 0.4),
+          Section(
+            label: 'MEMBERS',
+            rows: [
+              Section.note(
+                'Members gain XP on every run they go on. Levels add a flat '
+                'bonus; the two KIT slots add more. Gear does nothing until '
+                'it is assigned to someone.',
               ),
-            )
-          else
-            for (final gear in spare) _GearBand(gear: gear),
+              for (final m in g.roster) _MemberBand(member: m),
+            ],
+          ),
+          Section(
+            label: 'VAULT',
+            trailing: '${spare.length} UNASSIGNED',
+            rows: [
+              if (spare.isEmpty)
+                Section.note(
+                  'Nothing spare. Salvage turns up on runs past a sector '
+                  'minimum, and melting one down at the FORGE is the only way '
+                  'to lose a piece.',
+                )
+              else
+                for (final gear in spare) _GearBand(gear: gear),
+            ],
+          ),
         ],
       ),
     );
@@ -77,10 +66,8 @@ class _MemberBand extends StatelessWidget {
     final c = context.read<GuildController>();
     final cls = kClasses[member.classId]!;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 2),
-      color: T.band,
-      padding: const EdgeInsets.fromLTRB(0, 18, 20, 18),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0, 18, 16, 18),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -308,10 +295,8 @@ class _GearBand extends StatelessWidget {
     final def = gearById(gear.defId);
     final color = rarityColor(def.rarity);
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 2),
-      color: T.band,
-      padding: const EdgeInsets.fromLTRB(0, 13, 20, 13),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0, 13, 16, 13),
       child: Row(
         children: [
           Container(width: 3, height: 34, color: color),

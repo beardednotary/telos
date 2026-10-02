@@ -76,13 +76,12 @@ class _DispatchScreenState extends State<DispatchScreen> {
             : null,
       ),
       child: ListView(
-        padding: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.only(top: 4),
         children: [
           // -- 01 INTENT -------------------------------------------------
-          const _Step('01', 'INTENT'),
-          Container(
-            color: T.band,
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+          Section(
+            label: 'INTENT',
+            leading: const _StepNumber('01'),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -119,11 +118,11 @@ class _DispatchScreenState extends State<DispatchScreen> {
           ),
 
           // -- 02 DURATION -----------------------------------------------
-          const SizedBox(height: 26),
-          _Step('02', 'DURATION', trailing: durationTier(_minutes)),
-          Container(
-            color: T.band,
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 18),
+          Section(
+            label: 'DURATION',
+            leading: const _StepNumber('02'),
+            trailing: durationTier(_minutes),
+            trailingColor: T.amber,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -157,71 +156,72 @@ class _DispatchScreenState extends State<DispatchScreen> {
           ),
 
           // -- 03 SECTOR -------------------------------------------------
-          const SizedBox(height: 26),
-          const _Step('03', 'SECTOR'),
-          for (final s in kSectors)
-            _SectorBand(
-              sector: s,
-              minutes: _minutes,
-              unlocked: g.sectorUnlocked(s.id),
-              surveyed: (g.surveyRead[s.id] ?? 0) >= s.priorSurvey.length,
-              selected: _sectorId == s.id,
-              onTap: g.sectorUnlocked(s.id) && s.minMinutes <= _minutes
-                  ? () {
-                      HapticFeedback.selectionClick();
-                      setState(() => _sectorId = s.id);
-                    }
-                  : null,
-            ),
-          if (outOfReach.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-              child: Text(
-                '${outOfReach.first.minMinutes} min would reach '
-                '${outOfReach.first.name}.',
-                style: T.micro.copyWith(color: T.cyan, letterSpacing: 0.4),
-              ),
-            ),
+          Section(
+            label: 'SECTOR',
+            leading: const _StepNumber('03'),
+            rows: [
+              for (final s in kSectors)
+                _SectorBand(
+                  sector: s,
+                  minutes: _minutes,
+                  unlocked: g.sectorUnlocked(s.id),
+                  surveyed: (g.surveyRead[s.id] ?? 0) >= s.priorSurvey.length,
+                  selected: _sectorId == s.id,
+                  onTap: g.sectorUnlocked(s.id) && s.minMinutes <= _minutes
+                      ? () {
+                          HapticFeedback.selectionClick();
+                          setState(() => _sectorId = s.id);
+                        }
+                      : null,
+                ),
+              if (outOfReach.isNotEmpty)
+                Section.note(
+                  '${outOfReach.first.minMinutes} min would reach '
+                  '${outOfReach.first.name}.',
+                  color: T.cyan,
+                ),
+            ],
+          ),
 
           // -- 04 SQUAD --------------------------------------------------
-          const SizedBox(height: 26),
-          _Step('04', 'SQUAD', trailing: '${_squad.length}/${g.squadSlots}'),
-          for (final m in g.roster)
-            _MemberBand(
-              member: m,
-              minutes: _minutes,
-              selected: _squad.contains(m.id),
-              onTap: () {
-                HapticFeedback.selectionClick();
-                setState(() {
-                  if (_squad.contains(m.id)) {
-                    _squad.remove(m.id);
-                  } else if (_squad.length < g.squadSlots) {
-                    _squad.add(m.id);
-                  } else {
-                    _squad.removeAt(0);
-                    _squad.add(m.id);
-                  }
-                });
-              },
-            ),
-          if (_squad.isNotEmpty && _sectorId != null) ...[
-            const SizedBox(height: 16),
+          Section(
+            label: 'SQUAD',
+            leading: const _StepNumber('04'),
+            trailing: '${_squad.length}/${g.squadSlots}',
+            trailingColor: T.amber,
+            rows: [
+              for (final m in g.roster)
+                _MemberBand(
+                  member: m,
+                  minutes: _minutes,
+                  selected: _squad.contains(m.id),
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    setState(() {
+                      if (_squad.contains(m.id)) {
+                        _squad.remove(m.id);
+                      } else if (_squad.length < g.squadSlots) {
+                        _squad.add(m.id);
+                      } else {
+                        _squad.removeAt(0);
+                        _squad.add(m.id);
+                      }
+                    });
+                  },
+                ),
+              if (g.squadSlots < g.roster.length)
+                Section.note(
+                  'Guild level ${g.level}: ${g.squadSlots} can go out at once. '
+                  'More slots at guild level 3, 6 and 10.',
+                ),
+            ],
+          ),
+
+          if (_squad.isNotEmpty && _sectorId != null)
             _Projection(
               squad: _squad,
               sectorId: _sectorId!,
               minutes: _minutes,
-            ),
-          ],
-
-          if (g.squadSlots < g.roster.length)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-              child: Text(
-                'Guild level ${g.level}: ${g.squadSlots} can go out at once. '
-                'More slots at guild level 3, 6 and 10.',
-                style: T.micro.copyWith(letterSpacing: 0.4, height: 1.6),
-              ),
             ),
         ],
       ),
@@ -280,37 +280,19 @@ class _DispatchScreenState extends State<DispatchScreen> {
   }
 }
 
-/// A numbered step marker: big Light numeral, small label, rule across.
-class _Step extends StatelessWidget {
-  const _Step(this.number, this.label, {this.trailing});
+/// A step's number, set big and Light ahead of its card's label.
+class _StepNumber extends StatelessWidget {
+  const _StepNumber(this.number);
   final String number;
-  final String label;
-  final String? trailing;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Text(number,
-              style: T.mono.copyWith(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w300,
-                  color: T.line,
-                  height: 1.0)),
-          const SizedBox(width: 12),
-          Text(label, style: T.micro.copyWith(color: T.steel)),
-          const SizedBox(width: 12),
-          Expanded(child: Container(height: 1, color: T.line)),
-          if (trailing != null) ...[
-            const SizedBox(width: 12),
-            Text(trailing!, style: T.micro.copyWith(color: T.amber)),
-          ],
-        ],
-      ),
-    );
+    return Text(number,
+        style: T.mono.copyWith(
+            fontSize: 20,
+            fontWeight: FontWeight.w300,
+            color: T.dim,
+            height: 1.0));
   }
 }
 
@@ -359,16 +341,14 @@ class _SectorBand extends StatelessWidget {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 2),
         decoration: BoxDecoration(
           // Every unlocked sector carries a wash of its own colour and the
           // chosen one is properly lit, so the list reads as five different
           // places rather than five identical rows.
-          color:
-              blocked ? T.band : sc.withValues(alpha: selected ? 0.17 : 0.055),
+          color: blocked ? null : sc.withValues(alpha: selected ? 0.17 : 0.055),
           border: selected ? Border.all(color: sc, width: 1.4) : null,
         ),
-        padding: const EdgeInsets.fromLTRB(0, 14, 20, 14),
+        padding: const EdgeInsets.fromLTRB(0, 14, 16, 14),
         child: Opacity(
           opacity: blocked ? 0.45 : 1,
           child: Row(
@@ -425,8 +405,8 @@ class _SectorBand extends StatelessWidget {
                     if (unlocked && surveyed) ...[
                       const SizedBox(height: 7),
                       Text('NOTHING FURTHER TO RECOVER HERE',
-                          style: T.micro.copyWith(
-                              color: T.dim, letterSpacing: 0.4)),
+                          style: T.micro
+                              .copyWith(color: T.dim, letterSpacing: 0.4)),
                     ],
                     if (!blocked) ...[
                       const SizedBox(height: 11),
@@ -514,9 +494,8 @@ class _MemberBand extends StatelessWidget {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 2),
-        color: selected ? T.amber.withValues(alpha: 0.07) : T.band,
-        padding: const EdgeInsets.fromLTRB(0, 14, 20, 14),
+        color: selected ? T.amber.withValues(alpha: 0.07) : null,
+        padding: const EdgeInsets.fromLTRB(0, 14, 16, 14),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -625,22 +604,14 @@ class _Projection extends StatelessWidget {
       );
     }
 
-    return Container(
-      color: T.band,
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+    return Section(
+      label: 'PROJECTED',
+      labelColor: sc,
+      trailing: 'AT 100% INTEGRITY',
+      accent: sc,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Text('PROJECTED', style: T.micro.copyWith(color: sc)),
-              const SizedBox(width: 12),
-              Expanded(child: Container(height: 1, color: T.line)),
-              const SizedBox(width: 12),
-              Text('AT 100% INTEGRITY', style: T.micro),
-            ],
-          ),
-          const SizedBox(height: 14),
           Row(
             children: [
               mod('CREDITS', bonus.credits, T.amber),

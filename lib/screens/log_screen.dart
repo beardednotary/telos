@@ -28,18 +28,14 @@ class LogScreen extends StatelessWidget {
     return TerminalScaffold(
       title: 'FIELD LOG',
       child: ListView(
-        padding: const EdgeInsets.only(bottom: 40),
+        padding: const EdgeInsets.only(top: 4, bottom: 24),
         children: [
           // -- headline ---------------------------------------------------
-          Container(
-            width: double.infinity,
-            color: T.band,
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
+          Section(
+            label: 'PROTECTED TIME',
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('PROTECTED TIME', style: T.micro),
-                const SizedBox(height: 8),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.baseline,
                   textBaseline: TextBaseline.alphabetic,
@@ -66,16 +62,17 @@ class LogScreen extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 24),
 
-          if (log.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Text('No expeditions logged yet.',
-                  style: T.micro.copyWith(letterSpacing: 0.4)),
-            )
-          else
-            for (final r in log) _LogBand(record: r),
+          Section(
+            label: 'EXPEDITIONS',
+            trailing: '${log.length}',
+            rows: [
+              if (log.isEmpty)
+                Section.note('No expeditions logged yet.')
+              else
+                for (final r in log) _LogBand(record: r),
+            ],
+          ),
         ],
       ),
     );
@@ -119,10 +116,8 @@ class _LogBand extends StatelessWidget {
             ? T.amber
             : T.bad;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 2),
-      color: T.band,
-      padding: const EdgeInsets.fromLTRB(0, 15, 20, 15),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0, 15, 16, 15),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

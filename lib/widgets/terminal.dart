@@ -11,62 +11,111 @@ Color rarityColor(Rarity r) => switch (r) {
       Rarity.epic => T.amber,
     };
 
-/// A section header rendered as a terminal rule:  ── LABEL ─────────────────
-class PanelTitle extends StatelessWidget {
-  const PanelTitle(this.label, {super.key, this.trailing, this.color});
-  final String label;
-  final Widget? trailing;
-  final Color? color;
+/// One section of a screen, drawn as its own card.
+///
+/// Every screen is a stack of these, so where one set of data ends and the
+/// next begins never rests on a coloured label or a spacing gap. [label]
+/// heads the card above a hairline. Pass [child] for a single padded block,
+/// or [rows] for a list: rows run edge to edge with a hairline between each,
+/// and carry their own padding.
+class Section extends StatelessWidget {
+  const Section({
+    super.key,
+    this.label,
+    this.labelColor = T.steel,
+    this.leading,
+    this.trailing,
+    this.trailingColor = T.dim,
+    this.accent,
+    this.border = T.line,
+    this.child,
+    this.rows,
+    this.padding = const EdgeInsets.fromLTRB(16, 14, 16, 16),
+  }) : assert((child == null) != (rows == null));
+
+  final String? label;
+  final Color labelColor;
+
+  /// Sits before the label, for the dispatch screen's step numbers.
+  final Widget? leading;
+  final String? trailing;
+  final Color trailingColor;
+
+  /// A thick bar down the left edge, for a card that is one thing's colour.
+  final Color? accent;
+  final Color border;
+  final Widget? child;
+  final List<Widget>? rows;
+  final EdgeInsets padding;
+
+  /// Space between stacked sections, and their inset from the screen edge.
+  static const margin = EdgeInsets.fromLTRB(16, 0, 16, 16);
+
+  /// A row inside [rows] that is just a line of text, such as an empty state.
+  static Widget note(String text, {Color color = T.dim}) => Padding(
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+        child: Text(text,
+            style: T.micro
+                .copyWith(color: color, letterSpacing: 0.4, height: 1.7)),
+      );
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
+    const hairline = SizedBox(
+      height: 1,
+      width: double.infinity,
+      child: ColoredBox(color: T.line),
+    );
+
+    return Container(
+      width: double.infinity,
+      margin: margin,
+      decoration: BoxDecoration(
+        color: T.card,
+        border: Border(
+          top: BorderSide(color: border),
+          right: BorderSide(color: border),
+          bottom: BorderSide(color: border),
+          left: accent == null
+              ? BorderSide(color: border)
+              : BorderSide(color: accent!, width: 4),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(label, style: T.label.copyWith(color: color ?? T.dim)),
-          const SizedBox(width: 10),
-          Expanded(child: Container(height: 1, color: T.line)),
-          if (trailing != null) ...[const SizedBox(width: 10), trailing!],
+          if (label != null) ...[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 11),
+              child: Row(
+                children: [
+                  if (leading != null) ...[leading!, const SizedBox(width: 10)],
+                  Expanded(
+                    child: Text(label!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: T.micro.copyWith(color: labelColor)),
+                  ),
+                  if (trailing != null) ...[
+                    const SizedBox(width: 12),
+                    Text(trailing!,
+                        style: T.micro.copyWith(color: trailingColor)),
+                  ],
+                ],
+              ),
+            ),
+            hairline,
+          ],
+          if (child != null)
+            Padding(padding: padding, child: child)
+          else
+            for (var i = 0; i < rows!.length; i++) ...[
+              if (i > 0) hairline,
+              rows![i],
+            ],
         ],
       ),
     );
-  }
-}
-
-/// A bordered card. Everything in the app is one of these.
-class Panel extends StatelessWidget {
-  const Panel({
-    super.key,
-    required this.child,
-    this.padding = const EdgeInsets.all(14),
-    this.accent,
-    this.onTap,
-    this.selected = false,
-    this.dimmed = false,
-  });
-
-  final Widget child;
-  final EdgeInsets padding;
-  final Color? accent;
-  final VoidCallback? onTap;
-  final bool selected;
-  final bool dimmed;
-
-  @override
-  Widget build(BuildContext context) {
-    final border = selected ? (accent ?? T.amber) : T.line;
-    final body = AnimatedContainer(
-      duration: const Duration(milliseconds: 140),
-      padding: padding,
-      decoration: BoxDecoration(
-        color: dimmed ? T.black : T.card,
-        border: Border.all(color: border, width: selected ? 1.4 : 1),
-      ),
-      child: Opacity(opacity: dimmed ? 0.45 : 1, child: child),
-    );
-    if (onTap == null) return body;
-    return GestureDetector(onTap: onTap, behavior: HitTestBehavior.opaque, child: body);
   }
 }
 
@@ -149,7 +198,8 @@ class TButton extends StatelessWidget {
         vertical: dense ? 8 : 14,
       ),
       decoration: BoxDecoration(
-        color: filled && enabled ? c.withValues(alpha: 0.12) : Colors.transparent,
+        color:
+            filled && enabled ? c.withValues(alpha: 0.12) : Colors.transparent,
         border: Border.all(color: enabled ? c : T.line),
       ),
       alignment: Alignment.center,
@@ -168,7 +218,9 @@ class TButton extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       child: child,
     );
-    return expand ? SizedBox(width: double.infinity, child: tappable) : tappable;
+    return expand
+        ? SizedBox(width: double.infinity, child: tappable)
+        : tappable;
   }
 }
 
@@ -214,7 +266,8 @@ class TChip extends StatelessWidget {
               ),
             ),
             if (sub != null)
-              Text(sub!, style: T.label.copyWith(fontSize: 11, letterSpacing: 0.8)),
+              Text(sub!,
+                  style: T.label.copyWith(fontSize: 11, letterSpacing: 0.8)),
           ],
         ),
       ),
@@ -296,7 +349,8 @@ class TerminalScaffold extends StatelessWidget {
                       behavior: HitTestBehavior.opaque,
                       child: Padding(
                         padding: const EdgeInsets.only(right: 12),
-                        child: Text('<', style: T.heading.copyWith(color: T.dim)),
+                        child:
+                            Text('<', style: T.heading.copyWith(color: T.dim)),
                       ),
                     ),
                   Text(title, style: T.heading),
@@ -361,44 +415,6 @@ class Staged extends StatelessWidget {
         );
       },
       child: child,
-    );
-  }
-}
-
-
-/// The one way a section is introduced anywhere in the app: a label, a
-/// hairline running to the edge, and optionally a value on the right.
-///
-/// Home used to introduce its five sections three different ways - a filled
-/// band, a bare label, and this pattern written out by hand in two separate
-/// files. Three devices now have three jobs and do not overlap:
-///
-///   * a full-bleed band is identity - who the guild is, what they have done
-///   * an inset band is an item, and items are tappable
-///   * a hairline is a section boundary, and that is all it is
-class SectionHead extends StatelessWidget {
-  const SectionHead(this.label, {super.key, this.trailing, this.trailingColor});
-
-  final String label;
-  final String? trailing;
-  final Color? trailingColor;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
-      child: Row(
-        children: [
-          Text(label, style: T.micro.copyWith(color: T.steel)),
-          const SizedBox(width: 12),
-          Expanded(child: Container(height: 1, color: T.line)),
-          if (trailing != null) ...[
-            const SizedBox(width: 12),
-            Text(trailing!,
-                style: T.micro.copyWith(color: trailingColor ?? T.amber)),
-          ],
-        ],
-      ),
     );
   }
 }
