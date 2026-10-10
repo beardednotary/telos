@@ -1,41 +1,43 @@
 import 'package:flutter/material.dart';
 
-/// Working field document: cool paper, graphite, one process red.
+/// Cyanotype. A deep blue sheet, white line work, pencil annotation.
 ///
-/// PHASE 0 of the paper conversion. Values only - every name is still the
-/// name it was, so no screen had to move to see this. The names are now
-/// wrong for what they hold (`black` is paper, `amber` is red) and get
-/// renamed to their roles in the next pass, once this has been looked at
-/// on a real screen.
+/// PHASE 0b. Values only again - every token keeps the name it had, so no
+/// screen has to move to judge this.
 ///
-/// Sampled from the reference documents rather than picked: the greys come
-/// off USGS graph paper, the ink off a modern fault plate. Deliberately
-/// cool. The warm creams in the old charters are 280 years of oxidation,
-/// not a design decision, and this company was working eleven years ago.
+/// Sampled off a GWR locomotive sheet rather than picked: #014C72 is the
+/// sheet itself and #64919F its faded line work. A cyanotype is a negative
+/// process, which is why the drawings come out white. Teal-leaning, not
+/// navy - navy is what a model reaches for.
+///
+/// This keeps the ground dark, which the app had real reasons for, while
+/// being a specific document rather than a generic dark UI.
 class T {
-  /// The page.
-  static const black = Color(0xFFE8E7E2);
+  /// The sheet, at its deepest.
+  static const black = Color(0xFF012E45);
 
-  /// A slip laid on the page. Lighter than the page, as paper on paper is.
-  static const card = Color(0xFFF7F6F2);
+  /// The sheet proper, as sampled. Cards sit up off the ground.
+  static const card = Color(0xFF014C72);
 
   /// Between the two, for full-bleed sections that need separating without
   /// drawing yet another box.
-  static const band = Color(0xFFF0EFEA);
+  static const band = Color(0xFF013A57);
 
-  static const line = Color(0xFFC8CBC9);
-  static const dim = Color(0xFF8B8B85);
-  static const text = Color(0xFF2A2A28);
+  static const line = Color(0xFF1C6A8C);
+  static const dim = Color(0xFF64919F);
 
-  /// The process red of a printed rule. One mark colour on the page.
-  static const amber = Color(0xFFC8402F);
-  static const cyan = Color(0xFF2B5E8A);
-  static const good = Color(0xFF3F7A52);
-  static const bad = Color(0xFF8C2318);
+  /// The line work. White, because the process is a negative.
+  static const text = Color(0xFFE6F0F4);
+
+  /// Pencil, annotated over the print. The one warm thing on the sheet.
+  static const amber = Color(0xFFF0A868);
+  static const cyan = Color(0xFF7FD4E8);
+  static const good = Color(0xFF6FD3A8);
+  static const bad = Color(0xFFFF8A72);
 
   /// Each resource keeps one colour everywhere it appears, so the numbers are
   /// identifiable before you read the label.
-  static const steel = Color(0xFF5A5A54); // ALLOY
+  static const steel = Color(0xFFB8CBD4); // ALLOY
 
   /// Bundled at three weights (300/400/600), so every device renders the same
   /// thing. The platform stack stays as insurance for any glyph JetBrains Mono
@@ -130,10 +132,10 @@ class T {
   static ThemeData theme() {
     return ThemeData(
       useMaterial3: true,
-      brightness: Brightness.light,
+      brightness: Brightness.dark,
       scaffoldBackgroundColor: black,
       canvasColor: black,
-      colorScheme: const ColorScheme.light(
+      colorScheme: const ColorScheme.dark(
         surface: black,
         primary: amber,
         secondary: cyan,
