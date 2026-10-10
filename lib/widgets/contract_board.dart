@@ -154,7 +154,6 @@ class _ContractBand extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 14, vertical: 7),
                           decoration: BoxDecoration(
-                            color: T.good.withValues(alpha: 0.15),
                             border: Border.all(color: T.good),
                           ),
                           child: Text('CLAIM',

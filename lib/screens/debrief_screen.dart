@@ -89,7 +89,6 @@ class _DebriefScreenState extends State<DebriefScreen>
                       0,
                       Container(
                         width: double.infinity,
-                        color: sc.withValues(alpha: 0.12),
                         padding: const EdgeInsets.fromLTRB(20, 22, 20, 20),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -485,7 +484,6 @@ class _DebriefScreenState extends State<DebriefScreen>
                     padding: const EdgeInsets.symmetric(vertical: 18),
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: T.amber.withValues(alpha: 0.12),
                       border: Border.all(color: T.amber, width: 1.5),
                     ),
                     child: Text('RETURN TO OUTPOST',
@@ -543,7 +541,6 @@ class _LootBand extends StatelessWidget {
     final color = rarityColor(def.rarity);
 
     return Container(
-      color: color.withValues(alpha: 0.06),
       padding: const EdgeInsets.fromLTRB(0, 16, 16, 16),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -615,7 +612,6 @@ class _MemberProgress extends StatelessWidget {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: T.good.withValues(alpha: 0.15),
                     border: Border.all(color: T.good),
                   ),
                   child: Text('LEVEL ${m.level}',
@@ -666,7 +662,6 @@ class _GuildLevelUp extends StatelessWidget {
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
-          color: T.good.withValues(alpha: 0.10),
           border: Border.all(color: T.good, width: 1.4),
         ),
         padding: const EdgeInsets.fromLTRB(16, 18, 16, 20),

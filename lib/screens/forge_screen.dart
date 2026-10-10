@@ -197,9 +197,6 @@ class _CraftBand extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 14, vertical: 8),
                           decoration: BoxDecoration(
-                            color: can
-                                ? color.withValues(alpha: 0.12)
-                                : Colors.transparent,
                             border:
                                 Border.all(color: can ? color : T.line),
                           ),

@@ -215,7 +215,6 @@ class _DispatchBlock extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.fromLTRB(20, 22, 20, 20),
         decoration: BoxDecoration(
-          color: T.amber.withValues(alpha: 0.10),
           border: Border.all(color: T.amber, width: 1.5),
         ),
         child: Column(
@@ -310,7 +309,6 @@ class _RedeployRow extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: sc.withValues(alpha: 0.055),
           border: Border(left: BorderSide(color: sc, width: 3)),
         ),
         padding: const EdgeInsets.fromLTRB(13, 12, 16, 12),

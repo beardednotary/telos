@@ -342,11 +342,14 @@ class _SectorBand extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       child: Container(
         decoration: BoxDecoration(
-          // Every unlocked sector carries a wash of its own colour and the
-          // chosen one is properly lit, so the list reads as five different
-          // places rather than five identical rows.
-          color: blocked ? null : sc.withValues(alpha: selected ? 0.17 : 0.055),
-          border: selected ? Border.all(color: sc, width: 1.4) : null,
+          // Each sector is marked in its own colour down the left edge and
+          // the chosen one is ruled all the way round, so the list still
+          // reads as five different places without tinting the sheet.
+          border: selected
+              ? Border.all(color: sc, width: 1.6)
+              : Border(
+                  left: BorderSide(
+                      color: blocked ? T.line : sc, width: 2)),
         ),
         padding: const EdgeInsets.fromLTRB(0, 14, 16, 14),
         child: Opacity(
@@ -494,7 +497,11 @@ class _MemberBand extends StatelessWidget {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Container(
-        color: selected ? T.amber.withValues(alpha: 0.07) : null,
+        decoration: selected
+            ? const BoxDecoration(
+                border:
+                    Border(left: BorderSide(color: T.amber, width: 3)))
+            : null,
         padding: const EdgeInsets.fromLTRB(0, 14, 16, 14),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -664,7 +671,6 @@ class _Action extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 18),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: on ? color.withValues(alpha: 0.12) : Colors.transparent,
           border: Border.all(color: on ? color : T.line, width: on ? 1.5 : 1),
         ),
         child: Text(label,

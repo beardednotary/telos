@@ -53,7 +53,6 @@ class SessionScreen extends StatelessWidget {
             Container(
               width: double.infinity,
               // The live run belongs to its sector, not to a neutral grey.
-              color: sc.withValues(alpha: 0.10),
               padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -279,7 +278,6 @@ class _BigAction extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 20),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.12),
           border: Border.all(color: color, width: 1.5),
         ),
         child: Text(

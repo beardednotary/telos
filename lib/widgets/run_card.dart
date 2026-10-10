@@ -100,7 +100,6 @@ class RunCard extends StatelessWidget {
               Text(guildName, style: T.micro),
               const SizedBox(height: 16),
               Container(
-                color: sc.withValues(alpha: 0.12),
                 padding: const EdgeInsets.fromLTRB(10, 12, 10, 8),
                 child: SectorScene(
                   sectorId: sector.id,

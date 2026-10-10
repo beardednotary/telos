@@ -94,7 +94,6 @@ class _BackupScreenState extends State<BackupScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: T.amber.withValues(alpha: 0.12),
                       border: Border.all(color: T.amber, width: 1.4),
                     ),
                     child: Text('EXPORT A BACKUP',
