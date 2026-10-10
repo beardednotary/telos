@@ -5,39 +5,42 @@ import 'package:flutter/material.dart';
 /// PHASE 0b. Values only again - every token keeps the name it had, so no
 /// screen has to move to judge this.
 ///
-/// Sampled off a GWR locomotive sheet rather than picked: #014C72 is the
-/// sheet itself and #64919F its faded line work. A cyanotype is a negative
-/// process, which is why the drawings come out white. Teal-leaning, not
-/// navy - navy is what a model reaches for.
+/// Not sampled, and deliberately not. Sampling the reference sheets gave
+/// dusty teal, because those prints are eighty years old and photographed
+/// under warm light - the same mistake as taking a charter's yellowing for
+/// a design decision. A cyanotype coming out of the wash is vivid. This is
+/// that blue, saturated and properly cold.
+///
+/// A cyanotype is a negative process, which is why the line work is white.
 ///
 /// This keeps the ground dark, which the app had real reasons for, while
 /// being a specific document rather than a generic dark UI.
 class T {
   /// The sheet, at its deepest.
-  static const black = Color(0xFF012E45);
+  static const black = Color(0xFF06264A);
 
   /// The sheet proper, as sampled. Cards sit up off the ground.
-  static const card = Color(0xFF014C72);
+  static const card = Color(0xFF0E4482);
 
   /// Between the two, for full-bleed sections that need separating without
   /// drawing yet another box.
-  static const band = Color(0xFF013A57);
+  static const band = Color(0xFF0A3566);
 
-  static const line = Color(0xFF1C6A8C);
-  static const dim = Color(0xFF64919F);
+  static const line = Color(0xFF2A6BB5);
+  static const dim = Color(0xFF7FA8D4);
 
   /// The line work. White, because the process is a negative.
-  static const text = Color(0xFFE6F0F4);
+  static const text = Color(0xFFF0F6FF);
 
   /// Pencil, annotated over the print. The one warm thing on the sheet.
-  static const amber = Color(0xFFF0A868);
-  static const cyan = Color(0xFF7FD4E8);
-  static const good = Color(0xFF6FD3A8);
-  static const bad = Color(0xFFFF8A72);
+  static const amber = Color(0xFFFFAE5C);
+  static const cyan = Color(0xFF8FD8FF);
+  static const good = Color(0xFF5EE0A8);
+  static const bad = Color(0xFFFF8070);
 
   /// Each resource keeps one colour everywhere it appears, so the numbers are
   /// identifiable before you read the label.
-  static const steel = Color(0xFFB8CBD4); // ALLOY
+  static const steel = Color(0xFFC7D8EA); // ALLOY
 
   /// Bundled at three weights (300/400/600), so every device renders the same
   /// thing. The platform stack stays as insurance for any glyph JetBrains Mono
