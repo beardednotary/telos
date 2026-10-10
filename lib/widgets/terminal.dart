@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 import '../models/models.dart';
@@ -18,6 +20,140 @@ Color rarityColor(Rarity r) => switch (r) {
 /// heads the card above a hairline. Pass [child] for a single padded block,
 /// or [rows] for a list: rows run edge to edge with a hairline between each,
 /// and carry their own padding.
+
+/// Ink, not a border.
+///
+/// A 1px geometric rule is the most machine-made mark there is, and it was
+/// most of what made these screens read as generated. Every rule on a real
+/// field sheet is drawn against a straight edge by a person: it wobbles a
+/// little, it overshoots the corner or falls short of it, and no two are
+/// the same.
+///
+/// Seeded off the section's own identity so a given rule is the same every
+/// build. It is ink that dried once, not an animation.
+void drawHandRule(
+  Canvas canvas,
+  Offset a,
+  Offset b, {
+  required Color color,
+  required int seed,
+  double width = 1.2,
+  double wobble = 2.2,
+}) {
+  final rng = Random(seed);
+  final paint = Paint()
+    ..color = color
+    ..strokeWidth = width
+    ..style = PaintingStyle.stroke
+    ..strokeCap = StrokeCap.round
+    ..isAntiAlias = true;
+
+  final vertical = (b.dy - a.dy).abs() > (b.dx - a.dx).abs();
+
+  // Drawn as a handful of overlapping strokes rather than one, each a
+  // slightly different weight. Ink varies along a line; a single stroke of
+  // constant width is the thing that reads as machine-made, and at phone
+  // sizes weight carries far further than wobble does.
+  const steps = 16;
+  const segs = 4;
+  Offset at(double t) {
+    final ease = sin(t * pi); // steadiest at the ends, against the edge
+    final j = (rng.nextDouble() - 0.5) * wobble * ease;
+    return Offset(
+      a.dx + (b.dx - a.dx) * t + (vertical ? j : 0),
+      a.dy + (b.dy - a.dy) * t + (vertical ? 0 : j),
+    );
+  }
+
+  final pts = [for (var i = 0; i <= steps; i++) at(i / steps)];
+  const per = steps ~/ segs;
+  for (var sgi = 0; sgi < segs; sgi++) {
+    final path = Path();
+    final from = sgi * per;
+    final to = (sgi == segs - 1) ? steps : (sgi + 1) * per;
+    path.moveTo(pts[from].dx, pts[from].dy);
+    for (var i = from + 1; i <= to; i++) {
+      path.lineTo(pts[i].dx, pts[i].dy);
+    }
+    paint.strokeWidth = width * (0.7 + rng.nextDouble() * 0.75);
+    canvas.drawPath(path, paint);
+  }
+}
+
+/// A zone on the sheet: four hand-drawn rules whose corners do not quite
+/// meet, because they never do.
+class _SheetZone extends CustomPainter {
+  _SheetZone({required this.seed, required this.color, this.accent});
+
+  final int seed;
+  final Color color;
+  final Color? accent;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rng = Random(seed);
+    // How far each rule runs past its corner, or stops short of it.
+    double over() => rng.nextDouble() * 7.0 - 2.5;
+    final w = size.width, h = size.height;
+
+    drawHandRule(canvas, Offset(-over(), 0.5), Offset(w + over(), 0.5),
+        color: color, seed: seed + 1);
+    drawHandRule(canvas, Offset(w - 0.5, -over()), Offset(w - 0.5, h + over()),
+        color: color, seed: seed + 2);
+    drawHandRule(canvas, Offset(-over(), h - 0.5), Offset(w + over(), h - 0.5),
+        color: color, seed: seed + 3);
+
+    if (accent == null) {
+      drawHandRule(canvas, Offset(0.5, -over()), Offset(0.5, h + over()),
+          color: color, seed: seed + 4);
+    } else {
+      // Three strokes side by side rather than one fat one, the way a bar
+      // gets filled in by hand.
+      for (var i = 0; i < 3; i++) {
+        drawHandRule(
+            canvas, Offset(1.0 + i * 1.3, -over()), Offset(1.0 + i * 1.3, h + over()),
+            color: accent!, seed: seed + 5 + i, width: 1.5, wobble: 1.4);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_SheetZone old) =>
+      old.seed != seed || old.color != color || old.accent != accent;
+}
+
+/// A single hand-drawn rule across the width, for separating rows.
+class HandRule extends StatelessWidget {
+  const HandRule({super.key, required this.seed, this.color = T.line});
+  final int seed;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+        height: 1.6,
+        width: double.infinity,
+        child: CustomPaint(painter: _RulePainter(seed: seed, color: color)),
+      );
+}
+
+class _RulePainter extends CustomPainter {
+  _RulePainter({required this.seed, required this.color});
+  final int seed;
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rng = Random(seed);
+    final inset = rng.nextDouble() * 3;
+    drawHandRule(canvas, Offset(inset, 0.8), Offset(size.width - inset, 0.8),
+        color: color, seed: seed, width: 1.1, wobble: 1.8);
+  }
+
+  @override
+  bool shouldRepaint(_RulePainter old) =>
+      old.seed != seed || old.color != color;
+}
+
 class Section extends StatelessWidget {
   const Section({
     super.key,
@@ -61,27 +197,20 @@ class Section extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const hairline = SizedBox(
-      height: 1,
-      width: double.infinity,
-      child: ColoredBox(color: T.line),
-    );
+    // Stable per section, so a zone's rules are the same every rebuild but
+    // no two zones are drawn alike.
+    final seed = (label ?? trailing ?? '').hashCode ^ (rows?.length ?? 7) * 31;
+    final hairline = HandRule(seed: seed * 7 + 3);
 
+    // No fill. The sheet shows through, and the zone is made of ink.
+    // The margin sits outside the paint so the rules land on the content,
+    // not out at the screen edge.
     return Container(
       width: double.infinity,
       margin: margin,
-      decoration: BoxDecoration(
-        color: T.card,
-        border: Border(
-          top: BorderSide(color: border),
-          right: BorderSide(color: border),
-          bottom: BorderSide(color: border),
-          left: accent == null
-              ? BorderSide(color: border)
-              : BorderSide(color: accent!, width: 4),
-        ),
-      ),
-      child: Column(
+      child: CustomPaint(
+        painter: _SheetZone(seed: seed, color: border, accent: accent),
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (label != null) ...[
@@ -110,10 +239,11 @@ class Section extends StatelessWidget {
             Padding(padding: padding, child: child)
           else
             for (var i = 0; i < rows!.length; i++) ...[
-              if (i > 0) hairline,
+              if (i > 0) HandRule(seed: seed * 7 + 11 + i * 5),
               rows![i],
             ],
-        ],
+          ],
+        ),
       ),
     );
   }
