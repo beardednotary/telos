@@ -299,6 +299,14 @@ void main() {
   });
 
   testWidgets('one tap on home goes straight into the session', (t) async {
+    // Home is a tall list and a ListView does not build what is off-screen.
+    // The default 800x600 surface cuts off SEND AGAIN now that the sector
+    // scene sits above DISPATCH.
+    t.view.physicalSize = const Size(900, 2600);
+    t.view.devicePixelRatio = 1.0;
+    addTearDown(t.view.resetPhysicalSize);
+    addTearDown(t.view.resetDevicePixelRatio);
+
     SharedPreferences.setMockInitialValues({});
     final c = GuildController(Persistence());
     await c.boot();
@@ -312,7 +320,9 @@ void main() {
     await t.pump();
 
     expect(find.text('SEND AGAIN'), findsOneWidget);
-    await t.tap(find.text('MOSSWOOD VERGE'));
+    // The name appears twice: once labelling the sector scene above
+    // DISPATCH, once on the Send Again row. The row is the lower of the two.
+    await t.tap(find.text('MOSSWOOD VERGE').last);
     await t.pump();
     await t.pump();
 

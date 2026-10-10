@@ -8,6 +8,7 @@ import '../services/redeploy.dart';
 import '../state/guild_controller.dart';
 import '../theme/telos_theme.dart';
 import '../widgets/contract_board.dart';
+import '../widgets/sector_scene.dart';
 import '../widgets/terminal.dart';
 import 'spire_screen.dart';
 import 'dispatch_screen.dart';
@@ -33,6 +34,7 @@ class HomeScreen extends StatelessWidget {
             _Header(g: g),
             const SizedBox(height: 16),
             Section(child: _Resources(g: g)),
+            _Ground(g: g),
 
             // The main action on this screen, sized like it. The repeats
             // below it are the fast path: the same dispatch again, one tap.
@@ -448,6 +450,52 @@ class _Record extends StatelessWidget {
           ],
         ),
       ],
+    );
+  }
+}
+
+/// The deepest ground the guild has opened, drawn, directly above DISPATCH.
+///
+/// Home was a stack of numbers and read as a dashboard - the first thing
+/// anyone sees, including in a screenshot, with nothing in it that could
+/// only be this app. Every sector is already drawn for the debrief; this
+/// puts one of them where it gets seen first.
+///
+/// It shows the deepest sector unlocked rather than the last one visited,
+/// so the picture changes as the guild gets further in, and every run made
+/// there is carved into it.
+class _Ground extends StatelessWidget {
+  const _Ground({required this.g});
+  final GuildState g;
+
+  @override
+  Widget build(BuildContext context) {
+    final open = kSectors
+        .where((s) => g.sectorUnlocked(s.id) && SectorScene.has(s.id))
+        .toList();
+    if (open.isEmpty) return const SizedBox.shrink();
+    final sector = open.last;
+    final sc = Color(sector.accent);
+
+    return Section(
+      label: sector.designation,
+      accent: sc,
+      trailing: sector.name,
+      trailingColor: sc,
+      child: SectorScene(
+        sectorId: sector.id,
+        color: sc,
+        depths: [
+          for (final p in g.log)
+            if (p.sectorId == sector.id)
+              p.elapsedSeconds / 60 / sector.nominalMinutes,
+        ],
+        floors: g.spireComplete ? g.spireFloors : 0,
+        height: 104,
+        // Still, never animated: nothing on this screen may advance while
+        // it is being watched.
+        animate: false,
+      ),
     );
   }
 }
