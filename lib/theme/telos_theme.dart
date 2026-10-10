@@ -1,25 +1,41 @@
 import 'package:flutter/material.dart';
 
-/// Tactical terminal palette. True black for OLED, one functional accent.
+/// Working field document: cool paper, graphite, one process red.
+///
+/// PHASE 0 of the paper conversion. Values only - every name is still the
+/// name it was, so no screen had to move to see this. The names are now
+/// wrong for what they hold (`black` is paper, `amber` is red) and get
+/// renamed to their roles in the next pass, once this has been looked at
+/// on a real screen.
+///
+/// Sampled from the reference documents rather than picked: the greys come
+/// off USGS graph paper, the ink off a modern fault plate. Deliberately
+/// cool. The warm creams in the old charters are 280 years of oxidation,
+/// not a design decision, and this company was working eleven years ago.
 class T {
-  static const black = Color(0xFF0B0C0E);
-  static const card = Color(0xFF16181D);
+  /// The page.
+  static const black = Color(0xFFE8E7E2);
 
-  /// A band that sits between black and card, for full-bleed sections that
-  /// need separating without drawing yet another box.
-  static const band = Color(0xFF101216);
+  /// A slip laid on the page. Lighter than the page, as paper on paper is.
+  static const card = Color(0xFFF7F6F2);
 
-  static const line = Color(0xFF2A2E36);
-  static const dim = Color(0xFF6B7280);
-  static const text = Color(0xFFE6E8EB);
-  static const amber = Color(0xFFF5A623);
-  static const cyan = Color(0xFF00E5FF);
-  static const good = Color(0xFF3DD68C);
-  static const bad = Color(0xFFE5484D);
+  /// Between the two, for full-bleed sections that need separating without
+  /// drawing yet another box.
+  static const band = Color(0xFFF0EFEA);
+
+  static const line = Color(0xFFC8CBC9);
+  static const dim = Color(0xFF8B8B85);
+  static const text = Color(0xFF2A2A28);
+
+  /// The process red of a printed rule. One mark colour on the page.
+  static const amber = Color(0xFFC8402F);
+  static const cyan = Color(0xFF2B5E8A);
+  static const good = Color(0xFF3F7A52);
+  static const bad = Color(0xFF8C2318);
 
   /// Each resource keeps one colour everywhere it appears, so the numbers are
   /// identifiable before you read the label.
-  static const steel = Color(0xFFDDE3EA); // ALLOY
+  static const steel = Color(0xFF5A5A54); // ALLOY
 
   /// Bundled at three weights (300/400/600), so every device renders the same
   /// thing. The platform stack stays as insurance for any glyph JetBrains Mono
@@ -114,10 +130,10 @@ class T {
   static ThemeData theme() {
     return ThemeData(
       useMaterial3: true,
-      brightness: Brightness.dark,
+      brightness: Brightness.light,
       scaffoldBackgroundColor: black,
       canvasColor: black,
-      colorScheme: const ColorScheme.dark(
+      colorScheme: const ColorScheme.light(
         surface: black,
         primary: amber,
         secondary: cyan,
