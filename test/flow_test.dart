@@ -50,9 +50,9 @@ void main() {
 
     // Home
     expect(find.text('THE SILVER LANTERN'), findsOneWidget);
-    expect(find.text('DISPATCH'), findsOneWidget);
+    expect(find.text('SIGN IT  >'), findsOneWidget);
 
-    await t.tap(find.text('DISPATCH'));
+    await t.tap(find.text('SIGN IT  >'));
     await t.pumpAndSettle();
 
     // Dispatch: nothing selected yet, so the action is blocked.
@@ -107,7 +107,7 @@ void main() {
 
     await t.tap(find.text('RETURN TO OUTPOST'));
     await t.pumpAndSettle();
-    expect(find.text('DISPATCH'), findsOneWidget);
+    expect(find.text('SIGN IT  >'), findsOneWidget);
     expect(c.g.log.length, 1);
 
     c.dispose();
@@ -189,7 +189,7 @@ void main() {
 
     // The one rule, before anything else.
     expect(find.text('I  //  THE ONE RULE'), findsOneWidget);
-    expect(find.text('DISPATCH'), findsNothing);
+    expect(find.text('SIGN IT  >'), findsNothing);
 
     await t.tap(find.text('CONTINUE'));
     await t.pumpAndSettle();
@@ -205,7 +205,7 @@ void main() {
     await t.pumpAndSettle();
 
     expect(c.g.onboarded, isTrue);
-    expect(find.text('DISPATCH'), findsOneWidget);
+    expect(find.text('SIGN IT  >'), findsOneWidget);
     c.dispose();
   });
 

@@ -33,15 +33,14 @@ class HomeScreen extends StatelessWidget {
           children: [
             _Header(g: g),
             const SizedBox(height: 16),
-            Section(child: _Resources(g: g)),
+            _Resources(g: g),
             _Ground(g: g),
 
             // The main action on this screen, sized like it. The repeats
             // below it are the fast path: the same dispatch again, one tap.
-            Padding(
-              padding: Section.margin,
-              child: _DispatchBlock(hasHistory: g.log.isNotEmpty),
-            ),
+            // Section carries its own margin, so no wrapper here.
+            _DispatchBlock(
+                hasHistory: g.log.isNotEmpty, orderNo: g.runCounter + 1),
             _RedeployList(dispatches: recentDispatches(g)),
 
             const ContractBoardPanel(),
@@ -158,50 +157,40 @@ class _Header extends StatelessWidget {
 }
 
 /// Three big numbers, the size and the colour doing the work.
+/// What is in the chest, as a stores return rather than three tiles.
 class _Resources extends StatelessWidget {
   const _Resources({required this.g});
   final GuildState g;
 
   @override
   Widget build(BuildContext context) {
-    Widget cell(String label, int v, Color color) => Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label, style: T.micro),
-              const SizedBox(height: 8),
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: Alignment.centerLeft,
-                child: Text('$v', style: T.numeric.copyWith(color: color)),
-              ),
-            ],
-          ),
-        );
-
-    Widget rule() => Container(
-          width: 1,
-          height: 44,
-          margin: const EdgeInsets.symmetric(horizontal: 14),
-          color: T.line,
-        );
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        cell('CREDITS', g.credits, T.amber),
-        rule(),
-        cell('ALLOY', g.alloy, T.steel),
-        rule(),
-        cell('INTEL', g.intel, T.cyan),
-      ],
+    return Section(
+      label: 'STORES',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          FieldRow('CREDITS', '${g.credits}', valueColor: T.amber, seed: 61),
+          FieldRow('ALLOY', '${g.alloy}', valueColor: T.steel, seed: 67),
+          FieldRow('INTEL', '${g.intel}', valueColor: T.cyan, seed: 71),
+        ],
+      ),
     );
   }
 }
 
+/// A blank order, waiting to be signed.
+///
+/// A document has no call-to-action button. What it has is a form that is
+/// not filled in yet - ruled fields with nothing written against them, and
+/// a line at the bottom for a signature. Tapping it goes and fills it in.
+///
+/// That is the whole difference between this and a button labelled
+/// DISPATCH in a box. The empty fields say what is being committed to
+/// before any of it is chosen.
 class _DispatchBlock extends StatelessWidget {
-  const _DispatchBlock({required this.hasHistory});
+  const _DispatchBlock({required this.hasHistory, required this.orderNo});
   final bool hasHistory;
+  final int orderNo;
 
   @override
   Widget build(BuildContext context) {
@@ -211,40 +200,35 @@ class _DispatchBlock extends StatelessWidget {
         context,
         MaterialPageRoute(builder: (_) => const DispatchScreen()),
       ),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.fromLTRB(20, 22, 20, 20),
-        decoration: BoxDecoration(
-          border: Border.all(color: T.amber, width: 1.5),
-        ),
+      child: Section(
+        label: 'ORDER No. ${orderNo.toString().padLeft(3, '0')}',
+        trailing: 'UNSIGNED',
+        trailingColor: T.amber,
+        accent: T.amber,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'DISPATCH',
-                    style: T.mono.copyWith(
-                      color: T.amber,
-                      fontSize: 34,
-                      fontWeight: FontWeight.w300,
-                      letterSpacing: 5,
-                      height: 1.0,
-                    ),
-                  ),
-                ),
-                Text('>',
-                    style: T.mono
-                        .copyWith(color: T.amber, fontSize: 26, height: 1.0)),
-              ],
-            ),
-            const SizedBox(height: 12),
+            const FieldRow('SQUAD', '—', valueColor: T.dim, seed: 41),
+            const FieldRow('PLACE', '—', valueColor: T.dim, seed: 43),
+            const FieldRow('FOR', '—', valueColor: T.dim, seed: 47),
+            const FieldRow('WHILE I', '—', valueColor: T.dim, seed: 53),
+            const SizedBox(height: 14),
             Text(
               hasHistory
                   ? 'Squad at camp. Nothing in here advances while you watch it.'
                   : 'The outpost has reopened. Nobody has been sent out yet.',
               style: T.mono.copyWith(fontSize: 13, height: 1.6, color: T.dim),
+            ),
+            const SizedBox(height: 16),
+            // The signature line. Signing it is the act; there is no button.
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Expanded(child: HandRule(seed: orderNo * 13 + 2)),
+                const SizedBox(width: 12),
+                Text('SIGN IT  >',
+                    style: T.micro.copyWith(color: T.amber, fontSize: 11)),
+              ],
             ),
           ],
         ),
@@ -253,11 +237,6 @@ class _DispatchBlock extends StatelessWidget {
   }
 }
 
-/// Recent dispatches, sent again in one tap with no dispatch screen.
-///
-/// Tapping starts the run; the root router then shows the session because a
-/// run is live, so there is nothing to navigate. Nothing here is a reminder:
-/// it shows what was sent before, never that nothing has been sent lately.
 class _RedeployList extends StatelessWidget {
   const _RedeployList({required this.dispatches});
   final List<Redeploy> dispatches;
