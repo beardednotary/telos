@@ -249,6 +249,178 @@ class Section extends StatelessWidget {
   }
 }
 
+
+
+/// Integrity as the squad would report it, not as a percentage.
+///
+/// A number with a decimal point is telemetry. These are the words a
+/// person writes on a form, and they carry the same information: whether
+/// the phone stayed down.
+String integrityWord(double integrity) {
+  if (integrity >= 0.999) return 'untouched';
+  if (integrity >= 0.95) return 'barely broken';
+  if (integrity >= 0.85) return 'interrupted';
+  if (integrity >= 0.6) return 'broken up';
+  return 'scattered';
+}
+
+/// A field on a form: a label, a run of leader dots, a value.
+///
+/// The thing that stops a screen reading as an app. A card with a label
+/// above a big number is a dashboard tile and always will be, whatever
+/// colour it is. `FOCUSED · · · · · · 52 min` is a line on a form.
+class FieldRow extends StatelessWidget {
+  const FieldRow(
+    this.label,
+    this.value, {
+    super.key,
+    this.valueColor = T.text,
+    this.note,
+    this.seed = 0,
+  });
+
+  final String label;
+  final String value;
+  final Color valueColor;
+
+  /// Sits under the value in small type, for a unit or a qualifier.
+  final String? note;
+  final int seed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 7),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.baseline,
+        textBaseline: TextBaseline.alphabetic,
+        children: [
+          Text(label, style: T.micro),
+          const SizedBox(width: 10),
+          // The dots have no baseline of their own, so they get a box the
+          // height of the line and sit on the bottom of it.
+          Expanded(
+            child: SizedBox(
+              height: 15,
+              child: CustomPaint(
+                size: const Size(double.infinity, 15),
+                painter: _LeaderDots(seed: seed),
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Text(value,
+              style: T.mono.copyWith(
+                  fontSize: 15, color: valueColor, letterSpacing: 0.5)),
+          if (note != null) ...[
+            const SizedBox(width: 4),
+            Text(note!, style: T.micro.copyWith(color: T.dim)),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// The dots that run from a label to its value. Spaced by hand, so they
+/// drift a little and do not end flush.
+class _LeaderDots extends CustomPainter {
+  _LeaderDots({required this.seed});
+  final int seed;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rng = Random(seed);
+    final paint = Paint()..color = T.line;
+    var x = rng.nextDouble() * 4;
+    while (x < size.width - 2) {
+      canvas.drawCircle(
+          Offset(x, size.height - 4 + (rng.nextDouble() - 0.5) * 0.8),
+          0.9, paint);
+      x += 5 + rng.nextDouble() * 2.5;
+    }
+  }
+
+  @override
+  bool shouldRepaint(_LeaderDots old) => old.seed != seed;
+}
+
+/// The block in the corner of a drafted sheet that says what the sheet is.
+///
+/// Every real drawing carries one: who drew it, when, which sheet of how
+/// many, at what scale. Nothing in app design looks remotely like this,
+/// which is most of the point.
+class TitleBlock extends StatelessWidget {
+  const TitleBlock({super.key, required this.fields, this.seed = 11});
+
+  /// Left to right, in the order a draughtsman would read them.
+  final List<(String, String)> fields;
+  final int seed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: Section.margin,
+      child: CustomPaint(
+        painter: _SheetZone(seed: seed, color: T.line),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 9, 12, 10),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (var i = 0; i < fields.length; i++) ...[
+                if (i > 0)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 11),
+                    child: SizedBox(
+                      height: 28,
+                      width: 1.4,
+                      child: CustomPaint(
+                        painter: _DividerPainter(seed: seed + i),
+                      ),
+                    ),
+                  ),
+                // The first field is conventionally an organisation's name
+                // and is always the longest, so it gets the room.
+                Flexible(
+                  flex: i == 0 ? 3 : 2,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(fields[i].$1,
+                          style: T.micro.copyWith(fontSize: 8.5)),
+                      const SizedBox(height: 3),
+                      Text(fields[i].$2,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: T.mono.copyWith(
+                              fontSize: 12, letterSpacing: 0.6)),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DividerPainter extends CustomPainter {
+  _DividerPainter({required this.seed});
+  final int seed;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    drawHandRule(canvas, const Offset(0.7, 0), Offset(0.7, size.height),
+        color: T.line, seed: seed, width: 1.0, wobble: 1.2);
+  }
+
+  @override
+  bool shouldRepaint(_DividerPainter old) => old.seed != seed;
+}
+
 /// [████████░░░░░░] style bar.
 class Meter extends StatelessWidget {
   const Meter({

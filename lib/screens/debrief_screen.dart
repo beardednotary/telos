@@ -139,72 +139,28 @@ class _DebriefScreenState extends State<DebriefScreen>
 
                     // -- 1. the two numbers that matter ---------------------
                     const SizedBox(height: 16),
+                    // The run, as fields on a form rather than tiles on a
+                    // dashboard. A label over a big number is a dashboard
+                    // whatever colour it is painted.
                     _beat(
                       1,
-                      Section(
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 6, 20, 10),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text('FOCUSED', style: T.micro),
-                                      const SizedBox(height: 6),
-                                      Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.baseline,
-                                        textBaseline: TextBaseline.alphabetic,
-                                        children: [
-                                          Text('${r.elapsedMinutes}',
-                                              style: T.big.copyWith(
-                                                  fontSize: 48,
-                                                  color: T.amber)),
-                                          Text('m',
-                                              style: T.mono.copyWith(
-                                                  fontSize: 17, color: T.dim)),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    Text('INTEGRITY', style: T.micro),
-                                    const SizedBox(height: 6),
-                                    Text('${(r.integrity * 100).round()}%',
-                                        style: T.big.copyWith(
-                                            fontSize: 48, color: iColor)),
-                                  ],
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 14),
-                            Meter(
-                                value: depth.clamp(0.0, 1.0),
-                                segments: 30,
-                                height: 4,
-                                color: iColor),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                Text('DEPTH ${(depth * 100).round()}%',
-                                    style: T.micro),
-                                const Spacer(),
-                                Text(
-                                  status,
-                                  style: T.micro.copyWith(
-                                      color: (r.scraps || r.recalled)
-                                          ? T.bad
-                                          : iColor),
-                                ),
-                              ],
-                            ),
+                            FieldRow('FOCUSED', '${r.elapsedMinutes}',
+                                note: 'min', valueColor: T.amber, seed: 3),
+                            FieldRow(
+                                'DEPTH', '${(depth * 100).round()}',
+                                note: '%', seed: 5),
+                            // Integrity in words, not a percentage. It is a
+                            // thing the squad reports, not telemetry.
+                            FieldRow('INTEGRITY', integrityWord(r.integrity),
+                                valueColor: iColor, seed: 7),
+                            if (r.scraps || r.recalled)
+                              FieldRow('RETURNED', status,
+                                  valueColor: T.bad, seed: 9),
                           ],
                         ),
                       ),
@@ -308,11 +264,20 @@ class _DebriefScreenState extends State<DebriefScreen>
                       3,
                       Section(
                         label: 'RECOVERED',
-                        child: Row(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _Gain('CREDITS', r.credits, T.amber),
-                            _Gain('ALLOY', r.alloy, T.steel),
-                            _Gain('INTEL', r.intel, T.cyan),
+                            FieldRow('CREDITS', _gain(r.credits),
+                                valueColor:
+                                    r.credits > 0 ? T.amber : T.dim,
+                                seed: 21),
+                            FieldRow('ALLOY', _gain(r.alloy),
+                                valueColor:
+                                    r.alloy > 0 ? T.steel : T.dim,
+                                seed: 23),
+                            FieldRow('INTEL', _gain(r.intel),
+                                valueColor: r.intel > 0 ? T.cyan : T.dim,
+                                seed: 27),
                           ],
                         ),
                       ),
@@ -438,6 +403,26 @@ class _DebriefScreenState extends State<DebriefScreen>
                         ),
                       ),
 
+                    // -- 6b. the block that says what this sheet is --------
+                    // Every drafted sheet carries one, in the corner: who
+                    // drew it, when, which sheet of how many. Nothing in app
+                    // design looks like this, which is most of the point.
+                    _beat(
+                      7,
+                      TitleBlock(
+                        seed: r.id.hashCode,
+                        fields: [
+                          ('DRAWN BY', c.g.guildName),
+                          (
+                            'SHEET',
+                            '${sector.designation.replaceAll('SECTOR ', '')}'
+                                ' / ${kSectors.length.toString().padLeft(2, '0')}'
+                          ),
+                          ('DATE', _sheetDate(r.endedAt)),
+                        ],
+                      ),
+                    ),
+
                     // -- 7. share, if they want to --------------------------
                     // Offered, never asked: no prompt, nothing for doing it.
                     _beat(
@@ -503,30 +488,9 @@ class _DebriefScreenState extends State<DebriefScreen>
   }
 }
 
-class _Gain extends StatelessWidget {
-  const _Gain(this.label, this.value, this.color);
-  final String label;
-  final int value;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) => Expanded(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(label, style: T.micro),
-            const SizedBox(height: 6),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Text(value > 0 ? '+$value' : '-',
-                  style: T.numeric
-                      .copyWith(fontSize: 30, color: value > 0 ? color : T.dim)),
-            ),
-          ],
-        ),
-      );
-}
+/// Nothing recovered reads as a dash rather than a zero. A form leaves a
+/// field empty; it does not write "+0" in it.
+String _gain(int v) => v > 0 ? '+$v' : '-';
 
 class _LootBand extends StatelessWidget {
   const _LootBand({required this.uid});
@@ -644,6 +608,15 @@ class _MemberProgress extends StatelessWidget {
 /// the unlocks, which is the thing that actually changes how the next session
 /// plays, and it lands between the salvage and the XP bars so it reads as the
 /// peak of the report rather than a footnote under it.
+/// The way a sheet is dated: day, month in letters, year.
+String _sheetDate(DateTime t) {
+  const months = [
+    'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
+    'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'
+  ];
+  return '${t.day} ${months[t.month - 1]} ${t.year % 100}';
+}
+
 class _GuildLevelUp extends StatelessWidget {
   const _GuildLevelUp({required this.record, required this.level});
   final RunRecord record;

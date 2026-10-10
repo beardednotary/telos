@@ -151,6 +151,9 @@ void main() {
 
   testWidgets('debrief', (t) async {
     await frame(t);
+    // The debrief is one long sheet and the title block is at the foot of
+    // it. A phone-height surface cuts the page off before the end.
+    t.view.physicalSize = const Size(390, 2200);
     final c = GuildController(Persistence());
     await c.boot();
     c.g.unlockedSectors.add('blackstone');
