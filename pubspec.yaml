@@ -54,9 +54,13 @@ flutter:
           weight: 400
         - asset: assets/fonts/JetBrainsMono-SemiBold.ttf
           weight: 600
-    # Syne, SIL OFL 1.1. A variable face (400-800) used only for names: it
-    # carries no Light, which is the point - a heavy carved display against
-    # thin machine readout is the contrast the whole look rests on.
+    # Quintessential, SIL OFL 1.1. The printed layer: labels, headings and
+    # the title block. A form is printed in one face and filled in with
+    # another, which is what the mono is for now.
+    - family: Quintessential
+      fonts:
+        - asset: assets/fonts/Quintessential-Regular.ttf
+    # Syne, SIL OFL 1.1. A variable face (400-800) used only for names.
     - family: Syne
       fonts:
         - asset: assets/fonts/Syne-Variable.ttf

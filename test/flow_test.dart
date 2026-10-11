@@ -114,6 +114,14 @@ void main() {
   });
 
   testWidgets('a live run is restored on cold start', (t) async {
+    // The session screen fills the screen exactly and does not scroll. The
+    // default 800x600 test surface is shorter than any phone made this
+    // decade, and the printed face is taller than the mono it replaced.
+    t.view.physicalSize = const Size(390, 844);
+    t.view.devicePixelRatio = 1.0;
+    addTearDown(t.view.resetPhysicalSize);
+    addTearDown(t.view.resetDevicePixelRatio);
+
     final c = await bootController();
     await c.startRun(
       sectorId: 'mosswood',

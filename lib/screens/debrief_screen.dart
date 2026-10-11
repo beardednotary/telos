@@ -181,11 +181,10 @@ class _DebriefScreenState extends State<DebriefScreen>
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text('> ',
-                                        style: T.mono.copyWith(color: T.dim)),
+                                        style: T.prose.copyWith(color: T.dim)),
                                     Expanded(
                                       child: Text(line,
-                                          style: T.mono.copyWith(
-                                              fontSize: 15, height: 1.65)),
+                                          style: T.prose.copyWith(height: 1.65)),
                                     ),
                                   ],
                                 ),
@@ -208,15 +207,13 @@ class _DebriefScreenState extends State<DebriefScreen>
                               Text(
                                 'Find out what the structure in Sector 05 is '
                                 'for.',
-                                style: T.mono.copyWith(
-                                    fontSize: 15, height: 1.65),
+                                style: T.prose.copyWith(height: 1.65),
                               ),
                               const SizedBox(height: 14),
                               Text(
                                 'The line for the holder is blank. They never '
                                 'put their name to it.',
-                                style: T.mono.copyWith(
-                                    fontSize: 15, height: 1.65),
+                                style: T.prose.copyWith(height: 1.65),
                               ),
                               const SizedBox(height: 16),
                               Text(
@@ -229,17 +226,13 @@ class _DebriefScreenState extends State<DebriefScreen>
                                 'Logged against this charter before you: '
                                 '${GuildState.kCharterHours} hours. Yours: '
                                 '${c.g.totalFocusMinutes ~/ 60}.',
-                                style: T.mono.copyWith(
-                                    fontSize: 15,
-                                    height: 1.65,
-                                    color: T.dim),
+                                style: T.prose.copyWith(height: 1.65, color: T.dim),
                               ),
                               const SizedBox(height: 14),
                               Text(
                                 'The top course is unfinished. It is yours to '
                                 'carry on, or not.',
-                                style: T.mono.copyWith(
-                                    fontSize: 15, height: 1.65),
+                                style: T.prose.copyWith(height: 1.65),
                               ),
                             ],
                             if (r.priorSurvey != null) ...[
@@ -251,8 +244,7 @@ class _DebriefScreenState extends State<DebriefScreen>
                                       .copyWith(color: Color(sector.accent))),
                               const SizedBox(height: 10),
                               Text(r.priorSurvey!,
-                                  style: T.mono.copyWith(
-                                      fontSize: 15, height: 1.65)),
+                                  style: T.prose.copyWith(height: 1.65)),
                             ],
                           ],
                         ),

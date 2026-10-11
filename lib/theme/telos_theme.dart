@@ -55,6 +55,27 @@ class T {
     'monospace',
   ];
 
+  /// Quintessential. The printed layer of the form: every label, every
+  /// heading, the title block, and running prose.
+  ///
+  /// A form is printed in one face and filled in with another. Mono used to
+  /// be the voice of the whole app, which is the single loudest way a thing
+  /// can say a developer made it - no document on earth is set in a
+  /// typewriter face throughout. It is now only what gets typed into the
+  /// fields: numbers, times, totals. Those need tabular figures and this
+  /// face has old-style ones, so the split is practical as well as true.
+  static const String printedFamily = 'Quintessential';
+
+  static const TextStyle printed = TextStyle(
+    fontFamily: printedFamily,
+    color: text,
+    fontSize: 16,
+    height: 1.5,
+  );
+
+  /// Running prose: a journal line, a blurb, anything written in sentences.
+  static TextStyle prose = printed.copyWith(fontSize: 17, height: 1.55);
+
   static const TextStyle mono = TextStyle(
     fontFamily: monoFamily,
     fontFamilyFallback: monoFallback,
@@ -63,10 +84,10 @@ class T {
     height: 1.45,
   );
 
-  static TextStyle label = mono.copyWith(
+  static TextStyle label = printed.copyWith(
     color: dim,
-    fontSize: 12,
-    letterSpacing: 1.4,
+    fontSize: 14,
+    letterSpacing: 1.0,
   );
 
   /// THE RULE: anything 16px or larger is Light 300 with open tracking. That
@@ -125,10 +146,12 @@ class T {
     fontFeatures: [FontFeature.stylisticSet(4)],
   );
 
-  static TextStyle micro = mono.copyWith(
+  /// Every label on every screen. Printed, not typed - this one style is
+  /// most of what the app looks like.
+  static TextStyle micro = printed.copyWith(
     color: dim,
-    fontSize: 11,
-    letterSpacing: 1.6,
+    fontSize: 13,
+    letterSpacing: 1.1,
     height: 1.4,
   );
 

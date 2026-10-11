@@ -34,6 +34,7 @@ Future<void> _loadFonts() async {
       'assets/fonts/JetBrainsMono-Regular.ttf',
       'assets/fonts/JetBrainsMono-SemiBold.ttf',
     ],
+    'Quintessential': ['assets/fonts/Quintessential-Regular.ttf'],
     'Syne': ['assets/fonts/Syne-Variable.ttf'],
   };
   for (final e in families.entries) {
