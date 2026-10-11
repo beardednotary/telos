@@ -2,6 +2,14 @@ import 'package:flutter/material.dart';
 
 /// Cyanotype. A deep blue sheet, white line work, pencil annotation.
 ///
+/// ONE INK AND ONE PENCIL. A sheet had nine hues on it - a colour each for
+/// credits, alloy, intel, good, bad, and one per sector - which is a
+/// palette no document has ever had. Everything written is the ink.
+/// Anything marked, chosen or wanting attention is the pencil. Red stays
+/// for the one case where something has gone wrong and must not read as a
+/// normal entry. Sectors are told apart by their drawings, which are
+/// distinctive enough to carry it without a colour each.
+///
 /// PHASE 0b. Values only again - every token keeps the name it had, so no
 /// screen has to move to judge this.
 ///
@@ -34,13 +42,13 @@ class T {
 
   /// Pencil, annotated over the print. The one warm thing on the sheet.
   static const amber = Color(0xFFFFAE5C);
-  static const cyan = Color(0xFF8FD8FF);
-  static const good = Color(0xFF5EE0A8);
+  static const cyan = Color(0xFFDCE9F5);
+  static const good = Color(0xFFDCE9F5);
   static const bad = Color(0xFFFF8070);
 
   /// Each resource keeps one colour everywhere it appears, so the numbers are
   /// identifiable before you read the label.
-  static const steel = Color(0xFFC7D8EA); // ALLOY
+  static const steel = Color(0xFFDCE9F5); // ALLOY
 
   /// Bundled at three weights (300/400/600), so every device renders the same
   /// thing. The platform stack stays as insurance for any glyph JetBrains Mono

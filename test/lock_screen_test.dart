@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:telos/data/content.dart';
 import 'package:telos/models/models.dart';
 import 'package:telos/services/lock_screen.dart';
 import 'package:telos/services/persistence.dart';
@@ -59,7 +60,9 @@ void main() {
     expect(lock.lastStartedAt, c.active!.startedAt);
     expect(lock.lastSector, 'MOSSWOOD VERGE');
     expect(lock.lastDesignation, 'SECTOR 01');
-    expect(lock.lastAccent, 0xFF8FD694);
+    // The sector's own accent reaches the lock screen. Asserted against the
+    // sector rather than a literal, so a palette change is not a test change.
+    expect(lock.lastAccent, sectorById('mosswood').accent);
     c.dispose();
   });
 

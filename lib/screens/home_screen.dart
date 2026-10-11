@@ -7,9 +7,9 @@ import '../models/models.dart';
 import '../services/redeploy.dart';
 import '../state/guild_controller.dart';
 import '../theme/telos_theme.dart';
-import '../widgets/contract_board.dart';
 import '../widgets/sector_scene.dart';
 import '../widgets/terminal.dart';
+import 'contracts_screen.dart';
 import 'spire_screen.dart';
 import 'dispatch_screen.dart';
 import 'forge_screen.dart';
@@ -31,30 +31,40 @@ class HomeScreen extends StatelessWidget {
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
+            // Home is for dispatching, not for reading. It carried eight
+            // zones and twenty-five figures, which is a dashboard whatever
+            // it is printed in. What is left is who you are, where you last
+            // worked, the order you have not signed yet, and the orders you
+            // can send again. Everything you study rather than glance at is
+            // a line in the index below.
             _Header(g: g),
             const SizedBox(height: 16),
-            _Resources(g: g),
-            _Ground(g: g),
-
-            // The main action on this screen, sized like it. The repeats
-            // below it are the fast path: the same dispatch again, one tap.
-            // Section carries its own margin, so no wrapper here.
+            _Ground(g: g, goal: g.nextGoal),
             _DispatchBlock(
                 hasHistory: g.log.isNotEmpty, orderNo: g.runCounter + 1),
             _RedeployList(dispatches: recentDispatches(g)),
 
-            const ContractBoardPanel(),
-            if (g.nextGoal != null) _GoalBand(goal: g.nextGoal!),
-
-            // The player's own record, so it carries their colour. It and
-            // the guild header bookend the screen: who the guild is at the
-            // top, what they have actually done at the bottom.
-            Section(
-                label: 'PROTECTED TIME', accent: T.amber, child: _Record(g: g)),
-
             Section(
               label: 'OUTPOST',
               rows: [
+                _NavRow(
+                  label: 'CONTRACTS',
+                  value: c.claimableContracts > 0
+                      ? '${c.claimableContracts} READY'
+                      : '${c.contracts.length}',
+                  hint: 'Standing work, and what it pays',
+                  onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const ContractsScreen())),
+                ),
+                _NavRow(
+                  label: 'STORES',
+                  value: '${g.credits} CR',
+                  hint: 'Credits, alloy and intel in the chest',
+                  onTap: () => Navigator.push(context,
+                      MaterialPageRoute(builder: (_) => const OutpostScreen())),
+                ),
                 _NavRow(
                   label: 'ROSTER',
                   value: '${g.roster.length}/${g.rosterSlots}',
@@ -158,35 +168,6 @@ class _Header extends StatelessWidget {
 
 /// Three big numbers, the size and the colour doing the work.
 /// What is in the chest, as a stores return rather than three tiles.
-class _Resources extends StatelessWidget {
-  const _Resources({required this.g});
-  final GuildState g;
-
-  @override
-  Widget build(BuildContext context) {
-    return Section(
-      label: 'STORES',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          FieldRow('CREDITS', '${g.credits}', valueColor: T.amber, seed: 61),
-          FieldRow('ALLOY', '${g.alloy}', valueColor: T.steel, seed: 67),
-          FieldRow('INTEL', '${g.intel}', valueColor: T.cyan, seed: 71),
-        ],
-      ),
-    );
-  }
-}
-
-/// A blank order, waiting to be signed.
-///
-/// A document has no call-to-action button. What it has is a form that is
-/// not filled in yet - ruled fields with nothing written against them, and
-/// a line at the bottom for a signature. Tapping it goes and fills it in.
-///
-/// That is the whole difference between this and a button labelled
-/// DISPATCH in a box. The empty fields say what is being committed to
-/// before any of it is chosen.
 class _DispatchBlock extends StatelessWidget {
   const _DispatchBlock({required this.hasHistory, required this.orderNo});
   final bool hasHistory;
@@ -330,121 +311,13 @@ class _RedeployRow extends StatelessWidget {
 
 /// The middle horizon: its own card, edged in the colour of whether it can
 /// be reached yet.
-class _GoalBand extends StatelessWidget {
-  const _GoalBand({required this.goal});
-  final NextGoal goal;
-
-  @override
-  Widget build(BuildContext context) {
-    final reachable = goal.blocked == null;
-    final accent = reachable ? T.cyan : T.dim;
-
-    return Section(
-      label: 'NEXT  //  ${goal.kind}',
-      labelColor: accent,
-      trailing: goal.blocked ??
-          (goal.progress >= 1.0
-              ? 'READY'
-              : '${(goal.progress * 100).round()}%'),
-      trailingColor: goal.progress >= 1.0 && reachable ? T.good : accent,
-      accent: accent,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(goal.label, style: T.title.copyWith(fontSize: 19)),
-          const SizedBox(height: 12),
-          Meter(value: goal.progress, segments: 26, height: 4, color: accent),
-          const SizedBox(height: 8),
-          Text(goal.detail, style: T.micro),
-        ],
-      ),
-    );
-  }
-}
-
-class _Record extends StatelessWidget {
-  const _Record({required this.g});
-  final GuildState g;
-
-  @override
-  Widget build(BuildContext context) {
-    final mins = g.totalFocusMinutes;
-    final h = mins ~/ 60;
-    final m = mins % 60;
-
-    // A label shrinks rather than running into its neighbour when the
-    // system text size is turned up.
-    Widget small(String label, String v) => Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(right: 10),
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: Alignment.centerLeft,
-                child: Text(label, style: T.micro),
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(v, style: T.mono.copyWith(fontSize: 20)),
-          ],
-        );
-
-    // No meter and no target under the number. A bar implies somewhere to
-    // get to, and there is nowhere to get to: this is a record of hours
-    // already protected, and it only ever goes up.
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        FittedBox(
-          fit: BoxFit.scaleDown,
-          alignment: Alignment.centerLeft,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              Text('$h', style: T.big.copyWith(fontSize: 68, color: T.amber)),
-              Text('h ', style: T.mono.copyWith(fontSize: 22, color: T.dim)),
-              Text('$m', style: T.big.copyWith(fontSize: 68)),
-              Text('m', style: T.mono.copyWith(fontSize: 22, color: T.dim)),
-            ],
-          ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          g.log.isEmpty
-              ? 'Nothing yet.'
-              : 'Time the squad was out and you were working.',
-          style: T.micro.copyWith(letterSpacing: 0.4, height: 1.6),
-        ),
-        const SizedBox(height: 22),
-        Container(height: 1, color: T.line),
-        const SizedBox(height: 18),
-        Row(
-          children: [
-            Expanded(child: small('EXPEDITIONS', '${g.log.length}')),
-            Expanded(child: small('CLEAN RUNS', '${g.cleanRuns}')),
-            Expanded(child: small('DAYS WORKED', '${g.daysWorked}')),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-/// The deepest ground the guild has opened, drawn, directly above DISPATCH.
-///
-/// Home was a stack of numbers and read as a dashboard - the first thing
-/// anyone sees, including in a screenshot, with nothing in it that could
-/// only be this app. Every sector is already drawn for the debrief; this
-/// puts one of them where it gets seen first.
-///
-/// It shows the deepest sector unlocked rather than the last one visited,
-/// so the picture changes as the guild gets further in, and every run made
-/// there is carved into it.
 class _Ground extends StatelessWidget {
-  const _Ground({required this.g});
+  const _Ground({required this.g, this.goal});
   final GuildState g;
+
+  /// What opens next, as a line under the plate rather than a band of its
+  /// own. It is a note about this ground, not a separate subject.
+  final NextGoal? goal;
 
   @override
   Widget build(BuildContext context) {
@@ -460,19 +333,31 @@ class _Ground extends StatelessWidget {
       accent: sc,
       trailing: sector.name,
       trailingColor: sc,
-      child: SectorScene(
-        sectorId: sector.id,
-        color: sc,
-        depths: [
-          for (final p in g.log)
-            if (p.sectorId == sector.id)
-              p.elapsedSeconds / 60 / sector.nominalMinutes,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SectorScene(
+            sectorId: sector.id,
+            color: sc,
+            depths: [
+              for (final p in g.log)
+                if (p.sectorId == sector.id)
+                  p.elapsedSeconds / 60 / sector.nominalMinutes,
+            ],
+            floors: g.spireComplete ? g.spireFloors : 0,
+            height: 104,
+            // Still, never animated: nothing on this screen may advance
+            // while it is being watched.
+            animate: false,
+          ),
+          if (goal != null) ...[
+            const SizedBox(height: 14),
+            const HandRule(seed: 404),
+            const SizedBox(height: 8),
+            FieldRow('NEXT', goal!.label, seed: 81),
+            Text(goal!.detail, style: T.micro.copyWith(height: 1.5)),
+          ],
         ],
-        floors: g.spireComplete ? g.spireFloors : 0,
-        height: 104,
-        // Still, never animated: nothing on this screen may advance while
-        // it is being watched.
-        animate: false,
       ),
     );
   }

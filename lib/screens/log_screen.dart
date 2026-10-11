@@ -49,16 +49,20 @@ class LogScreen extends StatelessWidget {
                         style: T.mono.copyWith(fontSize: 17, color: T.dim)),
                   ],
                 ),
-                const SizedBox(height: 20),
-                Row(
-                  children: [
-                    _Stat('EXPEDITIONS', '${log.length}'),
-                    _Stat('CLEAN', '${c.g.cleanRuns}'),
-                    _Stat('AVG INTEGRITY', log.isEmpty ? '-' : '$avgI%'),
-                    _Stat('AVG LENGTH',
-                        log.isEmpty ? '-' : '${mins ~/ log.length}m'),
-                  ],
-                ),
+                const SizedBox(height: 16),
+                const HandRule(seed: 909),
+                const SizedBox(height: 8),
+                // The same form the rest of the app uses. Four stats squeezed
+                // into a row was the last dashboard pattern in here, and
+                // DAYS WORKED came off home with nowhere else to go.
+                FieldRow('EXPEDITIONS', '${log.length}', seed: 91),
+                FieldRow('DAYS WORKED', '${c.g.daysWorked}', seed: 93),
+                FieldRow('CLEAN RUNS', '${c.g.cleanRuns}', seed: 97),
+                FieldRow('AVG INTEGRITY', log.isEmpty ? '-' : '$avgI%',
+                    seed: 101),
+                FieldRow('AVG LENGTH',
+                    log.isEmpty ? '-' : '${mins ~/ log.length}m',
+                    seed: 103),
               ],
             ),
           ),
@@ -77,24 +81,6 @@ class LogScreen extends StatelessWidget {
       ),
     );
   }
-}
-
-class _Stat extends StatelessWidget {
-  const _Stat(this.label, this.value);
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) => Expanded(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(label, style: T.micro.copyWith(fontSize: 10)),
-            const SizedBox(height: 4),
-            Text(value, style: T.mono.copyWith(fontSize: 16)),
-          ],
-        ),
-      );
 }
 
 class _LogBand extends StatelessWidget {
