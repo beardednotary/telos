@@ -8,18 +8,13 @@ import 'package:share_plus/share_plus.dart';
 
 import '../models/models.dart';
 import '../theme/telos_theme.dart';
+import 'camp_controls.dart';
+import 'expedition_widgets.dart';
+import 'management_widgets.dart';
 import 'sector_scene.dart';
-import 'terminal.dart';
 
-/// One run, as a picture someone can post.
-///
-/// The sector scene with this run's stake, the sector, the guild, and three
-/// numbers: time, depth, integrity. Never the intent note - that was typed
-/// for the player, not for a feed. No link or store mention while Telos is
-/// unreleased (see the story bible, sharing).
-///
-/// Laid out at 360 x 450 and captured at 3x, so the file is 1080 x 1350,
-/// the portrait size most feeds take without cropping.
+/// A 360×450 composition exported at 3×. Task and reflection text never enter
+/// this widget. The fixed image typography is independent of UI text scaling.
 class RunCard extends StatelessWidget {
   const RunCard({
     super.key,
@@ -36,107 +31,86 @@ class RunCard extends StatelessWidget {
   final String guildName;
   final List<double> depths;
   final int floors;
-
-  /// The debrief's own verdict: CLEAN RUN, RECALLED EARLY and so on.
   final String status;
 
   static const size = Size(360, 450);
 
-  static const _months = [
-    'JAN',
-    'FEB',
-    'MAR',
-    'APR',
-    'MAY',
-    'JUN',
-    'JUL',
-    'AUG',
-    'SEP',
-    'OCT',
-    'NOV',
-    'DEC',
-  ];
-
   @override
   Widget build(BuildContext context) {
-    final sc = Color(sector.accent);
     final depth =
         (record.elapsedSeconds / 60 / sector.nominalMinutes).clamp(0.0, 1.6);
-    final iColor = record.integrity >= 0.999
-        ? T.good
-        : record.integrity >= 0.7
-            ? T.amber
-            : T.bad;
-    final d = record.endedAt;
-
-    // Its own Material, so the text is styled wherever the card is built:
-    // in the dialog, or offscreen.
-    return SizedBox.fromSize(
-      size: size,
-      child: Material(
-        type: MaterialType.transparency,
-        child: Container(
-          decoration: BoxDecoration(
-            color: T.black,
-            border: Border.all(color: T.line),
-          ),
-          padding: const EdgeInsets.fromLTRB(22, 22, 22, 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Text('TELOS',
-                      style:
-                          T.micro.copyWith(color: T.amber, letterSpacing: 3)),
-                  const Spacer(),
-                  Text(sector.designation, style: T.micro),
-                ],
+    final date = record.endedAt.toLocal();
+    return MediaQuery.withNoTextScaling(
+      child: SizedBox.fromSize(
+        size: size,
+        child: Material(
+          color: T.black,
+          child: Container(
+            decoration: BoxDecoration(border: Border.all(color: T.boundary)),
+            padding: const EdgeInsets.all(20),
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(children: [
+                Text('TELOS',
+                    style: T.label.copyWith(color: T.amber, letterSpacing: 3)),
+                const Spacer(),
+                Text(sector.designation, style: T.micro),
+              ]),
+              const SizedBox(height: 16),
+              SizedBox(
+                height: 34,
+                width: double.infinity,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(fieldName(sector.name), style: T.display),
+                ),
               ),
-              const SizedBox(height: 18),
-              Text(sector.name,
-                  style: T.title.copyWith(fontSize: 22, color: sc)),
-              const SizedBox(height: 4),
-              Text(guildName, style: T.micro),
+              SizedBox(
+                height: 22,
+                width: double.infinity,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(guildName, style: T.body),
+                ),
+              ),
               const SizedBox(height: 16),
               Container(
-                color: sc.withValues(alpha: 0.12),
-                padding: const EdgeInsets.fromLTRB(10, 12, 10, 8),
+                decoration: const BoxDecoration(
+                    border: Border.symmetric(
+                        horizontal: BorderSide(color: T.line))),
+                padding: const EdgeInsets.symmetric(vertical: 8),
                 child: SectorScene(
                   sectorId: sector.id,
-                  color: sc,
+                  color: T.amber,
                   depths: depths,
                   latest: depth,
                   floors: floors,
-                  height: 150,
+                  height: 160,
                   animate: false,
                 ),
               ),
               const SizedBox(height: 20),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  _Figure(
-                      'TIME', '${record.elapsedSeconds ~/ 60}', 'm', T.amber),
-                  _Figure('DEPTH', '${(depth * 100).round()}', '%', T.text),
-                  _Figure('INTEGRITY', '${(record.integrity * 100).round()}',
-                      '%', iColor),
-                ],
-              ),
+              Row(children: [
+                _Figure(
+                    'Time',
+                    record.elapsedSeconds < 60
+                        ? '${record.elapsedSeconds}s'
+                        : '${record.elapsedMinutes}m'),
+                _Figure('Depth', '${(depth * 100).round()}%'),
+                _Figure('Integrity', '${(record.integrity * 100).round()}%'),
+              ]),
               const Spacer(),
-              Row(
-                children: [
-                  Text(status,
-                      style: T.micro.copyWith(
-                          color: record.scraps || record.recalled
-                              ? T.bad
-                              : iColor)),
-                  const Spacer(),
-                  Text('${d.day} ${_months[d.month - 1]} ${d.year}',
-                      style: T.micro),
-                ],
-              ),
-            ],
+              Row(children: [
+                Expanded(child: Text(fieldName(status), style: T.micro)),
+                const SizedBox(width: 8),
+                Text(
+                    '${date.year}-${date.month.toString().padLeft(2, '0')}-'
+                    '${date.day.toString().padLeft(2, '0')}',
+                    style: T.micro),
+              ]),
+            ]),
           ),
         ),
       ),
@@ -145,80 +119,96 @@ class RunCard extends StatelessWidget {
 }
 
 class _Figure extends StatelessWidget {
-  const _Figure(this.label, this.value, this.unit, this.color);
+  const _Figure(this.label, this.value);
   final String label;
   final String value;
-  final String unit;
-  final Color color;
 
   @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Column(
+  Widget build(BuildContext context) => Expanded(
+          child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: T.micro),
-          const SizedBox(height: 6),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              Text(value, style: T.numeric.copyWith(color: color)),
-              const SizedBox(width: 3),
-              Text(unit, style: T.mono.copyWith(fontSize: 13, color: T.dim)),
-            ],
-          ),
+          Text(label, style: T.secondary),
+          const SizedBox(height: 4),
+          Text(value, style: T.mono.copyWith(fontSize: 24)),
         ],
-      ),
-    );
-  }
+      ));
 }
 
-/// Shows the card as it will be shared, with the choice to share it or not.
-/// Nothing happens unless the player taps SHARE here.
-Future<void> showRunCard(BuildContext context, RunCard card) {
-  final key = GlobalKey();
-  return showDialog<void>(
-    context: context,
-    barrierColor: T.black.withValues(alpha: 0.85),
-    builder: (ctx) => Dialog(
-      backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Flexible(
-            child: FittedBox(
-              child: RepaintBoundary(key: key, child: card),
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: TButton('CLOSE',
-                    color: T.dim, onTap: () => Navigator.pop(ctx)),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Builder(
-                  builder: (b) => TButton('SHARE', filled: true, onTap: () {
-                    final box = b.findRenderObject() as RenderBox?;
-                    _share(
-                        key,
-                        card,
-                        box == null
-                            ? null
-                            : box.localToGlobal(Offset.zero) & box.size);
-                  }),
-                ),
-              ),
+/// Preview first; native sharing happens only after an explicit Share tap.
+Future<void> showRunCard(BuildContext context, RunCard card) =>
+    showDialog<void>(
+      context: context,
+      builder: (_) => _SharePreview(card: card),
+    );
+
+class _SharePreview extends StatefulWidget {
+  const _SharePreview({required this.card});
+  final RunCard card;
+
+  @override
+  State<_SharePreview> createState() => _SharePreviewState();
+}
+
+class _SharePreviewState extends State<_SharePreview> {
+  final _capture = GlobalKey();
+  String? _error;
+
+  @override
+  Widget build(BuildContext context) => Dialog(
+        backgroundColor: T.black,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          side: const BorderSide(color: T.boundary),
+          borderRadius: BorderRadius.circular(4),
+        ),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Flexible(
+                child: FittedBox(
+              child: RepaintBoundary(key: _capture, child: widget.card),
+            )),
+            const SizedBox(height: 16),
+            Text(
+                'Shares your guild and expedition stats. Task notes stay private.',
+                style: T.secondary),
+            if (_error != null) ...[
+              const SizedBox(height: 8),
+              Text(_error!, style: T.secondary),
             ],
-          ),
-        ],
-      ),
-    ),
-  );
+            const SizedBox(height: 16),
+            Builder(
+                builder: (buttonContext) => CampAction(
+                      key: const Key('share-expedition'),
+                      label: 'Share expedition',
+                      onPressed: () async {
+                        setState(() => _error = null);
+                        final box =
+                            buttonContext.findRenderObject() as RenderBox?;
+                        try {
+                          await _share(
+                              _capture,
+                              widget.card,
+                              box == null
+                                  ? null
+                                  : box.localToGlobal(Offset.zero) & box.size);
+                        } catch (_) {
+                          if (mounted) {
+                            setState(() => _error =
+                                'Could not share the image. Please try again.');
+                          }
+                        }
+                      },
+                    )),
+            const SizedBox(height: 8),
+            CampButton(
+                label: 'Close preview',
+                onPressed: () => Navigator.pop(context)),
+          ]),
+        ),
+      );
 }
 
 Future<void> _share(GlobalKey key, RunCard card, Rect? origin) async {
@@ -227,17 +217,14 @@ Future<void> _share(GlobalKey key, RunCard card, Rect? origin) async {
   if (boundary == null) return;
   final image = await boundary.toImage(pixelRatio: 3);
   final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+  image.dispose();
   if (bytes == null) return;
-
   final dir = await getTemporaryDirectory();
   final file =
       File('${dir.path}/telos-${card.sector.id}-${card.record.id}.png');
   await file.writeAsBytes(bytes.buffer.asUint8List());
-  await SharePlus.instance.share(
-    ShareParams(
-      files: [XFile(file.path, mimeType: 'image/png')],
-      // iPad anchors the share sheet to this; without it the sheet throws.
-      sharePositionOrigin: origin,
-    ),
-  );
+  await SharePlus.instance.share(ShareParams(
+    files: [XFile(file.path, mimeType: 'image/png')],
+    sharePositionOrigin: origin,
+  ));
 }

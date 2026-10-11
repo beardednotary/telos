@@ -299,10 +299,8 @@ void main() {
   });
 
   testWidgets('one tap on home goes straight into the session', (t) async {
-    // Home is a tall list and a ListView does not build what is off-screen.
-    // The default 800x600 surface cuts off SEND AGAIN now that the sector
-    // scene sits above DISPATCH.
-    t.view.physicalSize = const Size(900, 2600);
+    // Repeat remains visible in the camp footer on a phone-sized surface.
+    t.view.physicalSize = const Size(390, 844);
     t.view.devicePixelRatio = 1.0;
     addTearDown(t.view.resetPhysicalSize);
     addTearDown(t.view.resetDevicePixelRatio);
@@ -319,16 +317,14 @@ void main() {
     ));
     await t.pump();
 
-    expect(find.text('SEND AGAIN'), findsOneWidget);
-    // The name appears twice: once labelling the sector scene above
-    // DISPATCH, once on the Send Again row. The row is the lower of the two.
-    await t.tap(find.text('MOSSWOOD VERGE').last);
+    expect(find.byKey(const Key('camp-repeat')), findsOneWidget);
+    await t.tap(find.byKey(const Key('camp-repeat')));
     await t.pump();
     await t.pump();
 
     expect(c.hasActiveRun, isTrue);
     // Just dispatched, so the way out is still a clean cancel.
-    expect(find.textContaining('CANCEL DISPATCH'), findsOneWidget);
+    expect(find.byKey(const Key('cancel-dispatch')), findsOneWidget);
     expect(find.text('Write the methods chapter'), findsOneWidget);
 
     await c.finishRun(recalled: true);

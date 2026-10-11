@@ -1,31 +1,42 @@
 import 'package:flutter/material.dart';
 
-/// Tactical terminal palette. True black for OLED, one functional accent.
+/// Night Watch. Legacy token names remain during the screen migration.
 class T {
-  static const black = Color(0xFF0B0C0E);
-  static const card = Color(0xFF16181D);
+  static const black = Color(0xFF1E252B);
+  static const card = Color(0xFF272F35);
+  static const band = Color(0xFF12181D);
+  static const raised = Color(0xFF313B42);
+  static const line = Color(0xFF4D5E67);
+  static const boundary = Color(0xFF677A83);
+  static const dim = Color(0xFFACBBC1);
+  static const text = Color(0xFFE6EAEB);
+  static const amber = Color(0xFFD3B779);
+  static const onAccent = Color(0xFF242920);
+  static const cyan = Color(0xFF9EBBC9);
+  static const good = Color(0xFFABD1AB);
+  static const bad = Color(0xFFED9A94);
+  static const steel = text;
 
-  /// A band that sits between black and card, for full-bleed sections that
-  /// need separating without drawing yet another box.
-  static const band = Color(0xFF101216);
+  static const body = TextStyle(
+    fontFamily: 'IBMPlexSans',
+    color: text,
+    fontSize: 16,
+    height: 1.4,
+  );
+  static final secondary = body.copyWith(fontSize: 14, color: dim);
+  static const display = TextStyle(
+    fontFamily: 'IBMPlexSansCondensed',
+    fontWeight: FontWeight.w600,
+    color: text,
+    fontSize: 28,
+    height: 1.15,
+  );
+  static final title = display.copyWith(fontSize: 22);
+  static final heading = display.copyWith(fontSize: 18);
+  static final row = display.copyWith(fontSize: 18);
 
-  static const line = Color(0xFF2A2E36);
-  static const dim = Color(0xFF6B7280);
-  static const text = Color(0xFFE6E8EB);
-  static const amber = Color(0xFFF5A623);
-  static const cyan = Color(0xFF00E5FF);
-  static const good = Color(0xFF3DD68C);
-  static const bad = Color(0xFFE5484D);
-
-  /// Each resource keeps one colour everywhere it appears, so the numbers are
-  /// identifiable before you read the label.
-  static const steel = Color(0xFFDDE3EA); // ALLOY
-
-  /// Bundled at three weights (300/400/600), so every device renders the same
-  /// thing. The platform stack stays as insurance for any glyph JetBrains Mono
-  /// does not cover.
-  static const String monoFamily = 'JetBrainsMono';
-
+  /// Quantities and time keep a fixed-width face. Prose uses Plex Sans.
+  static const monoFamily = 'JetBrainsMono';
   static const monoFallback = <String>[
     'SF Mono',
     'Menlo',
@@ -33,112 +44,100 @@ class T {
     'Roboto Mono',
     'monospace',
   ];
-
-  static const TextStyle mono = TextStyle(
+  static const mono = TextStyle(
     fontFamily: monoFamily,
     fontFamilyFallback: monoFallback,
     color: text,
     fontSize: 15,
     height: 1.45,
   );
-
-  static TextStyle label = mono.copyWith(
+  static final label = mono.copyWith(
     color: dim,
     fontSize: 12,
-    letterSpacing: 1.4,
+    letterSpacing: 1,
   );
-
-  /// THE RULE: anything 16px or larger is Light 300 with open tracking. That
-  /// is what makes the countdown look carved rather than typed - it is not a
-  /// different font, just weight and scale. Below 16px Light goes muddy, so
-  /// small labels keep their weight and lean on [micro] instead.
-  static TextStyle heading = display.copyWith(
-    fontSize: 18,
-    letterSpacing: 2.6,
-  );
-
-  static TextStyle data = mono.copyWith(fontSize: 15);
-
-  /// The countdown, and nothing else. It should dominate the screen it is on.
-  static TextStyle big = mono.copyWith(
+  static final micro = label.copyWith(fontSize: 11, letterSpacing: .6);
+  static final data = mono.copyWith(fontSize: 15);
+  static final big = mono.copyWith(
     fontSize: 76,
     letterSpacing: -2,
     fontWeight: FontWeight.w300,
-    height: 1.0,
+    height: 1,
   );
-
-  /// A number that is the point of its section: a resource total, an
-  /// integrity percentage. Scale contrast is what stops this reading as a
-  /// generic dashboard - tiny labels are fine next to something this size.
-  static TextStyle numeric = mono.copyWith(
+  static final numeric = mono.copyWith(
     fontSize: 34,
+    letterSpacing: -.5,
     fontWeight: FontWeight.w300,
-    height: 1.0,
-    letterSpacing: -0.5,
+    height: 1,
   );
 
-  static TextStyle title = display.copyWith(fontSize: 22, letterSpacing: 1.2);
-
-  /// A row label in a list: still display-scale, so still Light.
-  static TextStyle row = display.copyWith(fontSize: 18, letterSpacing: 2.0);
-
-  /// Syne, used ONLY for names: sectors, the guild, screen titles. It has no
-  /// Light weight, and that is deliberate - a heavy carved display set against
-  /// thin machine readout is the whole contrast. Numbers stay in the mono.
-  static TextStyle display = TextStyle(
-    fontFamily: 'Syne',
-    fontVariations: const [FontVariation('wght', 700)],
-    color: text,
-    fontSize: 22,
-    letterSpacing: 1.0,
-    // Syne has deep descenders. At 1.15 the tail of a g or y on a wrapped
-    // line was being clipped by the line below it, and `even` splits the
-    // leading above and below the text rather than piling it all on top,
-    // which is what actually leaves room for the descender.
-    height: 1.3,
-    leadingDistribution: TextLeadingDistribution.even,
-    // Syne's default g hangs its tail off the bowl as a separate hooked
-    // stroke, which at title size reads as two glyphs overlapping. Stylistic
-    // set 4 swaps in the font's own closed two-storey g, and touches nothing
-    // else.
-    fontFeatures: [FontFeature.stylisticSet(4)],
-  );
-
-  static TextStyle micro = mono.copyWith(
-    color: dim,
-    fontSize: 11,
-    letterSpacing: 1.6,
-    height: 1.4,
-  );
-
-  static ThemeData theme() {
-    return ThemeData(
-      useMaterial3: true,
-      brightness: Brightness.dark,
-      scaffoldBackgroundColor: black,
-      canvasColor: black,
-      colorScheme: const ColorScheme.dark(
-        surface: black,
-        primary: amber,
-        secondary: cyan,
-        error: bad,
-      ),
-      textTheme: TextTheme(
-        bodyMedium: mono,
-        bodySmall: mono.copyWith(fontSize: 13),
-        titleMedium: heading,
-      ),
-      appBarTheme: AppBarTheme(
-        backgroundColor: black,
-        surfaceTintColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: false,
-        titleTextStyle: heading,
-        iconTheme: const IconThemeData(color: dim, size: 20),
-      ),
-      dividerColor: line,
-      splashFactory: NoSplash.splashFactory,
-      highlightColor: Colors.transparent,
-    );
-  }
+  static ThemeData theme() => ThemeData(
+        useMaterial3: true,
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: black,
+        canvasColor: black,
+        fontFamily: 'IBMPlexSans',
+        colorScheme: const ColorScheme.dark(
+          surface: black,
+          primary: amber,
+          onPrimary: onAccent,
+          secondary: cyan,
+          secondaryContainer: raised,
+          onSecondaryContainer: text,
+          error: bad,
+          onSurface: text,
+        ),
+        textTheme: TextTheme(
+          bodyMedium: body,
+          bodySmall: secondary,
+          titleMedium: heading,
+        ),
+        appBarTheme: AppBarTheme(
+          backgroundColor: black,
+          surfaceTintColor: Colors.transparent,
+          elevation: 0,
+          centerTitle: false,
+          titleTextStyle: heading,
+          iconTheme: const IconThemeData(color: dim, size: 20),
+        ),
+        bottomSheetTheme: const BottomSheetThemeData(
+          backgroundColor: black,
+          surfaceTintColor: Colors.transparent,
+          shape: RoundedRectangleBorder(
+            side: BorderSide(color: boundary),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(4)),
+          ),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: band,
+          border: const OutlineInputBorder(),
+          enabledBorder: const OutlineInputBorder(
+            borderSide: BorderSide(color: boundary),
+          ),
+          labelStyle: secondary,
+        ),
+        chipTheme: ChipThemeData(
+          backgroundColor: card,
+          selectedColor: raised,
+          checkmarkColor: amber,
+          labelStyle: body,
+          side: const BorderSide(color: boundary),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(3)),
+        ),
+        sliderTheme: const SliderThemeData(
+          activeTrackColor: amber,
+          inactiveTrackColor: line,
+          thumbColor: amber,
+        ),
+        dividerColor: line,
+        dividerTheme: const DividerThemeData(color: line, thickness: 1),
+        snackBarTheme: const SnackBarThemeData(
+          backgroundColor: raised,
+          contentTextStyle: body,
+          actionTextColor: amber,
+        ),
+        splashFactory: NoSplash.splashFactory,
+        highlightColor: Colors.transparent,
+      );
 }

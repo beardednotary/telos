@@ -26,9 +26,10 @@
 		E1A700012EA0000000000015 /* ExpeditionLiveActivityWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = E1A700012EA0000000000004 /* ExpeditionLiveActivityWidget.swift */; };
 		E1A700012EA0000000000016 /* JetBrainsMono-Light.ttf in Resources */ = {isa = PBXBuildFile; fileRef = E1A700012EA0000000000006 /* JetBrainsMono-Light.ttf */; };
 		E1A700012EA0000000000017 /* JetBrainsMono-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = E1A700012EA0000000000007 /* JetBrainsMono-Regular.ttf */; };
-		E1A700012EA0000000000018 /* Syne-Variable.ttf in Resources */ = {isa = PBXBuildFile; fileRef = E1A700012EA0000000000008 /* Syne-Variable.ttf */; };
+		E1A700012EA0000000000018 /* IBMPlexSansCondensed-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = E1A700012EA0000000000008 /* IBMPlexSansCondensed-SemiBold.ttf */; };
 		E1A700012EA0000000000019 /* ExpeditionWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = E1A700012EA0000000000009 /* ExpeditionWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		78A318202AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage in Frameworks */ = {isa = PBXBuildFile; productRef = 78A3181F2AECB46A00862997 /* FlutterGeneratedPluginSwiftPackage */; };
+		F13D00000000000000000001 /* IBMPlexSans-Variable.ttf in Resources */ = {isa = PBXBuildFile; fileRef = F13D00000000000000000002 /* IBMPlexSans-Variable.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -101,9 +102,10 @@
 		E1A700012EA0000000000005 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		E1A700012EA0000000000006 /* JetBrainsMono-Light.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "JetBrainsMono-Light.ttf"; path = "../assets/fonts/JetBrainsMono-Light.ttf"; sourceTree = SOURCE_ROOT; };
 		E1A700012EA0000000000007 /* JetBrainsMono-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "JetBrainsMono-Regular.ttf"; path = "../assets/fonts/JetBrainsMono-Regular.ttf"; sourceTree = SOURCE_ROOT; };
-		E1A700012EA0000000000008 /* Syne-Variable.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "Syne-Variable.ttf"; path = "../assets/fonts/Syne-Variable.ttf"; sourceTree = SOURCE_ROOT; };
+		E1A700012EA0000000000008 /* IBMPlexSansCondensed-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "IBMPlexSansCondensed-SemiBold.ttf"; path = "../assets/fonts/IBMPlexSansCondensed-SemiBold.ttf"; sourceTree = SOURCE_ROOT; };
 		E1A700012EA0000000000009 /* ExpeditionWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ExpeditionWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		78E0A7A72DC9AD7400C4905E /* FlutterGeneratedPluginSwiftPackage */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = FlutterGeneratedPluginSwiftPackage; path = Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage; sourceTree = "<group>"; };
+		F13D00000000000000000002 /* IBMPlexSans-Variable.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "IBMPlexSans-Variable.ttf"; path = "../assets/fonts/IBMPlexSans-Variable.ttf"; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -213,7 +215,8 @@
 			children = (
 				E1A700012EA0000000000006 /* JetBrainsMono-Light.ttf */,
 				E1A700012EA0000000000007 /* JetBrainsMono-Regular.ttf */,
-				E1A700012EA0000000000008 /* Syne-Variable.ttf */,
+				F13D00000000000000000002 /* IBMPlexSans-Variable.ttf */,
+				E1A700012EA0000000000008 /* IBMPlexSansCondensed-SemiBold.ttf */,
 			);
 			name = Fonts;
 			sourceTree = "<group>";
@@ -351,7 +354,8 @@
 			files = (
 				E1A700012EA0000000000016 /* JetBrainsMono-Light.ttf in Resources */,
 				E1A700012EA0000000000017 /* JetBrainsMono-Regular.ttf in Resources */,
-				E1A700012EA0000000000018 /* Syne-Variable.ttf in Resources */,
+				F13D00000000000000000001 /* IBMPlexSans-Variable.ttf in Resources */,
+				E1A700012EA0000000000018 /* IBMPlexSansCondensed-SemiBold.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

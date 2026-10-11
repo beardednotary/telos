@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ui' show Rect;
 
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -55,8 +56,10 @@ class Backup {
     try {
       final j = jsonDecode(text);
       if (j is! Map<String, dynamic>) return null;
+      if (j['telos'] != 1) return null;
       final save = j['save'];
       if (save is! Map<String, dynamic>) return null;
+      if (save['v'] != 1) return null;
       final state = GuildState.fromJson(save);
       // A save with no roster is not a save worth restoring over a live one.
       if (state.roster.isEmpty) return null;
@@ -70,12 +73,15 @@ class Backup {
   static BackupInfo? inspect(String text) {
     try {
       final j = jsonDecode(text) as Map<String, dynamic>;
-      final s = (j['summary'] as Map?) ?? const {};
+      final state = decode(text);
+      if (state == null) return null;
+      // The review must describe what will actually be restored, not a
+      // separately editable or stale summary from the file wrapper.
       return BackupInfo(
-        guild: s['guild'] as String? ?? 'UNKNOWN',
-        level: s['level'] as int? ?? 0,
-        expeditions: s['expeditions'] as int? ?? 0,
-        focusMinutes: s['focusMinutes'] as int? ?? 0,
+        guild: state.guildName,
+        level: state.level,
+        expeditions: state.log.length,
+        focusMinutes: state.totalFocusMinutes,
         exportedAt: DateTime.tryParse(j['exportedAt'] as String? ?? ''),
       );
     } catch (_) {
@@ -86,7 +92,8 @@ class Backup {
   static Future<Directory> documents() => getApplicationDocumentsDirectory();
 
   /// Writes a backup into Documents and offers it to the share sheet.
-  static Future<String> export(GuildState g) async {
+  static Future<String> export(GuildState g,
+      {Rect? sharePositionOrigin}) async {
     final dir = await documents();
     final file = File('${dir.path}/${fileNameFor(DateTime.now())}');
     await file.writeAsString(encode(g));
@@ -94,6 +101,7 @@ class Backup {
       ShareParams(
         files: [XFile(file.path, mimeType: 'application/json')],
         subject: 'Telos backup',
+        sharePositionOrigin: sharePositionOrigin,
       ),
     );
     return file.path;
@@ -102,16 +110,29 @@ class Backup {
   /// Backups sitting in the app's Documents folder, newest first.
   static Future<List<File>> available() async {
     final dir = await documents();
-    if (!dir.existsSync()) return [];
-    final files = dir
-        .listSync()
-        .whereType<File>()
-        .where((f) =>
-            f.path.endsWith('.json') && f.path.contains(_prefix))
-        .toList();
+    if (!await dir.exists()) return [];
+    final files = <File>[];
+    await for (final entry in dir.list()) {
+      if (entry is File &&
+          entry.path.endsWith('.json') &&
+          entry.path.split(Platform.pathSeparator).last.startsWith(_prefix)) {
+        files.add(entry);
+      }
+    }
     files.sort((a, b) => b.path.compareTo(a.path));
     return files;
   }
+}
+
+/// Native file/share access kept separate from the review UI. Tests can supply
+/// an in-memory catalogue without invoking a platform share sheet.
+class BackupFiles {
+  const BackupFiles();
+
+  Future<List<File>> available() => Backup.available();
+  Future<String> read(File file) => file.readAsString();
+  Future<String> export(GuildState state, {Rect? sharePositionOrigin}) =>
+      Backup.export(state, sharePositionOrigin: sharePositionOrigin);
 }
 
 class BackupInfo {

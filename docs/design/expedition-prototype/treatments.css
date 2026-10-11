@@ -1,0 +1,217 @@
+/* Optional art-direction studies. All use the existing interaction code. */
+@font-face {
+  font-family: SurveyTitle;
+  src: url('../fonts/BarlowSemiCondensed-SemiBold.ttf');
+  font-weight: 600;
+}
+@font-face {
+  font-family: SurveyText;
+  src: url('../fonts/Barlow-Regular.ttf');
+  font-weight: 400;
+}
+@font-face {
+  font-family: SurveyText;
+  src: url('../fonts/Barlow-SemiBold.ttf');
+  font-weight: 600;
+}
+@font-face {
+  font-family: NightTitle;
+  src: url('../fonts/IBMPlexSansCondensed-SemiBold.ttf');
+  font-weight: 600;
+}
+@font-face {
+  font-family: NightText;
+  src: url('../fonts/IBMPlexSans-Variable.ttf');
+  font-weight: 100 700;
+}
+@font-face {
+  font-family: WoodcutTitle;
+  src: url('../fonts/Grenze-Variable.ttf');
+  font-weight: 100 900;
+}
+
+:root[data-treatment="survey"] {
+  --title: SurveyTitle, sans-serif;
+  --body: SurveyText, sans-serif;
+  --ground: #e7ecee;
+  --panel: #dfe5e8;
+  --raised: #f5f7f7;
+  --ink: #22313a;
+  --muted: #4d606b;
+  --rule: #82939a;
+  --divider: #abb8be;
+  --selection: #cedce2;
+  --action: #273f4c;
+  --on-action: #ffffff;
+  --accent: #8e402d;
+  --accent-soft: #eddcd4;
+  --track: #c2cdd2;
+  --caption: #273f4c;
+  --on-caption: #edf2f4;
+  --outside: #d0d8dc;
+}
+:root[data-treatment="night"] {
+  --title: NightTitle, sans-serif;
+  --body: NightText, sans-serif;
+  --ground: #1e252b;
+  --panel: #272f35;
+  --raised: #313b42;
+  --ink: #e6eaeb;
+  --muted: #acbbc1;
+  --rule: #677a83;
+  --divider: #4d5e67;
+  --selection: #39494f;
+  --action: #d3b779;
+  --on-action: #242920;
+  --accent: #d3b779;
+  --accent-soft: #3c392d;
+  --track: #4c5b62;
+  --caption: #1e252b;
+  --on-caption: #e6eaeb;
+  --outside: #151b20;
+}
+:root[data-treatment="woodcut"] {
+  --title: WoodcutTitle, serif;
+  --body: Body, sans-serif;
+  --ground: #ececea;
+  --panel: #e1e0de;
+  --raised: #f8f7f4;
+  --ink: #292528;
+  --muted: #63575a;
+  --rule: #9a898b;
+  --divider: #bdb3b3;
+  --selection: #ded1d1;
+  --action: #682d3b;
+  --on-action: #fff8f5;
+  --accent: #8a3346;
+  --accent-soft: #efdcdf;
+  --track: #c8bdbd;
+  --caption: #292528;
+  --on-caption: #ececea;
+  --outside: #d6d3d4;
+}
+
+:root[data-treatment] body {
+  background: var(--outside);
+  color: var(--ink);
+  font-family: var(--body);
+}
+:root[data-treatment] body.embed { background: transparent; }
+:root[data-treatment] :is(h1, .screen-head h2, .return-intro h2, .project h3, .relic h3, .sheet h3, .choice-subhead, .member-info strong, .member-line .summary-text strong, .report h4, .destination-line strong, .next-goal strong) {
+  font-family: var(--title);
+  font-weight: 600;
+  letter-spacing: 0;
+}
+:root[data-treatment] :is(.summary-title, .primary, .choice strong) { font-weight: 600; }
+:root[data-treatment] .phone {
+  background: var(--ground);
+  color: var(--ink);
+  border-color: var(--rule);
+  box-shadow: none;
+}
+:root[data-treatment] .phone :is(.screen-head h2, .return-intro h2) {
+  font-size: 28px;
+  line-height: 1.14;
+}
+:root[data-treatment] .phone :is(.project h3, .member-info strong) { font-size: 22px; }
+:root[data-treatment] .phone .relic h3 { font-size: 28px; }
+:root[data-treatment] .phone :is(.topline, .muted, .summary-value, .chevron, .step-number, .step-label, .duration span, .choice small, .section-note, .final-summary, .fit-note, .return-intro p, .relic .flavor, .stores span, .below-action, .member-line small, .project p, .fit, .compact-note, .forecast p, .slot-button span) {
+  color: var(--muted);
+}
+:root[data-treatment] .phone .final-summary strong { color: var(--ink); }
+:root[data-treatment] .phone :is(.badge, .art, .project, .groups, .dispatch-form, .forecast, .relic, .slot) { border-color: var(--rule); }
+:root[data-treatment] .phone :is(.project, .groups, .dispatch-form summary, .forecast, .relic) { background: var(--panel); }
+:root[data-treatment] .phone :is(.detail-body, .action-area, .sheet) { background: var(--ground); color: var(--ink); }
+:root[data-treatment] .phone :is(details + details, .member-line, .member-info + .member-info, .next-goal, .report-table td, .report-table th, .comparison, .action-area, .relic .effect) { border-color: var(--divider); }
+:root[data-treatment] .phone details[open] > summary { background: var(--selection); border-color: var(--rule); }
+:root[data-treatment] .phone :is(.work-input, .duration-button, .custom-duration input, .choice, .slot-button) { background: var(--raised); border-color: var(--rule); color: var(--ink); }
+:root[data-treatment] .phone .work-input::placeholder { color: var(--muted); }
+:root[data-treatment] .phone :is(.choice[aria-pressed="true"], .slot-button[aria-pressed="true"]) { background: var(--selection); border-color: var(--action); }
+:root[data-treatment] .phone .choice .picked { color: var(--ink); }
+:root[data-treatment] .phone .primary,
+:root[data-treatment] .prototype-controls .primary,
+:root[data-treatment] .phone .duration-button[aria-pressed="true"] {
+  background: var(--action);
+  border-color: var(--action);
+  color: var(--on-action);
+}
+:root[data-treatment] .phone :is(.secondary, .continue),
+:root[data-treatment] .prototype-controls .secondary { background: transparent; border-color: var(--rule); color: var(--ink); }
+:root[data-treatment] .phone .art-caption { background: var(--caption); color: var(--on-caption); }
+:root[data-treatment] .phone .art-caption span { color: var(--on-caption); }
+:root[data-treatment] .phone .meter { background: var(--track); }
+:root[data-treatment] .phone .meter span { background: var(--accent); }
+:root[data-treatment] .phone :is(.item-art, .key-art, .rarity) { color: var(--accent); }
+:root[data-treatment] .phone :is(.item-art, .key-art) [fill]:not([fill="none"]) { fill: var(--accent-soft); }
+:root[data-treatment] .phone :is(.relic::before, .relic::after, .report .journal) { border-color: var(--accent); }
+:root[data-treatment] .phone .notice { background: var(--selection); border-color: var(--accent); color: var(--ink); }
+:root[data-treatment] .phone .warning { background: var(--accent-soft); border-color: var(--accent); color: var(--ink); }
+:root[data-treatment] .phone .sheet { border-color: var(--rule); }
+:root[data-treatment] .phone .dialog-shade { background: #0b111bb3; }
+:root[data-treatment] .sidebar p { color: var(--muted); }
+:root[data-treatment] .hint { border-color: var(--divider); }
+:root[data-treatment] :is(button, input, summary, a):focus-visible { outline-color: var(--accent); }
+:root[data-treatment] button:disabled { background: var(--panel)!important; border-color: var(--divider)!important; color: var(--muted); }
+:root[data-treatment] .phone .choice:disabled small { color: var(--muted); }
+
+/* Small typographic decisions give each treatment its own voice. */
+:root[data-treatment="survey"] .screen-head h2 { text-transform: uppercase; letter-spacing: .35px; font-size: 27px; }
+:root[data-treatment="survey"] .phone .relic h3 { letter-spacing: .2px; }
+:root[data-treatment="survey"] .phone .summary-title { font-size: 17px; }
+:root[data-treatment="night"] .phone :is(.eyebrow, .rarity) { letter-spacing: 1.2px; }
+:root[data-treatment="night"] .phone .summary-title { font-size: 16px; }
+:root[data-treatment="night"] .phone .art-caption { border-top: 1px solid var(--rule); }
+:root[data-treatment="woodcut"] .phone :is(.screen-head h2, .return-intro h2) { font-size: 32px; line-height: 1; }
+:root[data-treatment="woodcut"] .phone :is(.relic h3, .sheet h3) { font-size: 31px; line-height: 1.07; }
+:root[data-treatment="woodcut"] .phone .project h3 { font-size: 26px; line-height: 1.15; }
+:root[data-treatment="woodcut"] .phone .member-line .summary-text strong { font-size: 22px; line-height: 1.1; }
+:root[data-treatment="woodcut"] .phone .choice-subhead { font-size: 23px; line-height: 1.15; }
+
+/* Every direction goes quiet during focus. These are presentation variables,
+   with no change to duration, Integrity or the running-state behavior. */
+:root[data-treatment] .phone.away {
+  --ground: #121b21;
+  --panel: #1e2931;
+  --raised: #27353f;
+  --ink: #e3e9ec;
+  --muted: #a9bbc4;
+  --rule: #687d88;
+  --divider: #3d525e;
+  --selection: #30434d;
+  --action: #c2d3dc;
+  --on-action: #1b2931;
+  --accent: #c6a187;
+  --accent-soft: #3e3129;
+  background: var(--ground);
+}
+:root[data-treatment="night"] .phone.away {
+  --ground: #12181d;
+  --ink: #e6eaeb;
+  --muted: #acbbc1;
+  --action: #d3b779;
+  --accent: #d3b779;
+}
+:root[data-treatment="woodcut"] .phone.away {
+  --ground: #1c191d;
+  --panel: #2d252c;
+  --raised: #3d3038;
+  --ink: #ece7e9;
+  --muted: #c3b5bd;
+  --rule: #91808b;
+  --divider: #53434d;
+  --selection: #43333c;
+  --action: #dcc2cc;
+  --on-action: #30232b;
+  --accent: #dca1b3;
+}
+:root[data-treatment] .phone.away :is(.status, .away-note strong) { color: var(--ink); }
+:root[data-treatment] .phone.away :is(.away-body p, .away-body .integrity span, .away-note, .small) { color: var(--muted); }
+:root[data-treatment] .phone.away .away-note { border-color: var(--divider); }
+:root[data-treatment] .phone.away .away-body .integrity span { font-family: var(--body); }
+
+@media (max-width:370px) {
+  :root[data-treatment="survey"] .phone .screen-head h2 { font-size: 25px; }
+  :root[data-treatment="night"] .phone :is(.screen-head h2, .return-intro h2) { font-size: 26px; }
+  :root[data-treatment="woodcut"] .phone :is(.screen-head h2, .return-intro h2) { font-size: 30px; }
+  :root[data-treatment] .phone .summary-value { font-size: 13px; }
+}

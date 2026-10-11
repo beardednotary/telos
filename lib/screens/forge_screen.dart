@@ -6,304 +6,208 @@ import '../models/guild_state.dart';
 import '../models/models.dart';
 import '../state/guild_controller.dart';
 import '../theme/telos_theme.dart';
-import '../widgets/flash.dart';
-import '../widgets/terminal.dart';
+import '../widgets/camp_controls.dart';
+import '../widgets/expedition_widgets.dart';
+import '../widgets/management_widgets.dart';
+import 'roster_screen.dart';
 
-/// Where INTEL goes once every sector is open.
-///
-/// You forge a named piece, not a random one - saving toward a specific thing
-/// is the opposite of a loot box, and the design notes are explicit about not
-/// selling randomness. The forge level gates rarity, so the deep tiers stay
-/// something to build toward.
-class ForgeScreen extends StatelessWidget {
+class ForgeScreen extends StatefulWidget {
   const ForgeScreen({super.key});
+
+  @override
+  State<ForgeScreen> createState() => _ForgeScreenState();
+}
+
+class _ForgeScreenState extends State<ForgeScreen> {
+  String? _open = Rarity.common.name;
+
+  void _toggle(String id) => setState(() => _open = _open == id ? null : id);
 
   @override
   Widget build(BuildContext context) {
     final c = context.watch<GuildController>();
-    final g = c.g;
-    final catalogue = craftableGear(g);
-    final spare = g.unequippedGear;
-
-    return TerminalScaffold(
-      title: 'FORGE',
-      actions: [Text('LV ${c.forgeLevel}', style: T.micro)],
-      child: ListView(
-        padding: const EdgeInsets.only(top: 4, bottom: 24),
-        children: [
-          Section(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    _Bal('CREDITS', g.credits, T.amber),
-                    _Bal('ALLOY', g.alloy, T.steel),
-                    _Bal('INTEL', g.intel, T.cyan),
-                  ],
-                ),
-                const SizedBox(height: 14),
-                Text(
-                  'Build a named piece rather than a random one. The forge '
-                  'works at ${_tierText(c)} - raise it in FACILITIES to work '
-                  'deeper. What you make lands in the vault unassigned, so '
-                  'take it to ROSTER and put it on someone.',
-                  style: T.micro.copyWith(letterSpacing: 0.4, height: 1.7),
-                ),
-              ],
-            ),
-          ),
-
-          if (catalogue.isEmpty)
-            Section(
-              rows: [
-                Section.note(
-                  'Nothing to work from yet. Charting a sector is what '
-                  'teaches you to build its equipment.',
-                ),
-              ],
-            )
-          else
-            for (final r in Rarity.values)
-              if (catalogue.any((d) => d.rarity == r))
-                Section(
-                  label: r.label,
-                  labelColor: rarityColor(r),
-                  trailing: c.forgeCanWork(r)
-                      ? null
-                      : 'NEEDS FORGE LV ${kForgeLevelFor[r]}',
-                  rows: [
-                    for (final def in catalogue.where((d) => d.rarity == r))
-                      _CraftBand(def: def),
-                  ],
-                ),
-
-          Section(
-            label: 'VAULT',
-            trailing: 'MELT FOR ALLOY',
-            rows: [
-              if (spare.isEmpty)
-                Section.note('Nothing unassigned.')
-              else
-                for (final gear in spare) _MeltBand(gear: gear),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _tierText(GuildController c) {
-    final can = Rarity.values.where(c.forgeCanWork).toList();
-    if (can.isEmpty) return 'nothing yet';
-    return '${can.first.label.toLowerCase()} to ${can.last.label.toLowerCase()}';
-  }
-}
-
-class _Bal extends StatelessWidget {
-  const _Bal(this.label, this.value, this.color);
-  final String label;
-  final int value;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) => Expanded(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    final catalogue = craftableGear(c.g);
+    final spare = c.g.unequippedGear;
+    return Scaffold(
+      appBar: AppBar(title: const Text('Forge')),
+      body: SafeArea(
+        top: false,
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
           children: [
-            Text(label, style: T.micro),
-            const SizedBox(height: 6),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Text('$value',
-                  style: T.numeric.copyWith(fontSize: 26, color: color)),
+            const Text('Made for the next run.', style: T.display),
+            const SizedBox(height: 8),
+            Text('Forge level ${c.forgeLevel} · Choose a named piece to craft.',
+                style: T.secondary),
+            const SizedBox(height: 20),
+            StoreBalance(guild: c.g),
+            const SizedBox(height: 24),
+            for (final rarity in Rarity.values)
+              if (catalogue.any((def) => def.rarity == rarity)) ...[
+                CampDisclosure(
+                  key: Key('recipes-${rarity.name}'),
+                  title: '${fieldName(rarity.name)} equipment',
+                  summary: c.forgeCanWork(rarity)
+                      ? '${catalogue.where((def) => def.rarity == rarity).length} recipes'
+                      : 'Requires forge level ${kForgeLevelFor[rarity]}',
+                  icon: Icons.handyman_outlined,
+                  expanded: _open == rarity.name,
+                  onToggle: () => _toggle(rarity.name),
+                  child: Column(children: [
+                    for (final def
+                        in catalogue.where((def) => def.rarity == rarity))
+                      GearEntry(
+                        key: Key('recipe-${def.id}'),
+                        def: def,
+                        onTap: () =>
+                            showCampSheet(context, _RecipeReview(def: def)),
+                      ),
+                  ]),
+                ),
+                const SizedBox(height: 12),
+              ],
+            if (catalogue.isEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 20),
+                child: Text('Open a sector to learn its equipment recipes.',
+                    style: T.secondary),
+              ),
+            CampDisclosure(
+              key: const Key('melt-disclosure'),
+              title: 'Melt spare gear',
+              summary: '${spare.length} unassigned pieces · Recover alloy',
+              icon: Icons.recycling_outlined,
+              expanded: _open == 'melt',
+              onToggle: () => _toggle('melt'),
+              child: Column(children: [
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                      spare.isEmpty
+                          ? 'No unassigned equipment. Equipped pieces stay with their wearers.'
+                          : 'Melting destroys a piece and returns some alloy. Equipped pieces are protected.',
+                      style: T.secondary),
+                ),
+                for (final gear in spare)
+                  GearEntry(
+                    key: Key('melt-${gear.uid}'),
+                    def: gearById(gear.defId),
+                    detail:
+                        'Recover ${kMeltValue[gearById(gear.defId).rarity]} alloy',
+                    onTap: () =>
+                        showCampSheet(context, _MeltReview(gear: gear)),
+                  ),
+              ]),
+            ),
+            const SizedBox(height: 12),
+            CampLink(
+              title: 'Assign equipment',
+              detail: 'Forged pieces wait in the vault',
+              onTap: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const RosterScreen())),
             ),
           ],
         ),
-      );
+      ),
+    );
+  }
 }
 
-class _CraftBand extends StatelessWidget {
-  const _CraftBand({required this.def});
+class _RecipeReview extends StatelessWidget {
+  const _RecipeReview({required this.def});
   final GearDef def;
 
   @override
   Widget build(BuildContext context) {
     final c = context.watch<GuildController>();
-    final color = rarityColor(def.rarity);
     final cost = kCraftCost[def.rarity]!;
+    final owned = c.g.vault.where((gear) => gear.defId == def.id).length;
     final can = c.canCraft(def);
-    final gated = !c.forgeCanWork(def.rarity);
-
-    Widget part(String label, int need, int have, Color hue) {
-      final ok = have >= need;
-      return Padding(
-        padding: const EdgeInsets.only(right: 14),
-        child: Text('$need $label',
-            style: T.mono.copyWith(
-                fontSize: 12, color: ok ? hue : T.bad, letterSpacing: 0.6)),
-      );
-    }
-
-    return Opacity(
-      opacity: gated ? 0.4 : 1,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(0, 14, 16, 14),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(width: 4, height: 48, color: color),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(def.name,
-                      style: T.title.copyWith(fontSize: 17, color: color)),
-                  const SizedBox(height: 5),
-                  Text(def.bonus.lines.join('   '),
-                      style: T.micro.copyWith(color: T.good)),
-                  const SizedBox(height: 12),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: Wrap(
-                          children: [
-                            part('CR', cost.credits, c.g.credits, T.amber),
-                            part('AL', cost.alloy, c.g.alloy, T.steel),
-                            part('IN', cost.intel, c.g.intel, T.cyan),
-                          ],
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: can
-                            ? () async {
-                                await c.craft(def);
-                                if (!context.mounted) return;
-                                showFlash(
-                                  context,
-                                  kicker: 'FORGED',
-                                  title: def.name,
-                                  lines: def.bonus.lines,
-                                  color: color,
-                                  heavy: def.rarity == Rarity.epic,
-                                );
-                              }
-                            : null,
-                        behavior: HitTestBehavior.opaque,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 14, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: can
-                                ? color.withValues(alpha: 0.12)
-                                : Colors.transparent,
-                            border:
-                                Border.all(color: can ? color : T.line),
-                          ),
-                          child: Text('FORGE',
-                              style: T.mono.copyWith(
-                                  fontSize: 12,
-                                  letterSpacing: 2,
-                                  color: can ? color : T.dim)),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      const CampSheetHeader(title: 'Review recipe'),
+      GearDetail(def: def),
+      const SizedBox(height: 16),
+      Text('$owned owned · Arrives unassigned in the vault.',
+          style: T.secondary),
+      const SizedBox(height: 24),
+      SpendCost(
+          guild: c.g,
+          credits: cost.credits,
+          alloy: cost.alloy,
+          intel: cost.intel),
+      const SizedBox(height: 16),
+      if (!c.forgeCanWork(def.rarity)) ...[
+        Text(
+            'Requires forge level ${kForgeLevelFor[def.rarity]}. '
+            'Your forge is level ${c.forgeLevel}.',
+            style: T.body),
+        const SizedBox(height: 16),
+      ],
+      CampAction(
+        key: const Key('confirm-craft'),
+        label: !c.forgeCanWork(def.rarity)
+            ? 'Forge level too low'
+            : can
+                ? 'Craft ${fieldName(def.name)}'
+                : 'More resources needed',
+        onPressed: can
+            ? () async {
+                final gear = await c.craft(def);
+                if (!context.mounted || gear == null) return;
+                Navigator.pop(context);
+                campNotice(context,
+                    '${fieldName(def.name)} forged. Assign it in Roster & equipment.');
+              }
+            : null,
       ),
-    );
+    ]);
   }
 }
 
-class _MeltBand extends StatelessWidget {
-  const _MeltBand({required this.gear});
+class _MeltReview extends StatelessWidget {
+  const _MeltReview({required this.gear});
   final Gear gear;
 
   @override
   Widget build(BuildContext context) {
-    final c = context.read<GuildController>();
+    final c = context.watch<GuildController>();
     final def = gearById(gear.defId);
-    final color = rarityColor(def.rarity);
     final value = kMeltValue[def.rarity]!;
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(0, 12, 16, 12),
-      child: Row(
-        children: [
-          Container(width: 3, height: 32, color: color),
-          const SizedBox(width: 17),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(def.name,
-                    style: T.mono.copyWith(fontSize: 15, color: color)),
-                const SizedBox(height: 3),
-                Text('RETURNS $value ALLOY', style: T.micro),
-              ],
-            ),
-          ),
-          GestureDetector(
-            onTap: () async {
-              final ok = await _confirm(context, def, value);
-              if (ok != true) return;
-              final got = await c.melt(gear);
-              if (got == null || !context.mounted) return;
-              showFlash(
-                context,
-                kicker: 'MELTED DOWN',
-                title: def.name,
-                lines: ['+$got ALLOY'],
-                color: T.steel,
-              );
-            },
-            behavior: HitTestBehavior.opaque,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-              child: Text('MELT',
-                  style: T.mono.copyWith(
-                      fontSize: 12, letterSpacing: 2, color: T.bad)),
-            ),
-          ),
-        ],
+    final cost = kCraftCost[def.rarity]!;
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      const CampSheetHeader(title: 'Melt this piece?'),
+      GearDetail(def: def),
+      const SizedBox(height: 24),
+      Text('Recover $value alloy', style: T.title),
+      const SizedBox(height: 8),
+      Text(
+          'This piece will be destroyed. Your alloy increases from '
+          '${c.g.alloy} to ${c.g.alloy + value}.',
+          style: T.body),
+      const SizedBox(height: 12),
+      Text(
+          'Crafting a replacement costs ${cost.credits} credits, '
+          '${cost.alloy} alloy and ${cost.intel} intel.',
+          style: T.secondary),
+      const SizedBox(height: 24),
+      CampButton(
+        label: 'Keep this piece',
+        onPressed: () => Navigator.pop(context),
       ),
-    );
-  }
-
-  Future<bool?> _confirm(BuildContext context, GearDef def, int value) {
-    return showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: T.card,
-        shape: const Border.fromBorderSide(BorderSide(color: T.line)),
-        title: Text('MELT ${def.name}?',
-            style: T.mono.copyWith(fontSize: 16, letterSpacing: 1.5)),
-        content: Text(
-          'Destroyed for $value alloy. Forging it again costs '
-          '${kCraftCost[def.rarity]!.alloy} alloy and '
-          '${kCraftCost[def.rarity]!.intel} intel.',
-          style: T.mono.copyWith(fontSize: 15, height: 1.6),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text('KEEP',
-                style: T.mono.copyWith(color: T.amber, fontSize: 13)),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text('MELT',
-                style: T.mono.copyWith(color: T.bad, fontSize: 13)),
-          ),
-        ],
+      const SizedBox(height: 12),
+      CampAction(
+        key: const Key('confirm-melt'),
+        label: 'Melt for $value alloy',
+        onPressed: c.g.unequippedGear.any((item) => item.uid == gear.uid)
+            ? () async {
+                final got = await c.melt(gear);
+                if (!context.mounted || got == null) return;
+                Navigator.pop(context);
+                campNotice(
+                    context, '${fieldName(def.name)} melted. +$got alloy.');
+              }
+            : null,
       ),
-    );
+    ]);
   }
 }

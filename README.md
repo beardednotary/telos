@@ -26,11 +26,12 @@ INTENT -> DURATION -> SECTOR -> SQUAD -> [put the phone down] -> DEBRIEF -> SPEN
 
 1. **Dispatch** — say what you're working on, how long you have, where the
    squad goes and who goes.
-2. **Session** — a countdown and nothing else. No taps, no collectibles, no
-   progress ticking up on screen.
-3. **Debrief** — everything the run produced, delivered at once when you come
-   back. One notification fires when the run ends; that is the only thing the
-   app will ever interrupt you for.
+2. **Session** — a quiet countdown, your intention, and a small Integrity
+   readout. No live rewards, animated scenery, or guild management.
+3. **Debrief** — earnings are banked once when the run resolves. A find, story
+   discovery, or ordinary haul leads; the full report expands on tap. One
+   notification fires when the run ends; that is the only thing the app will
+   ever interrupt you for.
 4. **Outpost** — spend what you earned: gear, recruits, facilities, new sectors.
    This is what makes you want to start the next session.
 
@@ -170,42 +171,104 @@ test/
 ```
 
 Adding a sector, class or item is an edit to `data/content.dart` — no code
-changes, no art. That's deliberate: the terminal aesthetic means content scales
-without an artist.
+changes, no additional art. Sector geometry and equipment marks remain coded;
+the single camp illustration establishes a mood without adding an artwork
+requirement to every content entry.
 
 ---
 
 ## Visual language
 
-Tactical terminal / OLED command console.
+Night Watch is the launch design: charcoal, brass, practical field equipment,
+and clear boundaries around optional detail.
 
-- True black `#0B0C0E`, card `#16181D`, hairline `#2A2E36`
-- Amber `#F5A623` primary accent, cyan `#00E5FF` for intel, green/red for status
-- Monospace throughout, bracketed actions (`[ DISPATCH SQUAD ]`), 1px borders,
-  discrete block meters
-- **JetBrains Mono, bundled** at three weights — Light 300 (the countdown),
-  Regular 400 (body), SemiBold 600 (headings and actions), which is exactly
-  what the type scale asks for, so nothing is synthesised. ~820KB total. The
-  platform stack (SF Mono → Menlo → Consolas → monospace) remains as a
-  fallback for glyphs it does not cover.
-  It is SIL Open Font License 1.1: `assets/fonts/OFL.txt` ships in the bundle
-  and is readable in-app under FACILITIES → ABOUT → TYPEFACE.
+- Ground `#1E252B`, panel `#272F35`, boundary `#677A83`, text `#E6EAEB`.
+- Brass `#D3B779` identifies the main action. Secondary controls use neutral
+  outlines; color is not the only way to read a state.
+- **IBM Plex Sans Condensed SemiBold** for names and headings, **IBM Plex Sans**
+  for prose and controls, and **JetBrains Mono** for quantities and time.
+  All fonts and their SIL Open Font Licenses ship in the bundle and appear in
+  Flutter's in-app license registry.
+- Camp shows guild identity, the approved ink illustration, one selected
+  facility project, and two bounded disclosures: squad/equipment and
+  stores/facilities. Only one disclosure opens at a time. Dispatch and the
+  most recent repeat remain in a footer while the content scrolls.
+- The illustration establishes the guild's world; it is not a portrait of
+  the selected squad. Roster counts and summaries come from the save.
+- Guild names retain the player's casing. A name and one of four cosmetic
+  sigils can be changed at camp, saved locally, and carried through backups.
+  Existing names are preserved; old saves receive the lantern sigil.
+  Renaming does not rewrite a previously signed Spire Charter.
+
+Camp, dispatch, focus, and return now use the native Night Watch flow.
+Preparation has three mutually exclusive disclosures: your focus, their
+destination, and the squad. A fresh plan starts at 25 minutes; later plans
+reuse the most recent duration, destination, and squad, with a fresh optional
+intention. Presets and custom 5–180-minute durations remain available.
+
+The forecast shares resource formulas with the resolver. It shows the expected
+full-session haul at 100% Integrity, with gear attempts and per-attempt odds
+available as planning information. Those odds are for any gear; rarity is
+rolled separately, and actual loot is never revealed during preparation.
+Shorter durations keep the selected destination when reachable, or explicitly
+name the replacement when it is not. Locked and duration-gated sectors explain
+their requirements inside the destination step without a longer-session nudge.
+
+Roster, equipment, forge, and facilities now use bounded Night Watch sections.
+Only one member, recipe tier, or management section opens at a time. Equipment
+reviews compare the selected slot's bonuses before committing a swap; the
+replaced piece returns to the vault. Crafting, melting, upgrades, recruiting,
+and sector access have separate reviews showing the actual costs and gates.
+Resource purchases show what remains afterward, and assigned gear cannot be
+melted. Camp-project selection still spends nothing.
+
+The field log opens read-only expedition records with saved reflections, journal,
+haul, and squad XP. Opening a record never banks it again. Historical levels are
+not inferred from the current roster; equipment removed from the vault is shown
+as a count because older records retain only its ID. Log totals describe the
+retained history, up to 500 expeditions.
+
+The first-run field manual has four short pages with optional rule explanations.
+Reviewing it from settings adds repeat-dispatch help. Settings groups guild
+identity, save/restore, and help. Backup review compares the current guild with
+the actual decoded save before replacement; unreadable or unsupported files
+cannot be restored. Exported copies in the app's folder still need to be kept
+outside Telos to survive deleting the app.
+
+Contracts show one order's rewards at a time and guard repeated claim taps.
+The Spire gives the recorded contribution first, with the original charter behind
+a disclosure. Share cards use Night Watch type and coded sector art, preview
+before opening the native share sheet, and exclude task and reflection text.
+The complete Flutter screen migration is implemented; physical iPhone lifecycle,
+notification, backup, and sharing checks remain in the
+[device validation pass](docs/design/device-validation.md).
+The native widget and Live Activity now share the Night Watch palette and Plex
+fonts, and iOS starts on a charcoal background. Source wiring is checked locally;
+the signed iOS build and device appearance still need Codemagic/iPhone validation.
+
+Expedition balance and Integrity formulas are unchanged. Simultaneous start/finish
+requests share one operation, and a new focus session or debrief closes
+management routes left open above camp, including when started by a Shortcut.
 
 ### Pacing
 
 Three deliberate bits of feel, all of them load-bearing rather than decorative:
 
-- **The debrief arrives in beats**, not all at once — header, numbers, journal,
-  yield, *then* salvage, then progression. Salvage lands last because it is the
-  payoff the rest builds to. One finite controller drives it (`Staged` in
-  `widgets/terminal.dart`), tapping anywhere skips to the end, and because it
-  is finite the screen still settles in tests.
-- **The home screen shows one NEXT target** — the nearest sector, recruit or
-  upgrade, with a meter. Incrementals run on *"I'll just get to the next
-  unlock"*, and without this the screen only had the immediate action and the
-  long arc, nothing in between.
-- **Dispatch nudges towards longer blocks** by stating a fact rather than
-  scolding: *"25 min would reach Blackstone Hollow."*
+- **The debrief has three finite beats**: the return, the focal result, and
+  the next project/report. The reveal lasts 900ms, skips on touch, and respects
+  reduced motion. The highest-rarity recovered item leads when there is gear;
+  otherwise a prior record or the actual haul does. The Spire Charter takes
+  precedence on arrival. All journal entries, salvage, XP and unlocks remain
+  in the expandable report. Reflection and sharing are optional.
+- **Camp shows one chosen facility project** with its actual costs and
+  resource progress. The player can choose Forge, Archive, or Barracks without
+  spending anything. These projects can be funded by repeated short sessions;
+  the camp does not make a duration-gated sector the compulsory next target.
+  Upgrades still use the existing costs and facility rules.
+- **Dispatch makes the current plan legible**: the chosen duration,
+  destination, and squad stay visible when their details are closed. The
+  resource forecast changes with the plan; focus duration remains the
+  player's constraint.
 
 The session screen has no motion at all, on purpose.
 
@@ -221,6 +284,13 @@ flutter run
 flutter test
 ```
 
+The existing Codemagic workflow builds iOS and auto-increments the TestFlight
+build number. Keep its current numbering and signing setup. The optional
+pre-build gate is `python3 tool/preflight.py`; it runs source checks, analysis,
+and behavior/economy tests without uploading anything. See the
+[Codemagic handoff](docs/design/codemagic-handoff.md) for the candidate contents,
+build settings, and [tester notes](docs/design/testflight-notes.txt).
+
 ---
 
 ## Not in V1 (deliberately)
@@ -231,4 +301,4 @@ flutter test
   game; focus is the only thing that generates progression. No XP boosts, no
   session skips, no purchased currency. No pack sector goes deeper than the
   Spire's 90 minutes.
-- Crafting, companions, guild-hall cosmetics
+- Companions and guild-hall cosmetics

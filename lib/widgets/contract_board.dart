@@ -6,9 +6,10 @@ import '../models/guild_state.dart';
 import '../models/models.dart';
 import '../state/guild_controller.dart';
 import '../theme/telos_theme.dart';
-import 'flash.dart';
 import 'sigil.dart';
-import 'terminal.dart';
+import 'camp_controls.dart';
+import 'expedition_widgets.dart';
+import 'management_widgets.dart';
 
 /// How a contract reads. Written as an order given to a guild, not as a
 /// checklist item - "Bring back 180 alloy from Blackstone Hollow in a single
@@ -23,9 +24,9 @@ String contractTitle(Contract c, GuildState g) {
 
   switch (c.kind) {
     case ContractKind.sectorRuns:
-      return 'Run ${sector!.name} ${c.target} times';
+      return 'Run ${fieldName(sector!.name)} ${c.target} times';
     case ContractKind.haul:
-      return 'Bring back ${c.target} ${c.res!.label} from ${sector!.name} '
+      return 'Bring back ${c.target} ${c.res!.label.toLowerCase()} from ${fieldName(sector!.name)} '
           'in a single run';
     case ContractKind.cleanRuns:
       return 'Finish ${c.target} runs at full integrity';
@@ -34,18 +35,19 @@ String contractTitle(Contract c, GuildState g) {
     case ContractKind.minutes:
       return 'Protect ${c.target} minutes in total';
     case ContractKind.classRuns:
-      return 'Send the ${cls!.name} out ${c.target} times';
+      return 'Send the ${fieldName(cls!.name)} out ${c.target} times';
     case ContractKind.fullDepth:
       return c.target == 1
-          ? 'Reach the far end of ${sector!.name}'
-          : 'Reach the far end of ${sector!.name} ${c.target} times';
+          ? 'Reach the far end of ${fieldName(sector!.name)}'
+          : 'Reach the far end of ${fieldName(sector!.name)} ${c.target} times';
     case ContractKind.sectorReturn:
-      return 'Go back into ${sector!.name}';
+      return 'Go back into ${fieldName(sector!.name)}';
     case ContractKind.memberLevel:
       return 'Bring ${name(c.memberId)} up to level ${c.target}';
     case ContractKind.carryGear:
-      return times('Take the ${gearById(c.gearDefId!).name} back into '
-          '${sector!.name}');
+      return times(
+          'Take the ${fieldName(gearById(c.gearDefId!).name)} back into '
+          '${fieldName(sector!.name)}');
     case ContractKind.fullKit:
       return times('Send a squad out with every kit slot filled');
     case ContractKind.pairRun:
@@ -57,148 +59,100 @@ String contractTitle(Contract c, GuildState g) {
 
 /// The unit under the meter, so progress reads without doing arithmetic.
 String contractProgress(Contract c) => switch (c.kind) {
-      ContractKind.haul => '${c.progress} / ${c.target} ${c.res!.label}',
-      ContractKind.longRun => '${c.progress} / ${c.target} MIN, BEST RUN',
-      ContractKind.minutes => '${c.progress} / ${c.target} MIN',
-      ContractKind.memberLevel => 'LEVEL ${c.progress} / ${c.target}',
+      ContractKind.haul =>
+        '${c.progress} / ${c.target} ${c.res!.label.toLowerCase()}',
+      ContractKind.longRun => '${c.progress} / ${c.target} min · best run',
+      ContractKind.minutes => '${c.progress} / ${c.target} min',
+      ContractKind.memberLevel => 'Level ${c.progress} / ${c.target}',
       _ => '${c.progress} / ${c.target}',
     };
 
-/// The board. Lives on the home screen because that is where the question
-/// "what should I do next" is actually asked.
-class ContractBoardPanel extends StatelessWidget {
+/// Optional orders use the same bounded hierarchy as the rest of camp.
+class ContractBoardPanel extends StatefulWidget {
   const ContractBoardPanel({super.key});
+
+  @override
+  State<ContractBoardPanel> createState() => _ContractBoardPanelState();
+}
+
+class _ContractBoardPanelState extends State<ContractBoardPanel> {
+  String? _open;
 
   @override
   Widget build(BuildContext context) {
     final c = context.watch<GuildController>();
-    if (c.contracts.isEmpty) return const SizedBox.shrink();
-    final ready = c.claimableContracts;
-
-    return Section(
-      label: 'CONTRACTS',
-      trailing: ready > 0 ? '$ready READY' : null,
-      trailingColor: T.good,
-      rows: [for (final k in c.contracts) _ContractBand(contract: k)],
-    );
-  }
-}
-
-class _ContractBand extends StatelessWidget {
-  const _ContractBand({required this.contract});
-  final Contract contract;
-
-  @override
-  Widget build(BuildContext context) {
-    final ctrl = context.read<GuildController>();
-    final k = contract;
-    final done = k.done;
-    final sector = k.sectorId == null ? null : sectorById(k.sectorId!);
-    final accent =
-        done ? T.good : (sector != null ? Color(sector.accent) : T.steel);
-    // A contract about a person carries their class mark.
-    final emblem = k.classId ??
-        (k.memberId == null ? null : ctrl.g.memberById(k.memberId!)?.classId);
-
-    return Container(
-      color: done ? T.good.withValues(alpha: 0.10) : null,
-      padding: const EdgeInsets.fromLTRB(0, 14, 16, 14),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(width: 4, height: 44, color: accent),
-          const SizedBox(width: 14),
-          if (sector != null) ...[
-            Padding(
-              padding: const EdgeInsets.only(top: 2, right: 12),
-              child: Sigil(sectorId: sector.id, color: accent, size: 22),
-            ),
-          ] else if (emblem != null) ...[
-            Padding(
-              padding: const EdgeInsets.only(top: 2, right: 12),
-              child: ClassEmblem(classId: emblem, color: accent, size: 22),
-            ),
-          ] else
-            const SizedBox(width: 2),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(contractTitle(k, ctrl.g),
-                    style: T.mono.copyWith(fontSize: 15, height: 1.5)),
-                const SizedBox(height: 10),
-                if (done)
-                  Row(
-                    children: [
-                      Text('COMPLETE', style: T.micro.copyWith(color: T.good)),
-                      const Spacer(),
-                      GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () async {
-                          final claimed = await ctrl.claimContract(k.id);
-                          if (claimed == null || !context.mounted) return;
-                          showFlash(
-                            context,
-                            kicker: 'CONTRACT PAID',
-                            title: contractTitle(claimed, ctrl.g),
-                            lines: [
-                              '+${claimed.rewardCredits} CR   '
-                                  '+${claimed.rewardAlloy} AL   '
-                                  '+${claimed.rewardIntel} IN',
-                              '+${claimed.rewardXp} GUILD XP',
-                            ],
-                            color: T.good,
-                          );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Text('Standing orders.', style: T.display),
+        const SizedBox(height: 8),
+        Text('Optional goals. No deadlines.', style: T.secondary),
+        const SizedBox(height: 24),
+        if (c.contracts.isEmpty)
+          Text('No contracts posted.', style: T.secondary),
+        for (final contract in c.contracts) ...[
+          CampDisclosure(
+            key: Key('contract-${contract.id}'),
+            title: contractTitle(contract, c.g),
+            summary: contract.done
+                ? 'Complete · Ready to claim'
+                : contractProgress(contract),
+            icon: contract.done
+                ? Icons.check_circle_outline
+                : Icons.assignment_outlined,
+            leading: contract.done
+                ? null
+                : contract.sectorId != null
+                    ? Sigil(
+                        sectorId: contract.sectorId!, color: T.amber, size: 26)
+                    : contract.classId != null
+                        ? ClassEmblem(
+                            classId: contract.classId!,
+                            color: T.amber,
+                            size: 26)
+                        : null,
+            expanded: _open == contract.id,
+            onToggle: () => setState(
+                () => _open = _open == contract.id ? null : contract.id),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('REWARD', style: T.label),
+                    const SizedBox(height: 12),
+                    ResourceAmounts(
+                        credits: contract.rewardCredits,
+                        alloy: contract.rewardAlloy,
+                        intel: contract.rewardIntel,
+                        gains: true),
+                    const SizedBox(height: 8),
+                    Text('+${contract.rewardXp} guild XP', style: T.secondary),
+                    const SizedBox(height: 20),
+                    if (contract.done)
+                      CampAction(
+                        key: Key('claim-${contract.id}'),
+                        label: 'Claim rewards',
+                        onPressed: () async {
+                          final paid = await c.claimContract(contract.id);
+                          if (paid == null || !context.mounted) return;
+                          setState(() => _open = null);
+                          campNotice(
+                              context,
+                              'Contract paid. +${paid.rewardCredits} credits, '
+                              '+${paid.rewardAlloy} alloy, +${paid.rewardIntel} intel and '
+                              '+${paid.rewardXp} guild XP.');
                         },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 14, vertical: 7),
-                          decoration: BoxDecoration(
-                            color: T.good.withValues(alpha: 0.15),
-                            border: Border.all(color: T.good),
-                          ),
-                          child: Text('CLAIM',
-                              style: T.mono.copyWith(
-                                  fontSize: 12,
-                                  letterSpacing: 2,
-                                  color: T.good)),
-                        ),
-                      ),
-                    ],
-                  )
-                else ...[
-                  Meter(
-                    value: k.target == 0 ? 0 : k.progress / k.target,
-                    segments: 20,
-                    height: 4,
-                    color: accent,
-                  ),
-                  const SizedBox(height: 7),
-                  // Spread apart when both fit; the reward drops to its own
-                  // line when a long progress label or large text would
-                  // otherwise run them together.
-                  SizedBox(
-                    width: double.infinity,
-                    child: Wrap(
-                      alignment: WrapAlignment.spaceBetween,
-                      spacing: 12,
-                      runSpacing: 4,
-                      children: [
-                        Text(contractProgress(k), style: T.micro),
-                        Text(
-                          '${k.rewardCredits} CR  ${k.rewardAlloy} AL  '
-                          '${k.rewardIntel} IN',
-                          style: T.micro.copyWith(color: T.dim),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ],
+                      )
+                    else
+                      Text('Progress is recorded when an expedition returns.',
+                          style: T.secondary),
+                  ]),
             ),
           ),
+          const SizedBox(height: 12),
         ],
-      ),
+      ],
     );
   }
 }

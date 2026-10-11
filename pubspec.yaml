@@ -41,9 +41,19 @@ flutter_launcher_icons:
 flutter:
   uses-material-design: true
   assets:
+    - assets/art/camp.png
+    - assets/fonts/OFL-IBMPlexSans.txt
+    - assets/fonts/OFL-IBMPlexSansCondensed.txt
     - assets/fonts/OFL.txt
     - assets/fonts/OFL-Syne.txt
   fonts:
+    - family: IBMPlexSans
+      fonts:
+        - asset: assets/fonts/IBMPlexSans-Variable.ttf
+    - family: IBMPlexSansCondensed
+      fonts:
+        - asset: assets/fonts/IBMPlexSansCondensed-SemiBold.ttf
+          weight: 600
     # JetBrains Mono, SIL Open Font License 1.1. Licence ships in the bundle
     # and is shown in-app under FACILITIES.
     - family: JetBrainsMono

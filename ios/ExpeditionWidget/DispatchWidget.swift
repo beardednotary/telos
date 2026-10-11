@@ -56,7 +56,7 @@ struct DispatchProvider: TimelineProvider {
     }
 
     private static let sample = WidgetStore.Dispatch(
-        key: "latest", title: "MOSSWOOD VERGE", subtitle: "25 MIN · KAEL", accent: 0xFF8FD694)
+        key: "latest", title: "Mosswood Verge", subtitle: "25 min · KAEL", accent: 0xFFD3B779)
 }
 
 struct DispatchWidgetView: View {
@@ -91,7 +91,7 @@ private struct RunView: View {
     let family: WidgetFamily
 
     var body: some View {
-        let accent = Palette.accent(run.accent)
+        let accent = Palette.amber
         if family == .accessoryRectangular {
             VStack(alignment: .leading, spacing: 1) {
                 Text(run.sectorName).font(Typeface.name(13)).lineLimit(1)
@@ -127,7 +127,7 @@ private struct SingleView: View {
     let family: WidgetFamily
 
     var body: some View {
-        let accent = Palette.accent(dispatch.accent)
+        let accent = Palette.amber
         if family == .accessoryRectangular {
             VStack(alignment: .leading, spacing: 1) {
                 Text("SEND AGAIN").font(Typeface.micro)
@@ -180,7 +180,7 @@ private struct MediumView: View {
         let dispatch: WidgetStore.Dispatch
 
         var body: some View {
-            let accent = Palette.accent(dispatch.accent)
+            let accent = Palette.amber
             HStack(spacing: 10) {
                 Rectangle().fill(accent).frame(width: 3)
                 VStack(alignment: .leading, spacing: 1) {
@@ -215,7 +215,7 @@ private struct NothingSentView: View {
                     .font(Typeface.name(15))
                     .foregroundStyle(Palette.amber)
                 Text("Send a squad out once and it will be here to send again.")
-                    .font(Typeface.micro)
+                    .font(Typeface.body)
                     .foregroundStyle(Palette.dim)
                 Spacer(minLength: 0)
             }

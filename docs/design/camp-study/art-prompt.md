@@ -1,0 +1,9 @@
+# Temporary camp concept
+
+Created with the built-in image generation tool using the imagegen skill. This is generated concept art for evaluating the design direction, not commissioned artwork or a finished production asset. It does not establish canonical appearances for named characters.
+
+Local asset: `camp-concept.png`. Preserve the original generated file; this is a workspace copy.
+
+## Exact prompt
+
+Use case: stylized-concept. Asset type: a single still illustration for a mobile incremental expedition RPG's camp screen, landscape 3:2 composition. Primary request: give a quiet focus-timer RPG a tangible party and home, using restrained ink-drawn game art. Scene: a very small expedition camp beside old overgrown stone and industrial ruins; practical canvas lean-to behind two ready adventurers, a battered field chest, a low lantern between them, a distant narrow unfinished tower. Exactly two adult human adventurers in the foreground, large readable full-body silhouettes: a lean archivist in a hooded travel coat with a bound field ledger and satchel; a stockier artificer with rolled sleeves, a work apron, a short tool at their belt and a backpack. They are calmly preparing to leave, not fighting. Faces simplified but intentional, hands anatomically clear. Art style: confident hand-inked shapes, sparse woodcut hatching, dark graphic silhouette masses against muted bone paper, like a considered pen-and-ink indie RPG rulebook illustration. Restrained palette charcoal #20251F, moss-grey, parchment #E8E1CE, tiny muted ochre lantern accent. Strong, readable figures at phone size. Crisp shapes, generous negative space above, illustration occupies central/lower region. Background sparse, no busy environment. No text, typography, UI, panel borders, numbers, watermarks, glowing magic, photorealism, glossy 3D, anime faces, or decorative fantasy ornament. This is only an art-direction study; no animation.

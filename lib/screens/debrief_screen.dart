@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../data/content.dart';
@@ -7,717 +6,432 @@ import '../models/guild_state.dart';
 import '../models/models.dart';
 import '../state/guild_controller.dart';
 import '../theme/telos_theme.dart';
+import '../widgets/camp_controls.dart';
+import '../widgets/expedition_widgets.dart';
+import '../widgets/gear_mark.dart';
 import '../widgets/run_card.dart';
 import '../widgets/sector_scene.dart';
-import '../widgets/sigil.dart';
 import '../widgets/terminal.dart';
 
-/// The after-action report. This is the reward: everything the run produced is
-/// hidden until the work is over, then delivered in sequence.
 class DebriefScreen extends StatefulWidget {
   const DebriefScreen({super.key, required this.record});
   final RunRecord record;
-
   @override
   State<DebriefScreen> createState() => _DebriefScreenState();
 }
 
 class _DebriefScreenState extends State<DebriefScreen>
     with SingleTickerProviderStateMixin {
-  final _note = TextEditingController();
-  String? _progress;
-
-  late final AnimationController _reveal = AnimationController(
+  late final _note = TextEditingController(text: widget.record.note ?? '');
+  late String? _progress = widget.record.progress;
+  String? _open;
+  bool _leaving = false;
+  late final _reveal = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 1500),
+    duration: const Duration(milliseconds: 900),
   )..forward();
 
-  static const int _beats = 8;
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MediaQuery.disableAnimationsOf(context)) _reveal.value = 1;
+  }
 
   @override
   void dispose() {
-    _reveal.dispose();
     _note.dispose();
+    _reveal.dispose();
     super.dispose();
   }
 
-  Widget _beat(int step, Widget child) =>
-      Staged(animation: _reveal, step: step, steps: _beats, child: child);
+  void _toggle(String section) =>
+      setState(() => _open = _open == section ? null : section);
+  Widget _beat(int step, Widget child) => Staged(
+        animation: _reveal,
+        step: step,
+        steps: 3,
+        child: child,
+      );
+
+  Future<void> _return() async {
+    if (_leaving) return;
+    setState(() => _leaving = true);
+    final c = context.read<GuildController>();
+    if (_progress != null) await c.recordProgress(_progress!, note: _note.text);
+    await c.dismissDebrief();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final c = context.read<GuildController>();
+    final c = context.watch<GuildController>();
+    final g = c.g;
     final r = widget.record;
     final sector = sectorById(r.sectorId);
     final depth =
         (r.elapsedSeconds / 60 / sector.nominalMinutes).clamp(0.0, 1.6);
-    final sc = Color(sector.accent);
-    // Where every earlier run here got to, for the scene and the card.
+    final gear = r.loot.map(g.gearByUid).whereType<Gear>().toList()
+      ..sort((a, b) => gearById(b.defId)
+          .rarity
+          .index
+          .compareTo(gearById(a.defId).rarity.index));
     final pastDepths = [
-      for (final p in c.g.log)
+      for (final p in g.log)
         if (p.sectorId == r.sectorId && p.id != r.id)
           p.elapsedSeconds / 60 / sector.nominalMinutes,
     ];
-    final floors = c.g.spireComplete ? c.g.spireFloors : 0;
-    final clean = r.integrity >= 0.999;
     final status = r.scraps
         ? 'BELOW SECTOR MINIMUM'
         : r.recalled
             ? 'RECALLED EARLY'
-            : clean
+            : r.integrity >= .999
                 ? 'CLEAN RUN'
                 : 'PLANNED ${r.plannedMinutes}m';
-    final iColor = clean
-        ? T.good
-        : r.integrity >= 0.7
-            ? T.amber
-            : T.bad;
-
+    final duration = r.elapsedSeconds < 60
+        ? '${r.elapsedSeconds} seconds'
+        : '${r.elapsedMinutes} minutes';
     return Scaffold(
       body: SafeArea(
-        child: GestureDetector(
-          onTap: () => _reveal.value = 1,
-          behavior: HitTestBehavior.deferToChild,
-          child: Column(
-            children: [
-              Expanded(
+        bottom: false,
+        child: Listener(
+          onPointerDown: (_) {
+            if (!_reveal.isCompleted) _reveal.value = 1;
+          },
+          child: Column(children: [
+            Expanded(
                 child: ListView(
-                  padding: const EdgeInsets.only(bottom: 20),
-                  children: [
-                    // -- 0. header -----------------------------------------
-                    _beat(
-                      0,
-                      Container(
-                        width: double.infinity,
-                        color: sc.withValues(alpha: 0.12),
-                        padding: const EdgeInsets.fromLTRB(20, 22, 20, 20),
+              key: const Key('debrief-scroll'),
+              padding: const EdgeInsets.fromLTRB(16, 24, 16, 20),
+              children: [
+                _beat(
+                    0,
+                    Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                              '$duration · ${(r.integrity * 100).round()}% Integrity',
+                              textAlign: TextAlign.center,
+                              style: T.label),
+                          const SizedBox(height: 12),
+                          Text('Back from ${fieldName(sector.name)}.',
+                              textAlign: TextAlign.center, style: T.display),
+                          if (r.recalled || r.scraps) ...[
+                            const SizedBox(height: 10),
+                            Text(
+                                r.scraps
+                                    ? 'Below the sector minimum. Credits only; your time still counts.'
+                                    : 'Recalled early. Earnings reflect the time completed.',
+                                style: T.secondary,
+                                textAlign: TextAlign.center),
+                          ],
+                        ])),
+                const SizedBox(height: 24),
+                _beat(1, _find(c, gear, sector)),
+                const SizedBox(height: 16),
+                _beat(
+                    2,
+                    ExpeditionPanel(
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Text('DEBRIEF',
-                                    style: T.micro.copyWith(color: sc)),
-                                const Spacer(),
-                                Text(sector.designation, style: T.micro),
-                              ],
-                            ),
-                            const SizedBox(height: 14),
-                            if (SectorScene.has(sector.id)) ...[
-                              Text(sector.name,
-                                  style: T.title
-                                      .copyWith(fontSize: 24, color: sc)),
-                              const SizedBox(height: 16),
-                              // Where this run got to, among every run the
-                              // player has made here.
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                            c.canUpgrade(g.campProject)
+                                ? 'WITHIN REACH'
+                                : 'YOUR NEXT PROJECT',
+                            style: T.label),
+                        const SizedBox(height: 8),
+                        Text(projectTitle(g), style: T.title),
+                        const SizedBox(height: 8),
+                        Text(
+                            c.canUpgrade(g.campProject)
+                                ? 'You have enough to upgrade it at camp.'
+                                : '${g.credits} / ${g.campProject.costAt(g.facilities[g.campProject]!).$1} credits · '
+                                    '${g.alloy} / ${g.campProject.costAt(g.facilities[g.campProject]!).$2} alloy',
+                            style: T.secondary),
+                      ],
+                    ))),
+                const SizedBox(height: 16),
+                _beat(
+                    2,
+                    CampDisclosure(
+                      key: const Key('report-disclosure'),
+                      title: 'Expedition report',
+                      summary:
+                          '+${r.credits} credits · +${r.alloy} alloy · +${r.intel} intel'
+                          '${r.guildLevelUps > 0 ? '\nGuild level ${g.level} reached' : r.levelUps.isNotEmpty ? '\n${r.levelUps.length} members levelled up' : ''}',
+                      icon: Icons.receipt_long_outlined,
+                      expanded: _open == 'report',
+                      onToggle: () => _toggle('report'),
+                      child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              ResourceAmounts(
+                                  credits: r.credits,
+                                  alloy: r.alloy,
+                                  intel: r.intel,
+                                  gains: true),
+                              const SizedBox(height: 12),
+                              Text('Already in the stores.',
+                                  style: T.secondary),
+                              const SizedBox(height: 20),
+                              Text('Field journal', style: T.title),
                               SectorScene(
-                                sectorId: sector.id,
-                                color: sc,
-                                depths: pastDepths,
-                                latest: depth,
-                                floors: floors,
-                              ),
-                            ] else
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(sector.name,
-                                        style: T.title
-                                            .copyWith(fontSize: 24, color: sc)),
-                                  ),
-                                  const SizedBox(width: 14),
-                                  SigilPlate(
-                                      sectorId: sector.id,
-                                      color: sc,
-                                      size: 72,
-                                      animate: true),
-                                ],
-                              ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    // -- 1. the two numbers that matter ---------------------
-                    const SizedBox(height: 16),
-                    _beat(
-                      1,
-                      Section(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text('FOCUSED', style: T.micro),
-                                      const SizedBox(height: 6),
-                                      Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.baseline,
-                                        textBaseline: TextBaseline.alphabetic,
-                                        children: [
-                                          Text('${r.elapsedMinutes}',
-                                              style: T.big.copyWith(
-                                                  fontSize: 48,
-                                                  color: T.amber)),
-                                          Text('m',
-                                              style: T.mono.copyWith(
-                                                  fontSize: 17, color: T.dim)),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    Text('INTEGRITY', style: T.micro),
-                                    const SizedBox(height: 6),
-                                    Text('${(r.integrity * 100).round()}%',
-                                        style: T.big.copyWith(
-                                            fontSize: 48, color: iColor)),
-                                  ],
-                                ),
+                                  sectorId: sector.id,
+                                  color: T.dim,
+                                  depths: pastDepths,
+                                  latest: depth,
+                                  floors: g.spireComplete ? g.spireFloors : 0,
+                                  height: 100,
+                                  animate: false),
+                              Text(
+                                  '${(depth * 100).round()}% depth · ${r.plannedMinutes} minutes planned',
+                                  style: T.secondary),
+                              for (final line in r.journal)
+                                Padding(
+                                    padding: const EdgeInsets.only(top: 12),
+                                    child: Text(line, style: T.body)),
+                              if (r.priorSurvey != null &&
+                                  (gear.isNotEmpty || r.completedSpire)) ...[
+                                const SizedBox(height: 20),
+                                Text('Prior survey', style: T.title),
+                                const SizedBox(height: 8),
+                                Text(r.priorSurvey!, style: T.body),
                               ],
-                            ),
-                            const SizedBox(height: 14),
-                            Meter(
-                                value: depth.clamp(0.0, 1.0),
-                                segments: 30,
-                                height: 4,
-                                color: iColor),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                Text('DEPTH ${(depth * 100).round()}%',
-                                    style: T.micro),
-                                const Spacer(),
-                                Text(
-                                  status,
-                                  style: T.micro.copyWith(
-                                      color: (r.scraps || r.recalled)
-                                          ? T.bad
-                                          : iColor),
-                                ),
+                              if (r.loot.isNotEmpty) ...[
+                                const SizedBox(height: 20),
+                                Text('Recovered equipment', style: T.title),
+                                for (final item in gear)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 12),
+                                    child: _gearDetails(gearById(item.defId)),
+                                  ),
+                                if (gear.length < r.loot.length)
+                                  Text(
+                                      'Some recovered equipment is no longer in the vault.',
+                                      style: T.secondary),
                               ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    // -- 2. journal ----------------------------------------
-                    _beat(
+                              const SizedBox(height: 20),
+                              Text('Progression', style: T.title),
+                              const SizedBox(height: 8),
+                              Text('+${r.guildXp} guild XP', style: T.body),
+                              if (r.guildLevelUps > 0) ...[
+                                Text('Guild level ${g.level}', style: T.title),
+                                for (var level = g.level - r.guildLevelUps + 1;
+                                    level <= g.level;
+                                    level++)
+                                  for (final unlock in guildLevelUnlocks(level))
+                                    Padding(
+                                        padding: const EdgeInsets.only(top: 8),
+                                        child: Text(unlock, style: T.body)),
+                              ],
+                              for (final id in r.squad)
+                                if (g.memberById(id) != null)
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 10),
+                                    child: Text(
+                                        '${g.memberById(id)!.name} · +${r.xpGained[id] ?? 0} XP · '
+                                        '${r.levelUps.contains(id) ? 'reached level' : 'level'} ${g.memberById(id)!.level}',
+                                        style: T.body),
+                                  ),
+                              const SizedBox(height: 20),
+                              CampButton(
+                                  label: 'Share expedition',
+                                  onPressed: () => showRunCard(
+                                      context,
+                                      RunCard(
+                                        record: r,
+                                        sector: sector,
+                                        guildName: g.guildName,
+                                        depths: pastDepths,
+                                        floors:
+                                            g.spireComplete ? g.spireFloors : 0,
+                                        status: status,
+                                      ))),
+                            ],
+                          )),
+                    )),
+                if (r.intent.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  _beat(
                       2,
-                      Section(
-                        label: 'FIELD JOURNAL',
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            for (final line in r.journal)
-                              Padding(
-                                padding: const EdgeInsets.only(bottom: 9),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text('> ',
-                                        style: T.mono.copyWith(color: T.dim)),
-                                    Expanded(
-                                      child: Text(line,
-                                          style: T.mono.copyWith(
-                                              fontSize: 15, height: 1.65)),
+                      CampDisclosure(
+                        key: const Key('reflection-disclosure'),
+                        title: 'Your focus',
+                        summary: _progress == null
+                            ? r.intent
+                            : '${r.intent}\nProgress: ${fieldName(_progress!)}',
+                        icon: Icons.edit_note_outlined,
+                        expanded: _open == 'reflection',
+                        onToggle: () => _toggle('reflection'),
+                        child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Text('Did you make progress?', style: T.title),
+                                const SizedBox(height: 6),
+                                Text(
+                                    'For your log only. Your answer does not change the rewards.',
+                                    style: T.secondary),
+                                const SizedBox(height: 12),
+                                Wrap(spacing: 8, children: [
+                                  for (final answer in ['YES', 'SOME', 'NO'])
+                                    ChoiceChip(
+                                      key: Key('progress-$answer'),
+                                      label: Text(fieldName(answer)),
+                                      selected: _progress == answer,
+                                      onSelected: (_) {
+                                        setState(() => _progress = answer);
+                                        c.recordProgress(answer,
+                                            note: _note.text);
+                                      },
                                     ),
-                                  ],
+                                ]),
+                                const SizedBox(height: 12),
+                                TextField(
+                                  key: const Key('reflection-note'),
+                                  controller: _note,
+                                  style: T.body,
+                                  maxLines: 2,
+                                  maxLength: 160,
+                                  onChanged: (value) {
+                                    if (_progress != null) {
+                                      c.recordProgress(_progress!, note: value);
+                                    }
+                                  },
+                                  decoration: const InputDecoration(
+                                      labelText: 'Add a note (optional)'),
                                 ),
-                              ),
-                            // A trace of the company that worked here before.
-                            // Set apart from the journal because it is a find,
-                            // not a report - but deliberately unadorned: no
-                            // counter, no "1 of 5", nothing that turns it into
-                            // a collection the player is behind on.
-                            // The arrival. Shown once, on the run that
-                            // recovered the Charter, and never framed as a
-                            // score - the two numbers simply both exist.
-                            if (r.completedSpire) ...[
-                              const SizedBox(height: 6),
-                              Container(height: 1, color: T.line),
-                              const SizedBox(height: 14),
-                              Text('THE LAST CHARTER',
-                                  style: T.micro.copyWith(color: T.amber)),
-                              const SizedBox(height: 10),
-                              Text(
-                                'Find out what the structure in Sector 05 is '
-                                'for.',
-                                style: T.mono.copyWith(
-                                    fontSize: 15, height: 1.65),
-                              ),
-                              const SizedBox(height: 14),
-                              Text(
-                                'The line for the holder is blank. They never '
-                                'put their name to it.',
-                                style: T.mono.copyWith(
-                                    fontSize: 15, height: 1.65),
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                c.g.spireCharterName ?? c.g.guildName,
-                                style: T.title.copyWith(
-                                    fontSize: 21, color: T.amber),
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                'Logged against this charter before you: '
-                                '${GuildState.kCharterHours} hours. Yours: '
-                                '${c.g.totalFocusMinutes ~/ 60}.',
-                                style: T.mono.copyWith(
-                                    fontSize: 15,
-                                    height: 1.65,
-                                    color: T.dim),
-                              ),
-                              const SizedBox(height: 14),
-                              Text(
-                                'The top course is unfinished. It is yours to '
-                                'carry on, or not.',
-                                style: T.mono.copyWith(
-                                    fontSize: 15, height: 1.65),
-                              ),
-                            ],
-                            if (r.priorSurvey != null) ...[
-                              const SizedBox(height: 6),
-                              Container(height: 1, color: T.line),
-                              const SizedBox(height: 14),
-                              Text('PRIOR SURVEY',
-                                  style: T.micro
-                                      .copyWith(color: Color(sector.accent))),
-                              const SizedBox(height: 10),
-                              Text(r.priorSurvey!,
-                                  style: T.mono.copyWith(
-                                      fontSize: 15, height: 1.65)),
-                            ],
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    // -- 3. yield ------------------------------------------
-                    _beat(
-                      3,
-                      Section(
-                        label: 'RECOVERED',
-                        child: Row(
-                          children: [
-                            _Gain('CREDITS', r.credits, T.amber),
-                            _Gain('ALLOY', r.alloy, T.steel),
-                            _Gain('INTEL', r.intel, T.cyan),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    // -- 4. salvage: the beat everything builds to ----------
-                    if (r.loot.isNotEmpty)
-                      _beat(
-                        4,
-                        Section(
-                          label: 'SALVAGE',
-                          labelColor: T.amber,
-                          border: T.amber.withValues(alpha: 0.5),
-                          rows: [
-                            Section.note(
-                                '> and something else came back with them',
-                                color: T.amber),
-                            for (final uid in r.loot) _LootBand(uid: uid),
-                          ],
-                        ),
-                      ),
-
-                    // -- 5. crossing a threshold ---------------------------
-                    if (r.guildLevelUps > 0)
-                      _beat(5, _GuildLevelUp(record: r, level: c.g.level)),
-
-                    // -- 6. progression -------------------------------------
-                    _beat(
-                      6,
-                      Section(
-                        label: 'PROGRESSION',
-                        trailing: '+${r.guildXp} GUILD XP',
-                        trailingColor: T.amber,
-                        padding: const EdgeInsets.fromLTRB(16, 14, 16, 2),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            for (final id in r.squad)
-                              _MemberProgress(id: id, rec: r),
-                          ],
-                        ),
-                      ),
-                    ),
-
-                    // -- 6. honour-system self report -----------------------
-                    if (r.intent.isNotEmpty)
-                      _beat(
-                        7,
-                        Column(
-                          children: [
-                            Section(
-                              label: 'YOU SET OUT TO',
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(r.intent,
-                                      style: T.mono.copyWith(
-                                          fontSize: 17,
-                                          fontWeight: FontWeight.w300,
-                                          height: 1.45)),
-                                  const SizedBox(height: 18),
-                                  Text('DID YOU MAKE PROGRESS?', style: T.micro),
-                                  const SizedBox(height: 4),
-                                  Text('For your log only. It changes nothing here.',
-                                      style: T.micro.copyWith(
-                                          letterSpacing: 0.4, fontSize: 10)),
-                                  const SizedBox(height: 10),
-                                  Row(
-                                    children: [
-                                      for (final a in ['YES', 'SOME', 'NO']) ...[
-                                        TChip(
-                                          a,
-                                          selected: _progress == a,
-                                          color: a == 'YES'
-                                              ? T.good
-                                              : a == 'SOME'
-                                                  ? T.amber
-                                                  : T.dim,
-                                          onTap: () {
-                                            HapticFeedback.selectionClick();
-                                            setState(() => _progress = a);
-                                            c.recordProgress(a,
-                                                note: _note.text);
-                                          },
-                                        ),
-                                        const SizedBox(width: 8),
-                                      ],
-                                    ],
-                                  ),
-                                  const SizedBox(height: 16),
-                                  TextField(
-                                    controller: _note,
-                                    style: T.mono.copyWith(fontSize: 15),
-                                    cursorColor: T.amber,
-                                    maxLines: 2,
-                                    maxLength: 160,
-                                    onChanged: (v) {
-                                      if (_progress != null) {
-                                        c.recordProgress(_progress!, note: v);
-                                      }
-                                    },
-                                    decoration: InputDecoration(
-                                      isDense: true,
-                                      counterText: '',
-                                      hintText: 'Add a note (optional)',
-                                      hintStyle: T.mono
-                                          .copyWith(color: T.dim, fontSize: 15),
-                                      border: const UnderlineInputBorder(
-                                          borderSide:
-                                              BorderSide(color: T.line)),
-                                      enabledBorder: const UnderlineInputBorder(
-                                          borderSide:
-                                              BorderSide(color: T.line)),
-                                      focusedBorder: const UnderlineInputBorder(
-                                          borderSide:
-                                              BorderSide(color: T.amber)),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                    // -- 7. share, if they want to --------------------------
-                    // Offered, never asked: no prompt, nothing for doing it.
-                    _beat(
-                      7,
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Align(
-                          alignment: Alignment.centerRight,
-                          child: TButton(
-                            'SHARE',
-                            color: T.dim,
-                            dense: true,
-                            expand: false,
-                            onTap: () => showRunCard(
-                              context,
-                              RunCard(
-                                record: r,
-                                sector: sector,
-                                guildName: c.g.guildName,
-                                depths: pastDepths,
-                                floors: floors,
-                                status: status,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 4, 20, 18),
-                child: GestureDetector(
-                  onTap: () {
-                    if (_progress != null) {
-                      c.recordProgress(_progress!, note: _note.text);
-                    }
-                    c.dismissDebrief();
-                  },
-                  behavior: HitTestBehavior.opaque,
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 18),
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: T.amber.withValues(alpha: 0.12),
-                      border: Border.all(color: T.amber, width: 1.5),
-                    ),
-                    child: Text('RETURN TO OUTPOST',
-                        style: T.mono.copyWith(
-                            color: T.amber,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w300,
-                            letterSpacing: 3.5)),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _Gain extends StatelessWidget {
-  const _Gain(this.label, this.value, this.color);
-  final String label;
-  final int value;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) => Expanded(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(label, style: T.micro),
-            const SizedBox(height: 6),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Text(value > 0 ? '+$value' : '-',
-                  style: T.numeric
-                      .copyWith(fontSize: 30, color: value > 0 ? color : T.dim)),
-            ),
-          ],
-        ),
-      );
-}
-
-class _LootBand extends StatelessWidget {
-  const _LootBand({required this.uid});
-  final String uid;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.read<GuildController>();
-    final gear = c.g.gearByUid(uid);
-    if (gear == null) return const SizedBox.shrink();
-    final def = gearById(gear.defId);
-    final color = rarityColor(def.rarity);
-
-    return Container(
-      color: color.withValues(alpha: 0.06),
-      padding: const EdgeInsets.fromLTRB(0, 16, 16, 16),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(width: 4, height: 54, color: color),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(def.rarity.label, style: T.micro.copyWith(color: color)),
-                const SizedBox(height: 6),
-                Text(def.name,
-                    style: T.title.copyWith(fontSize: 20, color: color)),
-                if (def.flavor.isNotEmpty) ...[
-                  const SizedBox(height: 5),
-                  Text(def.flavor,
-                      style: T.micro.copyWith(
-                          letterSpacing: 0.4, fontStyle: FontStyle.italic)),
+                              ],
+                            )),
+                      )),
                 ],
-                const SizedBox(height: 10),
-                for (final l in def.bonus.lines)
-                  Text(l,
-                      style: T.mono.copyWith(fontSize: 13, color: T.good)),
               ],
-            ),
-          ),
-        ],
+            )),
+            ExpeditionFooter(
+                child: CampButton(
+              key: const Key('return-to-camp'),
+              label: 'Return to camp',
+              primary: true,
+              onPressed: _leaving ? null : _return,
+            )),
+          ]),
+        ),
       ),
     );
   }
-}
 
-class _MemberProgress extends StatelessWidget {
-  const _MemberProgress({required this.id, required this.rec});
-  final String id;
-  final RunRecord rec;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.read<GuildController>();
-    final m = c.g.memberById(id);
-    if (m == null) return const SizedBox.shrink();
-    final levelled = rec.levelUps.contains(id);
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
-      child: Column(
+  Widget _gearDetails(GearDef def) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              ClassEmblem(
-                  classId: m.classId,
-                  color: levelled ? T.good : T.dim,
-                  size: 18),
-              const SizedBox(width: 10),
-              Text(m.name,
-                  style: T.mono.copyWith(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w300,
-                      letterSpacing: 2)),
-              const SizedBox(width: 10),
-              Text('+${rec.xpGained[id] ?? 0} XP', style: T.micro),
-              const Spacer(),
-              if (levelled)
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: T.good.withValues(alpha: 0.15),
-                    border: Border.all(color: T.good),
-                  ),
-                  child: Text('LEVEL ${m.level}',
-                      style: T.micro.copyWith(color: T.good)),
-                )
-              else
-                Text('LV ${m.level}',
-                    style: T.mono.copyWith(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w300,
-                        color: T.dim)),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Meter(
-            value: m.xp / m.xpToNext,
-            segments: 24,
-            height: 4,
-            color: levelled ? T.good : T.amber,
-          ),
+          Text('${fieldName(def.rarity.name)} · ${fieldName(def.name)}',
+              style: T.title),
+          if (def.flavor.isNotEmpty)
+            Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Text(def.flavor, style: T.secondary)),
+          const SizedBox(height: 6),
+          Text(describeBonus(def.bonus), style: T.body),
         ],
-      ),
-    );
-  }
-}
+      );
 
-/// Crossing a guild level, given the weight it deserves.
-///
-/// The number going up is not the reward - what it bought you is. This lists
-/// the unlocks, which is the thing that actually changes how the next session
-/// plays, and it lands between the salvage and the XP bars so it reads as the
-/// peak of the report rather than a footnote under it.
-class _GuildLevelUp extends StatelessWidget {
-  const _GuildLevelUp({required this.record, required this.level});
-  final RunRecord record;
-  final int level;
-
-  @override
-  Widget build(BuildContext context) {
-    // A multi-level jump should list everything it opened, not just the top.
-    final unlocks = <String>[];
-    for (var l = level - record.guildLevelUps + 1; l <= level; l++) {
-      unlocks.addAll(guildLevelUnlocks(l));
+  Widget _find(GuildController c, List<Gear> gear, Sector sector) {
+    final r = widget.record;
+    if (r.completedSpire) {
+      return ExpeditionPanel(
+          child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text('THE LAST CHARTER', style: T.label),
+          const SizedBox(height: 16),
+          const Text('Find out what the structure in Sector 05 is for.',
+              style: T.display),
+          const SizedBox(height: 12),
+          const Text(
+              'The line for the holder is blank. They never put their name to it.',
+              style: T.body),
+          const SizedBox(height: 16),
+          Text(c.g.spireCharterName ?? c.g.guildName,
+              style: T.title.copyWith(color: T.amber)),
+          const SizedBox(height: 16),
+          Text(
+              'Logged against this charter before you: ${GuildState.kCharterHours} hours. '
+              'Yours: ${c.g.totalFocusMinutes ~/ 60}.',
+              style: T.body),
+          const SizedBox(height: 12),
+          const Text(
+              'The top course is unfinished. It is yours to carry on, or not.',
+              style: T.body),
+        ],
+      ));
     }
-
-    return Padding(
-      padding: Section.margin,
-      child: Container(
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: T.good.withValues(alpha: 0.10),
-          border: Border.all(color: T.good, width: 1.4),
-        ),
-        padding: const EdgeInsets.fromLTRB(16, 18, 16, 20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              record.guildLevelUps > 1
-                  ? 'GUILD LEVEL UP  x${record.guildLevelUps}'
-                  : 'GUILD LEVEL UP',
-              style: T.micro.copyWith(color: T.good),
-            ),
+    if (gear.isNotEmpty) {
+      final def = gearById(gear.first.defId);
+      return ExpeditionPanel(
+          child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text('${def.rarity.label} FIND',
+              textAlign: TextAlign.center,
+              style: T.label.copyWith(color: T.amber)),
+          const SizedBox(height: 16),
+          Center(child: GearMark(id: def.id, size: 88)),
+          const SizedBox(height: 18),
+          Text(fieldName(def.name),
+              textAlign: TextAlign.center, style: T.display),
+          if (def.flavor.isNotEmpty) ...[
             const SizedBox(height: 10),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
-              children: [
-                Text('LEVEL', style: T.micro),
-                const SizedBox(width: 10),
-                Text('$level'.padLeft(2, '0'),
-                    style: T.big.copyWith(fontSize: 56, color: T.good)),
-              ],
-            ),
-            if (unlocks.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              Container(height: 1, color: T.good.withValues(alpha: 0.3)),
-              const SizedBox(height: 14),
-              Text('UNLOCKED', style: T.micro),
-              const SizedBox(height: 8),
-              for (final u in unlocks)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('> ', style: T.mono.copyWith(color: T.good)),
-                      Expanded(
-                        child: Text(u,
-                            style: T.mono.copyWith(fontSize: 15, height: 1.5)),
-                      ),
-                    ],
-                  ),
-                ),
-            ] else ...[
-              const SizedBox(height: 12),
-              Text('Progress toward the next unlock.',
-                  style: T.micro.copyWith(letterSpacing: 0.4)),
-            ],
+            Text(def.flavor,
+                textAlign: TextAlign.center,
+                style: T.secondary.copyWith(fontStyle: FontStyle.italic)),
           ],
-        ),
-      ),
-    );
+          const SizedBox(height: 16),
+          const Divider(height: 1),
+          const SizedBox(height: 12),
+          Text(describeBonus(def.bonus),
+              textAlign: TextAlign.center, style: T.body),
+          if (gear.length > 1) ...[
+            const SizedBox(height: 10),
+            Text('And ${gear.length - 1} more in the expedition report.',
+                style: T.secondary, textAlign: TextAlign.center),
+          ],
+        ],
+      ));
+    }
+    if (r.priorSurvey != null) {
+      return ExpeditionPanel(
+          child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('LEFT BY THE FIRST COMPANY', style: T.label),
+          const SizedBox(height: 16),
+          Text(r.priorSurvey!, style: T.title.copyWith(height: 1.4)),
+        ],
+      ));
+    }
+    return ExpeditionPanel(
+        child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(r.loot.isEmpty ? 'THE HAUL' : 'RECOVERED EQUIPMENT',
+            style: T.label),
+        const SizedBox(height: 12),
+        Text(
+            r.loot.isEmpty
+                ? r.scraps
+                    ? 'Back with scraps.'
+                    : 'Supplies for the next expedition.'
+                : '${r.loot.length} pieces recovered.',
+            style: T.display),
+        const SizedBox(height: 16),
+        ResourceAmounts(
+            credits: r.credits, alloy: r.alloy, intel: r.intel, gains: true),
+        if (!r.scraps && r.loot.isEmpty) ...[
+          const SizedBox(height: 12),
+          Text('No equipment found this time.', style: T.secondary),
+        ],
+      ],
+    ));
   }
 }

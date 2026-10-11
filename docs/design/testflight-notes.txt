@@ -1,0 +1,23 @@
+Night Watch
+
+Telos has a new charcoal-and-brass design, custom typography, and a clearer camp.
+Planning, squad equipment, crafting, and upgrades now show the important choices
+first, with details available on tap.
+
+Also new: an updated field manual, readable expedition history, guild name and
+sigil editing, clearer backup reviews, and redesigned expedition share cards.
+The widget and lock-screen activity now match Night Watch.
+
+Your existing guild should carry forward. Expedition balance, sector time
+requirements, and Integrity rules remain the same.
+
+What to test:
+- Complete a normal 25-minute session with the phone locked. Check the return
+  notification, Integrity, report, and rewards.
+- Try a longer session if it fits your routine. Reopen once mid-run and confirm
+  the timer stays correct.
+- Compare and swap equipment, craft or upgrade, then restart the app.
+- Export a backup and share an expedition card. The image should contain no task
+  or reflection text.
+- Report clipped text, confusing navigation, or lost/duplicated progress with
+  your iPhone model, iOS version, and the steps that led to it.

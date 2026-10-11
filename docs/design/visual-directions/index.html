@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Telos — three visual directions</title>
+  <link rel="stylesheet" href="review.css">
+</head>
+<body>
+  <header class="intro">
+    <p class="kicker">TELOS / TYPE & COLOR / STUDY 04</p>
+    <h1>The same game. Three different voices.</h1>
+    <p class="standfirst">The flow is settled. These change the lettering, palette and small surface details.<br>The illustration, information and decisions stay the same.</p>
+    <nav class="view-picker" aria-label="Compare a screen">
+      <button data-view="camp" aria-pressed="true">Camp</button>
+      <button data-view="dispatch" aria-pressed="false">Orders</button>
+      <button data-view="return" aria-pressed="false">Return</button>
+      <button data-view="away" aria-pressed="false">Focus</button>
+    </nav>
+  </header>
+  <main class="studies">
+    <section class="study survey">
+      <header class="study-head"><p class="number">01 / COOL & PRACTICAL</p><h2>Survey Office</h2><p>Fog gray, slate ink, a rust-colored marker.</p></header>
+      <iframe title="Survey Office interactive preview" data-treatment="survey" src="../expedition-prototype/index.html?treatment=survey&view=camp&embed=1"></iframe>
+      <div class="description"><div class="palette" aria-label="Fog, slate and rust palette"><i style="background:#e7ecee"></i><i style="background:#273f4c"></i><i style="background:#8e402d"></i></div><p><strong>Barlow Semi Condensed + Barlow.</strong> Clear, compact titles feel like signs on field equipment. Cool surfaces let the camp illustration supply the warmth.</p><p class="tradeoff">The most practical option. Its game identity relies on the artwork, equipment and world-specific language.</p><a class="open" href="../expedition-prototype/index.html?treatment=survey">Try the full loop →</a></div>
+    </section>
+    <section class="study night">
+      <header class="study-head"><p class="number">02 / DARK & MEASURED</p><h2>Night Watch</h2><p>Charcoal, pale lettering, restrained brass.</p></header>
+      <iframe title="Night Watch interactive preview" data-treatment="night" src="../expedition-prototype/index.html?treatment=night&view=camp&embed=1"></iframe>
+      <div class="description"><div class="palette" aria-label="Charcoal, pale gray and brass palette"><i style="background:#1e252b"></i><i style="background:#e6eaeb"></i><i style="background:#d3b779"></i></div><p><strong>IBM Plex Sans Condensed + IBM Plex Sans.</strong> Precise lettering and dark framed surfaces give the numbers a tactical setting. Brass is reserved for the action, progress and finds.</p><p class="tradeoff">The strongest game-menu direction. It feels more serious; dark surfaces need careful contrast and clear boundaries.</p><a class="open" href="../expedition-prototype/index.html?treatment=night">Try the full loop →</a></div>
+    </section>
+    <section class="study woodcut">
+      <header class="study-head"><p class="number">03 / PRINTED & STRANGE</p><h2>Woodcut</h2><p>Stone white, black ink, oxblood.</p></header>
+      <iframe title="Woodcut interactive preview" data-treatment="woodcut" src="../expedition-prototype/index.html?treatment=woodcut&view=camp&embed=1"></iframe>
+      <div class="description"><div class="palette" aria-label="Stone white, black ink and oxblood palette"><i style="background:#ececea"></i><i style="background:#292528"></i><i style="background:#682d3b"></i></div><p><strong>Grenze + Source Sans 3.</strong> Sharp, compact serif titles borrow the character of printed fantasy books. Controls stay plain; the expressive lettering belongs to people, places and objects.</p><p class="tradeoff">The clearest tabletop-RPG flavor. More overtly fantasy, with a title face that benefits from restraint.</p><a class="open" href="../expedition-prototype/index.html?treatment=woodcut">Try the full loop →</a></div>
+    </section>
+  </main>
+  <footer><p><strong>The recommendation:</strong> start with Night Watch if the missing quality is “this feels like a game.” Choose Survey Office for a lighter field-instrument feel, or Woodcut for the strongest fantasy voice.</p><p>All three preserve JetBrains Mono for quantities. No palette can certify who made an interface; the useful test is whether the choices feel specific to Telos.</p><p><a href="../expedition-prototype/index.html?treatment=cream">Previous cream treatment</a> · <a href="direction.md">Design rationale & font sources</a></p><p class="fine">Interactive appearance studies. Sample save, simulated sessions and a scripted first find; expedition-purpose modifiers remain provisional. The Flutter app is unchanged.</p></footer>
+  <script>
+    const views = new Set(['camp', 'dispatch', 'return', 'away']);
+    function show(view) {
+      if (!views.has(view)) return;
+      document.querySelectorAll('[data-view]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.view === view)));
+      document.querySelectorAll('iframe').forEach(frame => { frame.src = '../expedition-prototype/index.html?treatment=' + frame.dataset.treatment + '&view=' + view + '&embed=1'; });
+      history.replaceState(null, '', '?view=' + view);
+    }
+    document.querySelector('.view-picker').addEventListener('click', event => {
+      const button = event.target.closest('button[data-view]');
+      if (button) show(button.dataset.view);
+    });
+    const initial = new URLSearchParams(location.search).get('view');
+    if (initial && initial !== 'camp') show(initial);
+  </script>
+</body>
+</html>

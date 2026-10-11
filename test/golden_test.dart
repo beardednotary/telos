@@ -11,14 +11,25 @@ import 'package:telos/models/models.dart';
 import 'package:telos/screens/debrief_screen.dart';
 import 'package:telos/screens/dispatch_screen.dart';
 import 'package:telos/screens/home_screen.dart';
+import 'package:telos/screens/backup_screen.dart';
+import 'package:telos/screens/log_screen.dart';
+import 'package:telos/models/guild_state.dart';
+import 'package:telos/services/backup.dart';
+import 'package:telos/screens/forge_screen.dart';
+import 'package:telos/screens/outpost_screen.dart';
+import 'package:telos/screens/roster_screen.dart';
 import 'package:telos/screens/onboarding_screen.dart';
 import 'package:telos/screens/session_screen.dart';
 import 'package:telos/screens/spire_screen.dart';
 import 'package:telos/services/persistence.dart';
 import 'package:telos/state/guild_controller.dart';
 import 'package:telos/theme/telos_theme.dart';
+import 'package:telos/widgets/camp_controls.dart';
+import 'package:telos/widgets/contract_board.dart';
 import 'package:telos/widgets/run_card.dart';
 import 'package:telos/widgets/sigil.dart';
+
+import 'support/archive_fixtures.dart';
 
 /// Renders screens to PNG so the look can be checked without a device.
 ///
@@ -35,6 +46,9 @@ Future<void> _loadFonts() async {
       'assets/fonts/JetBrainsMono-SemiBold.ttf',
     ],
     'Syne': ['assets/fonts/Syne-Variable.ttf'],
+    'IBMPlexSans': ['assets/fonts/IBMPlexSans-Variable.ttf'],
+    'IBMPlexSansCondensed': ['assets/fonts/IBMPlexSansCondensed-SemiBold.ttf'],
+    'MaterialIcons': ['fonts/MaterialIcons-Regular.otf'],
   };
   for (final e in families.entries) {
     final loader = FontLoader(e.key);
@@ -65,11 +79,81 @@ void main() {
     await _loadFonts();
   }
 
+  Future<GuildController> establishedCamp() async {
+    final c = GuildController(Persistence());
+    await c.boot();
+    addTearDown(c.dispose);
+    c.g.onboarded = true;
+    c.g.credits = 1840;
+    c.g.alloy = 420;
+    c.g.intel = 196;
+    c.g.level = 4;
+    c.g.unlockedSectors.addAll(['blackstone', 'cinder']);
+    c.g.vault.addAll([
+      Gear('cord', 'scav_cord'),
+      Gear('glass', 'mossglass'),
+      Gear('optic', 'field_optic'),
+      Gear('lamp', 'deep_lamp'),
+    ]);
+    c.g.roster.first.equipped.addAll(['cord', 'glass']);
+    c.g.roster.first.level = 3;
+    c.g.roster.first.xp = 112;
+    return c;
+  }
+
+  Future<void> tapVisible(WidgetTester t, Finder finder) async {
+    if (finder.evaluate().isEmpty) {
+      await t.scrollUntilVisible(finder, 160,
+          scrollable: find.byType(Scrollable).last);
+    }
+    await t.ensureVisible(finder);
+    await t.pumpAndSettle();
+    await t.tap(finder);
+    await t.pumpAndSettle();
+  }
+
+  testWidgets('roster and equipment reviews', (t) async {
+    await frame(t);
+    final c = await establishedCamp();
+    await t.pumpWidget(_phone(c, const RosterScreen()));
+    await t.pumpAndSettle();
+    await expectLater(
+        find.byType(MaterialApp), matchesGoldenFile('goldens/roster.png'));
+    await tapVisible(t, find.text('KAEL'));
+    await expectLater(
+        find.byType(MaterialApp), matchesGoldenFile('goldens/member-kit.png'));
+    await tapVisible(t, find.byKey(const Key('slot-a1-1')));
+    await tapVisible(t, find.byKey(const Key('choose-gear-optic')));
+    await expectLater(find.byType(MaterialApp),
+        matchesGoldenFile('goldens/equipment-compare.png'));
+  });
+
+  testWidgets('forge and recipe review', (t) async {
+    await frame(t);
+    final c = await establishedCamp();
+    await t.pumpWidget(_phone(c, const ForgeScreen()));
+    await t.pumpAndSettle();
+    await expectLater(
+        find.byType(MaterialApp), matchesGoldenFile('goldens/forge.png'));
+    await tapVisible(t, find.byKey(const Key('recipe-scav_cord')));
+    await expectLater(
+        find.byType(MaterialApp), matchesGoldenFile('goldens/recipe.png'));
+  });
+
+  testWidgets('facilities and upgrade review', (t) async {
+    await frame(t);
+    final c = await establishedCamp();
+    await t.pumpWidget(_phone(c, const OutpostScreen()));
+    await t.pumpAndSettle();
+    await expectLater(
+        find.byType(MaterialApp), matchesGoldenFile('goldens/facilities.png'));
+    await tapVisible(t, find.byKey(const Key('review-forge')));
+    await expectLater(
+        find.byType(MaterialApp), matchesGoldenFile('goldens/upgrade.png'));
+  });
+
   testWidgets('dispatch', (t) async {
     await frame(t);
-    // Dispatch is one long screen and the squad picker and projection sit at
-    // the bottom; a phone-height surface never builds them.
-    t.view.physicalSize = const Size(390, 1700);
     final c = GuildController(Persistence());
     await c.boot();
     c.g.unlockedSectors.addAll(['blackstone', 'cinder']);
@@ -77,7 +161,16 @@ void main() {
 
     await t.pumpWidget(_phone(c, const DispatchScreen()));
     await t.pumpAndSettle();
+    await t.tap(find.text('The squad'));
+    await t.pumpAndSettle();
+    await t.ensureVisible(find.byKey(const Key('member-a1')));
     await t.tap(find.text('KAEL'));
+    await t.pumpAndSettle();
+    await t.ensureVisible(find.text('Review the plan'));
+    await t.tap(find.text('Review the plan'));
+    await t.pumpAndSettle();
+    await t.drag(
+        find.byKey(const Key('dispatch-scroll')), const Offset(0, 1000));
     await t.pumpAndSettle();
     await expectLater(
       find.byType(DispatchScreen),
@@ -98,6 +191,16 @@ void main() {
       minutes: 60,
     );
 
+    // Fix the clock and return time so preview comparisons are repeatable.
+    c.now = DateTime(2026, 10, 11, 9, 41);
+    c.g.active = ActiveRun(
+      id: 'golden-session',
+      sectorId: 'cinder',
+      intent: 'Finish the expedition engine',
+      squad: ['a1'],
+      startedAt: c.now,
+      plannedMinutes: 60,
+    );
     await t.pumpWidget(_phone(c, const SessionScreen()));
     await t.pump();
     await expectLater(
@@ -156,6 +259,11 @@ void main() {
     c.g.unlockedSectors.add('blackstone');
     // A finished run with salvage, so the payoff screen shows its best case.
     c.g.vault.add(Gear('g0', 'ore_sense'));
+    c.g.credits = 318;
+    c.g.alloy = 121;
+    c.g.intel = 14;
+    c.g.level = 3;
+    c.g.roster.first.level = 2;
     final rec = RunRecord(
       id: 'golden',
       sectorId: 'blackstone',
@@ -192,6 +300,30 @@ void main() {
       find.byType(DebriefScreen),
       matchesGoldenFile('goldens/debrief.png'),
     );
+    final plain = RunRecord.fromJson(rec.toJson()
+      ..['loot'] = []
+      ..['priorSurvey'] = null
+      ..['guildLevelUps'] = 0
+      ..['levelUps'] = []);
+    await t.pumpWidget(
+        _phone(c, DebriefScreen(key: const Key('no-gear'), record: plain)));
+    await t.pumpAndSettle();
+    await expectLater(find.byType(DebriefScreen),
+        matchesGoldenFile('goldens/debrief-no-gear.png'));
+
+    final short = RunRecord.fromJson(plain.toJson()
+      ..['recalled'] = true
+      ..['scraps'] = true
+      ..['elapsedSeconds'] = 45
+      ..['credits'] = 1
+      ..['alloy'] = 0
+      ..['intel'] = 0);
+    t.view.physicalSize = const Size(320, 640);
+    await t.pumpWidget(
+        _phone(c, DebriefScreen(key: const Key('short'), record: short)));
+    await t.pumpAndSettle();
+    await expectLater(find.byType(DebriefScreen),
+        matchesGoldenFile('goldens/debrief-recalled-small.png'));
     c.dispose();
   });
 
@@ -274,18 +406,9 @@ void main() {
                 Text('SECTOR SIGILS', style: T.micro.copyWith(color: T.steel)),
                 for (final sec in kSectors)
                   row(sec.name.replaceAll('THE ', ''), [
-                    Sigil(
-                        sectorId: sec.id,
-                        color: Color(sec.accent),
-                        size: 40),
-                    Sigil(
-                        sectorId: sec.id,
-                        color: Color(sec.accent),
-                        size: 24),
-                    Sigil(
-                        sectorId: sec.id,
-                        color: Color(sec.accent),
-                        size: 16),
+                    Sigil(sectorId: sec.id, color: Color(sec.accent), size: 40),
+                    Sigil(sectorId: sec.id, color: Color(sec.accent), size: 24),
+                    Sigil(sectorId: sec.id, color: Color(sec.accent), size: 16),
                   ]),
                 const SizedBox(height: 18),
                 Text('CLASS EMBLEMS', style: T.micro.copyWith(color: T.steel)),
@@ -308,22 +431,138 @@ void main() {
     );
   });
 
+  testWidgets('field log and historical report', (t) async {
+    await frame(t);
+    final c = await establishedCamp();
+    c.g.log.addAll([
+      archiveRecord(),
+      archiveRecord(
+          id: 'record-2',
+          startedAt: DateTime(2026, 10, 11, 8),
+          sector: 'mosswood',
+          intent: 'Inbox and invoices',
+          loot: const []),
+      archiveRecord(
+          id: 'record-3',
+          startedAt: DateTime(2026, 10, 11, 7),
+          recalled: true,
+          intent: 'Interrupted by a call',
+          loot: const []),
+    ]);
+    c.g.vault.add(Gear('retained', 'deep_lamp'));
+    await t.pumpWidget(_phone(c, const LogScreen()));
+    await t.pumpAndSettle();
+    await expectLater(
+        find.byType(MaterialApp), matchesGoldenFile('goldens/field-log.png'));
+    await tapVisible(t, find.byKey(const Key('log-record-1')));
+    await expectLater(find.byType(MaterialApp),
+        matchesGoldenFile('goldens/expedition-record.png'));
+    await t.pageBack();
+    await t.pumpAndSettle();
+    c.g.log.clear();
+    await t.pumpWidget(_phone(c, const LogScreen(key: Key('empty'))));
+    await t.pumpAndSettle();
+    await expectLater(find.byType(MaterialApp),
+        matchesGoldenFile('goldens/field-log-empty.png'));
+  });
+
+  testWidgets('standing orders and claim review', (t) async {
+    await frame(t);
+    final c = await establishedCamp();
+    c.g.contracts
+      ..clear()
+      ..addAll(standingOrders());
+    await t.pumpWidget(_phone(
+        c,
+        Scaffold(
+          appBar: AppBar(title: const Text('Contracts')),
+          body: ListView(
+              padding: const EdgeInsets.all(16),
+              children: const [ContractBoardPanel()]),
+        )));
+    await t.pumpAndSettle();
+    await expectLater(
+        find.byType(MaterialApp), matchesGoldenFile('goldens/contracts.png'));
+    await tapVisible(t, find.text('Finish 3 runs at full integrity'));
+    await expectLater(find.byType(MaterialApp),
+        matchesGoldenFile('goldens/contract-reward.png'));
+  });
+
+  testWidgets('share preview', (t) async {
+    await frame(t);
+    final c = await establishedCamp();
+    final rec = archiveRecord(loot: const []);
+    await t.pumpWidget(_phone(
+        c,
+        Scaffold(
+            body: Builder(
+                builder: (context) => Center(
+                    child: CampButton(
+                        label: 'Preview',
+                        onPressed: () => showRunCard(
+                            context,
+                            RunCard(
+                                record: rec,
+                                sector: sectorById(rec.sectorId),
+                                guildName: c.g.guildName,
+                                depths: const [.5, .8, 1],
+                                floors: 0,
+                                status: 'CLEAN RUN'))))))));
+    await tapVisible(t, find.text('Preview'));
+    await expectLater(find.byType(MaterialApp),
+        matchesGoldenFile('goldens/share-preview.png'));
+  });
+
+  testWidgets('settings and backup review', (t) async {
+    await frame(t);
+    final c = await establishedCamp();
+    final saved = GuildState.fresh()
+      ..guildName = 'The Ash Company'
+      ..level = 5
+      ..onboarded = true;
+    saved.log.add(archiveRecord(loot: const []));
+    final files = MemoryBackupFiles();
+    files.contents['/memory/telos-backup-2026-10-11-0900.json'] =
+        Backup.encode(saved);
+    await t.pumpWidget(_phone(c, BackupScreen(files: files)));
+    await t.pumpAndSettle();
+    await expectLater(
+        find.byType(MaterialApp), matchesGoldenFile('goldens/settings.png'));
+    await tapVisible(t, find.text('Save & restore'));
+    await t.ensureVisible(find.byKey(const Key('export-backup')));
+    await t.pumpAndSettle();
+    await expectLater(
+        find.byType(MaterialApp), matchesGoldenFile('goldens/backup-list.png'));
+    await tapVisible(
+        t, find.byKey(const Key('backup-telos-backup-2026-10-11-0900.json')));
+    await expectLater(find.byType(MaterialApp),
+        matchesGoldenFile('goldens/backup-restore.png'));
+  });
+
   testWidgets('manual', (t) async {
     await frame(t);
     final c = GuildController(Persistence());
     await c.boot();
     await t.pumpWidget(_phone(c, const OnboardingScreen()));
+    await t.runAsync(() => precacheImage(
+          const AssetImage('assets/art/camp.png'),
+          t.element(find.byType(OnboardingScreen)),
+        ));
     await t.pumpAndSettle();
     await expectLater(
       find.byType(OnboardingScreen),
       matchesGoldenFile('goldens/manual.png'),
     );
+    for (final name in ['manual-integrity', 'manual-pace', 'manual-return']) {
+      await tapVisible(t, find.byKey(const Key('manual-next')));
+      await expectLater(
+          find.byType(MaterialApp), matchesGoldenFile('goldens/$name.png'));
+    }
     c.dispose();
   });
 
   testWidgets('home', (t) async {
     await frame(t);
-    t.view.physicalSize = const Size(390, 1900);
     final c = GuildController(Persistence());
     await c.boot();
     c.g.onboarded = true;
@@ -366,10 +605,34 @@ void main() {
     }
 
     await t.pumpWidget(_phone(c, const HomeScreen()));
+    await t.runAsync(() => precacheImage(
+          const AssetImage('assets/art/camp.png'),
+          t.element(find.byType(HomeScreen)),
+        ));
     await t.pumpAndSettle();
     await expectLater(
       find.byType(HomeScreen),
       matchesGoldenFile('goldens/home.png'),
+    );
+    await t.tap(find.byKey(const Key('edit-guild')));
+    await t.pumpAndSettle();
+    await expectLater(
+      find.byType(Navigator),
+      matchesGoldenFile('goldens/guild-identity.png'),
+    );
+    Navigator.of(t.element(find.byKey(const Key('save-guild')))).pop();
+    await t.pumpAndSettle();
+    // An attainable project on a narrow phone. Larger text and the keyboard
+    // are exercised separately by the camp interaction tests.
+    c.g.credits = 96;
+    c.g.alloy = 18;
+    c.g.contracts.first.progress = 0;
+    t.view.physicalSize = const Size(320, 640);
+    await t.pumpWidget(_phone(c, const HomeScreen()));
+    await t.pumpAndSettle();
+    await expectLater(
+      find.byType(HomeScreen),
+      matchesGoldenFile('goldens/home-small.png'),
     );
     c.dispose();
   });

@@ -5,25 +5,45 @@ import 'package:provider/provider.dart';
 import '../data/content.dart';
 import '../models/models.dart';
 import '../services/expedition_engine.dart';
+import '../services/redeploy.dart';
 import '../state/guild_controller.dart';
 import '../theme/telos_theme.dart';
+import '../widgets/camp_controls.dart';
+import '../widgets/expedition_widgets.dart';
+import '../widgets/sector_scene.dart';
 import '../widgets/sigil.dart';
-import '../widgets/terminal.dart';
+import 'roster_screen.dart';
 
-/// The pre-session decision, in one screen:
-///   what am I doing -> how long -> where do they go -> who goes.
 class DispatchScreen extends StatefulWidget {
   const DispatchScreen({super.key});
-
   @override
   State<DispatchScreen> createState() => _DispatchScreenState();
 }
 
 class _DispatchScreenState extends State<DispatchScreen> {
   final _intent = TextEditingController();
-  int _minutes = 45;
+  int _minutes = 25;
   String? _sectorId;
   final _squad = <String>[];
+  String? _open = 'focus';
+  String? _notice;
+  String? _error;
+  bool _initialized = false;
+  bool _sending = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_initialized) return;
+    _initialized = true;
+    final recent = recentDispatches(context.read<GuildController>().g);
+    if (recent.isNotEmpty) {
+      final last = recent.first;
+      _minutes = last.minutes;
+      _sectorId = last.sectorId;
+      _squad.addAll(last.squad);
+    }
+  }
 
   @override
   void dispose() {
@@ -31,649 +51,444 @@ class _DispatchScreenState extends State<DispatchScreen> {
     super.dispose();
   }
 
-  void _autoPickSector(GuildController c) {
-    final avail = c.availableSectors(_minutes);
-    if (avail.isEmpty) {
-      _sectorId = null;
+  void _toggle(String step) {
+    FocusManager.instance.primaryFocus?.unfocus();
+    setState(() => _open = _open == step ? null : step);
+  }
+
+  void _pickMinutes(int minutes) {
+    final c = context.read<GuildController>();
+    final available = c.availableSectors(minutes);
+    setState(() {
+      _minutes = minutes;
+      _notice = null;
+      if (!available.any((s) => s.id == _sectorId)) {
+        final previous = _sectorId;
+        _sectorId = available.isEmpty ? null : available.last.id;
+        if (previous != null && _sectorId != null) {
+          _notice =
+              'Destination changed to ${fieldName(sectorById(_sectorId!).name)} to fit this session.';
+        }
+      }
+    });
+  }
+
+  Future<void> _send() async {
+    final c = context.read<GuildController>();
+    if (_sending || _sectorId == null || c.hasActiveRun) return;
+    if (_squad.isEmpty) {
+      FocusManager.instance.primaryFocus?.unfocus();
+      setState(() => _open = 'squad');
       return;
     }
-    if (_sectorId == null || !avail.any((s) => s.id == _sectorId)) {
-      // Default to the deepest sector this block of time can actually reach.
-      _sectorId = avail.last.id;
+    FocusManager.instance.primaryFocus?.unfocus();
+    setState(() {
+      _sending = true;
+      _error = null;
+    });
+    try {
+      HapticFeedback.heavyImpact();
+      await c.startRun(
+          sectorId: _sectorId!,
+          intent: _intent.text,
+          squad: List.of(_squad),
+          minutes: _minutes);
+      if (mounted && Navigator.canPop(context)) Navigator.pop(context);
+    } catch (_) {
+      if (mounted) {
+        setState(
+            () => _error = 'Could not start the expedition. Please try again.');
+      }
+    } finally {
+      if (mounted) setState(() => _sending = false);
     }
+  }
+
+  Future<void> _custom() async {
+    var value = _minutes.toDouble();
+    final picked = await showModalBottomSheet<int>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setSheet) => SafeArea(
+            child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text('Your time', style: T.display),
+                const SizedBox(height: 16),
+                Text('${value.round()} minutes', style: T.title),
+                Slider(
+                  key: const Key('custom-duration-slider'),
+                  value: value,
+                  min: 5,
+                  max: 180,
+                  divisions: 35,
+                  label: '${value.round()} minutes',
+                  onChanged: (v) => setSheet(() => value = v),
+                ),
+                Text('5–180 minutes, in five-minute steps.',
+                    style: T.secondary),
+                const SizedBox(height: 16),
+                CampButton(
+                    label: 'Use ${value.round()} minutes',
+                    primary: true,
+                    key: const Key('confirm-duration'),
+                    onPressed: () => Navigator.pop(context, value.round())),
+              ]),
+        )),
+      ),
+    );
+    if (picked != null && mounted) _pickMinutes(picked);
   }
 
   @override
   Widget build(BuildContext context) {
     final c = context.watch<GuildController>();
     final g = c.g;
-    _autoPickSector(c);
-
-    while (_squad.length > g.squadSlots) {
-      _squad.removeLast();
+    final available = c.availableSectors(_minutes);
+    if (!available.any((s) => s.id == _sectorId)) {
+      _sectorId = available.isEmpty ? null : available.last.id;
     }
-
-    final ready = _sectorId != null && _squad.isNotEmpty;
-    final outOfReach = kSectors
-        .where((s) => g.sectorUnlocked(s.id) && s.minMinutes > _minutes);
-
-    return TerminalScaffold(
-      title: 'DISPATCH',
-      bottom: _Action(
-        label: ready ? 'BEGIN EXPEDITION' : 'SELECT A SQUAD',
-        color: ready ? T.amber : T.dim,
-        onTap: ready
-            ? () async {
-                HapticFeedback.heavyImpact();
-                await c.startRun(
-                  sectorId: _sectorId!,
-                  intent: _intent.text,
-                  squad: List.of(_squad),
-                  minutes: _minutes,
-                );
-                if (context.mounted) Navigator.pop(context);
-              }
-            : null,
-      ),
-      child: ListView(
-        padding: const EdgeInsets.only(top: 4),
-        children: [
-          // -- 01 INTENT -------------------------------------------------
-          Section(
-            label: 'INTENT',
-            leading: const _StepNumber('01'),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                TextField(
-                  controller: _intent,
-                  style: T.mono
-                      .copyWith(fontSize: 17, fontWeight: FontWeight.w300),
-                  cursorColor: T.amber,
-                  textCapitalization: TextCapitalization.sentences,
-                  maxLength: 80,
-                  decoration: InputDecoration(
-                    isDense: true,
-                    counterText: '',
-                    hintText: 'What are you working on?',
-                    hintStyle: T.mono.copyWith(
-                        color: T.dim,
-                        fontSize: 17,
-                        fontWeight: FontWeight.w300),
-                    border: const UnderlineInputBorder(
-                        borderSide: BorderSide(color: T.line)),
-                    enabledBorder: const UnderlineInputBorder(
-                        borderSide: BorderSide(color: T.line)),
-                    focusedBorder: const UnderlineInputBorder(
-                        borderSide: BorderSide(color: T.amber)),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  'Optional. Nothing checks up on you - it just ends up in your log.',
-                  style: T.micro.copyWith(letterSpacing: 0.4),
-                ),
-              ],
-            ),
-          ),
-
-          // -- 02 DURATION -----------------------------------------------
-          Section(
-            label: 'DURATION',
-            leading: const _StepNumber('02'),
-            trailing: durationTier(_minutes),
-            trailingColor: T.amber,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  children: [
-                    Text('$_minutes',
-                        style: T.big.copyWith(fontSize: 54, color: T.amber)),
-                    const SizedBox(width: 6),
-                    Text('MIN', style: T.micro.copyWith(fontSize: 12)),
-                  ],
-                ),
-                const SizedBox(height: 14),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    for (final d in kDurations)
-                      TChip('$d MIN', selected: _minutes == d, onTap: () {
-                        HapticFeedback.selectionClick();
-                        setState(() => _minutes = d);
-                      }),
-                    TChip('CUSTOM',
-                        selected: !kDurations.contains(_minutes),
-                        onTap: _pickCustom),
-                  ],
-                ),
-              ],
-            ),
-          ),
-
-          // -- 03 SECTOR -------------------------------------------------
-          Section(
-            label: 'SECTOR',
-            leading: const _StepNumber('03'),
-            rows: [
-              for (final s in kSectors)
-                _SectorBand(
-                  sector: s,
-                  minutes: _minutes,
-                  unlocked: g.sectorUnlocked(s.id),
-                  surveyed: (g.surveyRead[s.id] ?? 0) >= s.priorSurvey.length,
-                  selected: _sectorId == s.id,
-                  onTap: g.sectorUnlocked(s.id) && s.minMinutes <= _minutes
-                      ? () {
-                          HapticFeedback.selectionClick();
-                          setState(() => _sectorId = s.id);
-                        }
-                      : null,
-                ),
-              if (outOfReach.isNotEmpty)
-                Section.note(
-                  '${outOfReach.first.minMinutes} min would reach '
-                  '${outOfReach.first.name}.',
-                  color: T.cyan,
-                ),
-            ],
-          ),
-
-          // -- 04 SQUAD --------------------------------------------------
-          Section(
-            label: 'SQUAD',
-            leading: const _StepNumber('04'),
-            trailing: '${_squad.length}/${g.squadSlots}',
-            trailingColor: T.amber,
-            rows: [
-              for (final m in g.roster)
-                _MemberBand(
-                  member: m,
-                  minutes: _minutes,
-                  selected: _squad.contains(m.id),
-                  onTap: () {
-                    HapticFeedback.selectionClick();
-                    setState(() {
-                      if (_squad.contains(m.id)) {
-                        _squad.remove(m.id);
-                      } else if (_squad.length < g.squadSlots) {
-                        _squad.add(m.id);
-                      } else {
-                        _squad.removeAt(0);
-                        _squad.add(m.id);
-                      }
-                    });
-                  },
-                ),
-              if (g.squadSlots < g.roster.length)
-                Section.note(
-                  'Guild level ${g.level}: ${g.squadSlots} can go out at once. '
-                  'More slots at guild level 3, 6 and 10.',
-                ),
-            ],
-          ),
-
-          if (_squad.isNotEmpty && _sectorId != null)
-            _Projection(
-              squad: _squad,
-              sectorId: _sectorId!,
-              minutes: _minutes,
-            ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _pickCustom() async {
-    var v = _minutes.toDouble();
-    final picked = await showModalBottomSheet<int>(
-      context: context,
-      backgroundColor: T.card,
-      shape: const Border(top: BorderSide(color: T.line)),
-      builder: (context) => StatefulBuilder(
-        builder: (context, setSheet) => Padding(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('CUSTOM DURATION', style: T.micro),
-              const SizedBox(height: 12),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
-                children: [
-                  Text('${v.round()}',
-                      style: T.big.copyWith(fontSize: 54, color: T.amber)),
-                  const SizedBox(width: 6),
-                  Text('MIN', style: T.micro.copyWith(fontSize: 12)),
-                  const Spacer(),
-                  Text(durationTier(v.round()),
-                      style: T.micro.copyWith(color: T.amber)),
-                ],
-              ),
-              Slider(
-                value: v,
-                min: 5,
-                max: 180,
-                divisions: 35,
-                activeColor: T.amber,
-                inactiveColor: T.line,
-                onChanged: (x) => setSheet(() => v = x),
-              ),
-              const SizedBox(height: 6),
-              _Action(
-                label: 'CONFIRM',
-                color: T.amber,
-                onTap: () => Navigator.pop(context, v.round()),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-    if (picked != null) setState(() => _minutes = picked);
-  }
-}
-
-/// A step's number, set big and Light ahead of its card's label.
-class _StepNumber extends StatelessWidget {
-  const _StepNumber(this.number);
-  final String number;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(number,
-        style: T.mono.copyWith(
-            fontSize: 20,
-            fontWeight: FontWeight.w300,
-            color: T.dim,
-            height: 1.0));
-  }
-}
-
-class _SectorBand extends StatelessWidget {
-  const _SectorBand({
-    required this.sector,
-    required this.minutes,
-    required this.unlocked,
-    required this.surveyed,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final Sector sector;
-  final int minutes;
-  final bool unlocked;
-
-  /// Every trace the first company left in this sector has been recovered.
-  /// Worth saying out loud: a sector that has quietly stopped yielding
-  /// records reads as the story being broken rather than finished. This is a
-  /// state, not a tally - it never says how many there were.
-  final bool surveyed;
-
-  final bool selected;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final tooShort = unlocked && sector.minMinutes > minutes;
-    final blocked = !unlocked || tooShort;
-
-    String? reason;
-    if (!unlocked) {
-      reason = 'LOCKED - ${sector.intelToUnlock} INTEL'
-          '${sector.guildLevelToUnlock > 1 ? ', GUILD LV ${sector.guildLevelToUnlock}' : ''}';
-    } else if (tooShort) {
-      reason = 'NEEDS ${sector.minMinutes}+ MIN';
+    _squad.removeWhere((id) => g.memberById(id) == null);
+    if (_squad.length > g.squadSlots) {
+      _squad.removeRange(g.squadSlots, _squad.length);
     }
-
-    final depth = (minutes / sector.nominalMinutes).clamp(0.0, 1.0);
-    final sc = Color(sector.accent);
-    final accent =
-        blocked ? T.line : (selected ? sc : sc.withValues(alpha: 0.4));
-
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        decoration: BoxDecoration(
-          // Every unlocked sector carries a wash of its own colour and the
-          // chosen one is properly lit, so the list reads as five different
-          // places rather than five identical rows.
-          color: blocked ? null : sc.withValues(alpha: selected ? 0.17 : 0.055),
-          border: selected ? Border.all(color: sc, width: 1.4) : null,
-        ),
-        padding: const EdgeInsets.fromLTRB(0, 14, 16, 14),
-        child: Opacity(
-          opacity: blocked ? 0.45 : 1,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(width: 4, height: 44, color: accent),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                              '${sector.designation}   //   ${sector.kind}',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: T.micro
-                                  .copyWith(color: selected ? sc : T.dim)),
-                        ),
-                        if (reason == null) ...[
-                          const SizedBox(width: 10),
-                          Text(
-                            '${(depth * 100).round()}% DEPTH',
-                            style: T.micro
-                                .copyWith(color: depth >= 1.0 ? T.good : sc),
-                          ),
-                        ],
-                      ],
-                    ),
-                    // The lock reason can run long ("LOCKED - 320 INTEL,
-                    // GUILD LV 3"), so it takes its own line rather than
-                    // squeezing the designation off a narrow phone.
-                    if (reason != null) ...[
-                      const SizedBox(height: 4),
-                      Text(reason, style: T.micro.copyWith(color: T.dim)),
-                    ],
-                    const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(sector.name,
-                              style: T.title.copyWith(fontSize: 18)),
-                        ),
-                        const SizedBox(width: 12),
-                        Sigil(sectorId: sector.id, color: accent, size: 30),
-                      ],
-                    ),
-                    const SizedBox(height: 5),
-                    Text(sector.blurb,
-                        style:
-                            T.micro.copyWith(letterSpacing: 0.4, height: 1.6)),
-                    if (unlocked && surveyed) ...[
-                      const SizedBox(height: 7),
-                      Text('NOTHING FURTHER TO RECOVER HERE',
-                          style: T.micro
-                              .copyWith(color: T.dim, letterSpacing: 0.4)),
-                    ],
-                    if (!blocked) ...[
-                      const SizedBox(height: 11),
-                      Meter(
-                          value: depth,
-                          segments: 22,
-                          height: 4,
-                          color: selected ? sc : T.dim),
-                      const SizedBox(height: 9),
-                      Row(
-                        children: [
-                          _Yield('CR', sector.creditsPerMin, T.amber),
-                          _Yield('AL', sector.alloyPerMin, T.steel),
-                          _Yield('IN', sector.intelPerMin, T.cyan),
-                          const Spacer(),
-                          Text('RARE ${(sector.baseRare * 100).round()}%',
-                              style: T.micro),
-                        ],
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _Yield extends StatelessWidget {
-  const _Yield(this.label, this.perMin, this.color);
-  final String label;
-  final double perMin;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    final blocks = perMin >= 1.5
-        ? 3
-        : perMin >= 0.5
-            ? 2
-            : perMin > 0.05
-                ? 1
-                : 0;
-    return Padding(
-      padding: const EdgeInsets.only(right: 16),
-      child: Row(
-        children: [
-          Text(label, style: T.micro.copyWith(fontSize: 10)),
-          const SizedBox(width: 5),
-          for (var i = 0; i < 3; i++)
-            Container(
-              width: 6,
-              height: 6,
-              margin: const EdgeInsets.only(right: 2),
-              color: i < blocks ? color : T.line,
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _MemberBand extends StatelessWidget {
-  const _MemberBand({
-    required this.member,
-    required this.minutes,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final Adventurer member;
-  final int minutes;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final cls = kClasses[member.classId]!;
-    final inWindow = minutes >= cls.windowMin && minutes <= cls.windowMax;
-
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        color: selected ? T.amber.withValues(alpha: 0.07) : null,
-        padding: const EdgeInsets.fromLTRB(0, 14, 16, 14),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    final members = _squad.map((id) => g.memberById(id)!).toList();
+    final sector = _sectorId == null ? null : sectorById(_sectorId!);
+    final forecast = sector == null || members.isEmpty
+        ? null
+        : ExpeditionEngine.forecast(
+            guild: g,
+            sector: sector,
+            members: members,
+            minutes: _minutes.toDouble());
+    final ready = forecast != null;
+    return Scaffold(
+      appBar: AppBar(title: const Text('Dispatch')),
+      body: Column(children: [
+        Expanded(
+            child: ListView(
+          key: const Key('dispatch-scroll'),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
           children: [
-            Container(width: 4, height: 40, color: selected ? T.amber : T.line),
-            const SizedBox(width: 14),
-            Padding(
-              padding: const EdgeInsets.only(top: 2, right: 12),
-              child: ClassEmblem(
-                classId: member.classId,
-                // Selected wins, then whether they suit this block of time.
-                color: selected ? T.amber : (inWindow ? T.good : T.dim),
-                size: 30,
-              ),
-            ),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+            const Text('Prepare to head out.', style: T.display),
+            const SizedBox(height: 20),
+            CampDisclosure(
+              key: const Key('focus-step'),
+              title: 'Your focus',
+              summary:
+                  '$_minutes minutes · ${_intent.text.trim().isEmpty ? 'Set an intention, if you like' : _intent.text.trim()}',
+              icon: Icons.schedule_outlined,
+              expanded: _open == 'focus',
+              onToggle: () => _toggle('focus'),
+              child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // QUARTERMASTER is long, so the class yields to the
-                      // window label rather than pushing it off the card.
-                      Expanded(
-                        child: Text('${cls.name}   //   LV ${member.level}',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: T.micro
-                                .copyWith(color: selected ? T.amber : T.dim)),
+                      TextField(
+                        key: const Key('focus-intent'),
+                        controller: _intent,
+                        style: T.body,
+                        textCapitalization: TextCapitalization.sentences,
+                        maxLength: 80,
+                        onChanged: (_) => setState(() {}),
+                        decoration: const InputDecoration(
+                            labelText: 'What are you working on?',
+                            helperText: 'Optional. For your log.'),
                       ),
-                      const SizedBox(width: 10),
-                      Text(inWindow ? 'IN WINDOW' : 'OFF WINDOW',
-                          style: T.micro
-                              .copyWith(color: inWindow ? T.good : T.dim)),
+                      const SizedBox(height: 12),
+                      Wrap(spacing: 8, runSpacing: 4, children: [
+                        for (final minutes in kDurations)
+                          ChoiceChip(
+                            key: Key('duration-$minutes'),
+                            label: Text('$minutes min'),
+                            selected: _minutes == minutes,
+                            onSelected: (_) => _pickMinutes(minutes),
+                          ),
+                        ActionChip(
+                            key: const Key('custom-duration'),
+                            label: const Text('Custom'),
+                            onPressed: _custom),
+                      ]),
+                      const SizedBox(height: 12),
+                      CampButton(
+                          label: 'Choose their destination',
+                          onPressed: () => _toggle('destination')),
                     ],
-                  ),
-                  const SizedBox(height: 6),
-                  Text(member.name, style: T.title.copyWith(fontSize: 18)),
-                  const SizedBox(height: 5),
-                  Text(cls.windowText,
-                      style: T.micro.copyWith(letterSpacing: 0.4)),
-                ],
-              ),
+                  )),
             ),
+            const SizedBox(height: 8),
+            CampDisclosure(
+              key: const Key('destination-step'),
+              title: 'Their destination',
+              summary: sector == null
+                  ? 'No destination fits $_minutes minutes'
+                  : fieldName(sector.name),
+              icon: Icons.explore_outlined,
+              expanded: _open == 'destination',
+              onToggle: () => _toggle('destination'),
+              child: Column(children: [
+                if (sector != null)
+                  Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: SectorScene(
+                        sectorId: sector.id,
+                        color: T.dim,
+                        height: 88,
+                        animate: false),
+                  ),
+                for (final choice in kSectors)
+                  _sectorChoice(c, choice, members),
+                Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: CampButton(
+                        label: 'Choose the squad',
+                        onPressed: () => _toggle('squad'))),
+              ]),
+            ),
+            if (_notice != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Text(_notice!, style: T.secondary),
+              ),
+            const SizedBox(height: 8),
+            CampDisclosure(
+              key: const Key('squad-step'),
+              title: 'The squad',
+              summary: members.isEmpty
+                  ? 'Choose up to ${g.squadSlots} · Nobody selected'
+                  : '${members.map((m) => m.name).join(' & ')} · ${members.length}/${g.squadSlots}',
+              icon: Icons.people_outline,
+              expanded: _open == 'squad',
+              onToggle: () => _toggle('squad'),
+              child: Column(children: [
+                Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(
+                        'When the squad is full, selecting someone replaces the first selected member.',
+                        style: T.secondary)),
+                for (final member in g.roster) _memberChoice(c, member),
+                CampLink(
+                    title: 'Review equipment',
+                    detail: 'Changes to worn gear update this forecast.',
+                    onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute<void>(
+                            builder: (_) => const RosterScreen()))),
+                Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: CampButton(
+                        label: 'Review the plan',
+                        onPressed: () => _toggle('squad'))),
+              ]),
+            ),
+            const SizedBox(height: 16),
+            if (forecast != null)
+              ExpeditionPanel(
+                  child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text('Expected haul · 100% Integrity', style: T.secondary),
+                  const SizedBox(height: 10),
+                  ResourceAmounts(
+                      credits: forecast.credits,
+                      alloy: forecast.alloy,
+                      intel: forecast.intel),
+                  const SizedBox(height: 12),
+                  Text(
+                      '${(forecast.depth * 100).round()}% depth · ${forecast.gearAttempts} gear-finding ${forecast.gearAttempts == 1 ? 'attempt' : 'attempts'}',
+                      style: T.secondary),
+                  TextButton(
+                    onPressed: () => showModalBottomSheet<void>(
+                      context: context,
+                      isScrollControlled: true,
+                      builder: (context) => SafeArea(
+                          child: SingleChildScrollView(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text('Behind the forecast', style: T.display),
+                            const SizedBox(height: 16),
+                            Text(
+                                'For a full $_minutes-minute session at 100% Integrity. Returning early or spending time in Telos changes the result.',
+                                style: T.body),
+                            const SizedBox(height: 16),
+                            Text(
+                                'Class, duration windows, levels, worn gear, and facilities:\n${describeBonus(forecast.bonus)}',
+                                style: T.body),
+                            const SizedBox(height: 16),
+                            Text(
+                                '${(forecast.gearChance * 100).round()}% chance per attempt of finding any gear. '
+                                'Rarity is rolled separately. Nothing is guaranteed or revealed in advance.',
+                                style: T.body),
+                            const SizedBox(height: 16),
+                            CampButton(
+                                label: 'Back to the plan',
+                                onPressed: () => Navigator.pop(context)),
+                          ],
+                        ),
+                      )),
+                    ),
+                    child: const Text('How this is calculated'),
+                  ),
+                ],
+              ))
+            else
+              Text(
+                  sector == null
+                      ? 'The nearest sector needs at least 10 minutes. Your custom duration stays selected.'
+                      : 'Choose a squad to see what this plan can bring back.',
+                  style: T.secondary),
+            const SizedBox(height: 16),
+            Text('Working toward ${projectTitle(g)}.',
+                textAlign: TextAlign.center, style: T.body),
+            if (_error != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: Text(_error!, style: T.body.copyWith(color: T.bad)),
+              ),
           ],
-        ),
-      ),
+        )),
+        ExpeditionFooter(
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+          CampButton(
+            key: const Key('deploy'),
+            label: _sending
+                ? 'Sending…'
+                : sector == null
+                    ? 'No destination fits'
+                    : ready
+                        ? 'Deploy · $_minutes minutes'
+                        : 'Choose a squad',
+            primary: true,
+            onPressed: _sending || sector == null ? null : _send,
+          ),
+          if (MediaQuery.viewInsetsOf(context).bottom == 0) ...[
+            const SizedBox(height: 8),
+            Text('Then lock your phone and get to work.',
+                textAlign: TextAlign.center, style: T.secondary),
+          ],
+        ])),
+      ]),
     );
   }
-}
 
-/// What this squad, at this length, in this place, is actually worth.
-///
-/// Modifiers only - never the loot. The reveal at the debrief is the payoff
-/// the whole loop is built around, so the preview stops at how the odds are
-/// shaped and says nothing about what comes back.
-class _Projection extends StatelessWidget {
-  const _Projection({
-    required this.squad,
-    required this.sectorId,
-    required this.minutes,
-  });
-
-  final List<String> squad;
-  final String sectorId;
-  final int minutes;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.watch<GuildController>();
-    final sector = sectorById(sectorId);
-    final sc = Color(sector.accent);
-
-    final members =
-        squad.map((id) => c.g.memberById(id)).whereType<Adventurer>().toList();
-
-    final bonus = ExpeditionEngine.squadBonusFor(
-      guild: c.g,
-      members: members,
-      minutes: minutes.toDouble(),
-    );
-    final rare = ExpeditionEngine.rareChanceFor(
-      sector: sector,
-      minutes: minutes.toDouble(),
-      squadBonus: bonus,
-    );
-    final team = ExpeditionEngine.teamFactorFor(members.length);
-
-    Widget mod(String label, double v, Color hue) {
-      final pct = (v * 100).round();
-      return Expanded(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(label, style: T.micro.copyWith(fontSize: 10)),
+  Widget _sectorChoice(
+      GuildController c, Sector sector, List<Adventurer> members) {
+    final unlocked = c.g.sectorUnlocked(sector.id);
+    final reachable = unlocked && sector.minMinutes <= _minutes;
+    final selected = sector.id == _sectorId;
+    final surveyed =
+        (c.g.surveyRead[sector.id] ?? 0) >= sector.priorSurvey.length;
+    final forecast = reachable && members.isNotEmpty
+        ? ExpeditionEngine.forecast(
+            guild: c.g,
+            sector: sector,
+            members: members,
+            minutes: _minutes.toDouble(),
+          )
+        : null;
+    return Semantics(
+        selected: selected,
+        child: ListTile(
+          key: Key('sector-${sector.id}'),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          leading: Sigil(
+              sectorId: sector.id, color: selected ? T.amber : T.dim, size: 24),
+          title: Text(fieldName(sector.name), style: T.title),
+          subtitle:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             const SizedBox(height: 4),
             Text(
-              '${pct >= 0 ? '+' : ''}$pct%',
-              style: T.mono.copyWith(
-                fontSize: 17,
-                fontWeight: FontWeight.w300,
-                color: pct == 0 ? T.dim : (pct > 0 ? hue : T.bad),
+                !unlocked
+                    ? 'Locked · ${sector.intelToUnlock} intel · Guild ${sector.guildLevelToUnlock}'
+                    : !reachable
+                        ? 'Needs ${sector.minMinutes}+ minutes'
+                        : sector.blurb,
+                style: T.secondary),
+            if (unlocked && surveyed)
+              Text('All prior records recovered. Resources and gear remain.',
+                  style: T.secondary),
+            if (forecast != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Text(
+                    '${forecast.credits} credits · ${forecast.alloy} alloy · ${forecast.intel} intel\n'
+                    '${forecast.gearAttempts} gear attempts',
+                    style: T.secondary),
               ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return Section(
-      label: 'PROJECTED',
-      labelColor: sc,
-      trailing: 'AT 100% INTEGRITY',
-      accent: sc,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              mod('CREDITS', bonus.credits, T.amber),
-              mod('ALLOY', bonus.alloy, T.steel),
-              mod('INTEL', bonus.intel, T.cyan),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Container(height: 1, color: T.line),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Text('RARE FIND', style: T.micro),
-              const SizedBox(width: 10),
-              Text('${(rare * 100).round()}%',
-                  style: T.mono.copyWith(
-                      fontSize: 16, fontWeight: FontWeight.w300, color: sc)),
-              const Spacer(),
-              if (members.length > 1)
-                Text('SQUAD x${team.toStringAsFixed(2)}', style: T.micro),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Text(
-            'Class, levels, kit and the outpost, combined. Integrity is the '
-            'one part still up to you - it barely moves the resources but '
-            'drives the rare find hard.',
-            style: T.micro.copyWith(letterSpacing: 0.4, height: 1.7),
-          ),
-        ],
-      ),
-    );
+          ]),
+          trailing: Icon(
+              !reachable
+                  ? Icons.lock_outline
+                  : selected
+                      ? Icons.radio_button_checked
+                      : Icons.radio_button_off,
+              color: selected ? T.amber : T.dim,
+              size: 20),
+          onTap: !reachable
+              ? null
+              : () => setState(() {
+                    _sectorId = sector.id;
+                    _notice = null;
+                  }),
+        ));
   }
-}
 
-class _Action extends StatelessWidget {
-  const _Action({required this.label, required this.color, this.onTap});
-  final String label;
-  final Color color;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final on = onTap != null;
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 18),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: on ? color.withValues(alpha: 0.12) : Colors.transparent,
-          border: Border.all(color: on ? color : T.line, width: on ? 1.5 : 1),
-        ),
-        child: Text(label,
-            style: T.mono.copyWith(
-                color: on ? color : T.dim,
-                fontSize: 18,
-                fontWeight: FontWeight.w300,
-                letterSpacing: 3.5)),
-      ),
-    );
+  Widget _memberChoice(GuildController c, Adventurer member) {
+    final cls = kClasses[member.classId]!;
+    final inWindow = _minutes >= cls.windowMin && _minutes <= cls.windowMax;
+    final selected = _squad.contains(member.id);
+    final gear = member.equipped
+        .map(c.g.gearByUid)
+        .whereType<Gear>()
+        .map((g) => fieldName(gearById(g.defId).name))
+        .join(', ');
+    return Semantics(
+        selected: selected,
+        child: ListTile(
+          key: Key('member-${member.id}'),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          leading: ClassEmblem(
+              classId: member.classId,
+              color: selected ? T.amber : T.dim,
+              size: 24),
+          title: Text(member.name, style: T.title),
+          subtitle:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text('${fieldName(cls.name)} · Level ${member.level}',
+                style: T.secondary),
+            Text(
+                inWindow
+                    ? 'Session bonus active: ${describeBonus(cls.windowBonus)}'
+                    : cls.windowText,
+                style: T.secondary),
+            Text(gear.isEmpty ? 'No equipment worn' : 'Kit: $gear',
+                style: T.secondary),
+          ]),
+          trailing: Icon(
+              selected
+                  ? Icons.check_box_outlined
+                  : Icons.check_box_outline_blank,
+              color: selected ? T.amber : T.dim,
+              size: 20),
+          onTap: () => setState(() {
+            if (_squad.contains(member.id)) {
+              _squad.remove(member.id);
+            } else {
+              if (_squad.length >= c.g.squadSlots) _squad.removeAt(0);
+              _squad.add(member.id);
+            }
+          }),
+        ));
   }
 }

@@ -2,6 +2,7 @@ import 'dart:math';
 
 import '../data/content.dart';
 import '../models/guild_state.dart';
+import '../models/expedition_forecast.dart';
 import '../models/models.dart';
 
 /// What a resolved run produced. The gear instances are created here so the
@@ -49,43 +50,25 @@ class ExpeditionEngine {
       members: members,
       minutes: elapsedMin,
     );
-    final teamFactor = teamFactorFor(members.length);
-
-    // -- yields --------------------------------------------------------------
-    // Integrity scales quantity gently (a distracted run still earns) ...
-    final qty = 0.55 + 0.45 * integrity;
-    // ... and depth is how far into the sector they got.
-    final depth = (elapsedMin / sector.nominalMinutes).clamp(0.0, 1.6);
-    final scrapFactor = scraps ? 0.30 : 1.0;
-
-    int yield_(double perMin, double bonus) => (perMin *
-            elapsedMin *
-            (1 + bonus) *
-            qty *
-            teamFactor *
-            scrapFactor)
-        .round()
-        .clamp(0, 1 << 30);
-
-    final credits = yield_(sector.creditsPerMin, squadBonus.credits);
-    final alloy = scraps ? 0 : yield_(sector.alloyPerMin, squadBonus.alloy);
-    final intel = scraps ? 0 : yield_(sector.intelPerMin, squadBonus.intel);
+    final projection = forecast(
+      guild: guild,
+      sector: sector,
+      members: members,
+      minutes: elapsedMin,
+      integrity: integrity,
+    );
+    final depth = projection.depth;
+    final credits = projection.credits;
+    final alloy = projection.alloy;
+    final intel = projection.intel;
 
     // -- loot ----------------------------------------------------------------
     // Rare finds punish distraction far harder than credits do. This is where
     // a clean run actually pays.
     final loot = <Gear>[];
     if (!scraps) {
-      final chance = rareChanceFor(
-        sector: sector,
-        minutes: elapsedMin,
-        squadBonus: squadBonus,
-        integrity: integrity,
-      );
-
-      var rolls = 1;
-      if (depth >= 1.0) rolls++;
-      if (depth >= 1.4) rolls++;
+      final chance = projection.gearChance;
+      final rolls = projection.gearAttempts;
 
       var counter = guild.gearCounter;
       for (var i = 0; i < rolls; i++) {
@@ -180,6 +163,45 @@ class ExpeditionEngine {
     return Resolution(record, loot);
   }
 
+  /// The resolver and preparation screen share these formulas. No RNG, loot
+  /// selection, save mutations, or reward banking occurs in a forecast.
+  static ExpeditionForecast forecast({
+    required GuildState guild,
+    required Sector sector,
+    required List<Adventurer> members,
+    required double minutes,
+    double integrity = 1,
+  }) {
+    final bonus =
+        squadBonusFor(guild: guild, members: members, minutes: minutes);
+    final team = teamFactorFor(members.length);
+    final scraps = minutes < sector.minMinutes;
+    final depth = (minutes / sector.nominalMinutes).clamp(0.0, 1.6);
+    final qty = .55 + .45 * integrity;
+    int yield_(double rate, double modifier) =>
+        (rate * minutes * (1 + modifier) * qty * team * (scraps ? .30 : 1.0))
+            .round()
+            .clamp(0, 1 << 30);
+    return ExpeditionForecast(
+      credits: yield_(sector.creditsPerMin, bonus.credits),
+      alloy: scraps ? 0 : yield_(sector.alloyPerMin, bonus.alloy),
+      intel: scraps ? 0 : yield_(sector.intelPerMin, bonus.intel),
+      bonus: bonus,
+      depth: depth,
+      scraps: scraps,
+      gearAttempts:
+          scraps ? 0 : 1 + (depth >= 1 ? 1 : 0) + (depth >= 1.4 ? 1 : 0),
+      gearChance: scraps
+          ? 0
+          : rareChanceFor(
+              sector: sector,
+              minutes: minutes,
+              squadBonus: bonus,
+              integrity: integrity,
+            ),
+    );
+  }
+
   /// Everything a squad contributes to a run of [minutes]: class shape, the
   /// window bonus when the length suits them, levels, worn gear, and the
   /// outpost on top. Shared with the dispatch preview so the number shown
@@ -211,9 +233,8 @@ class ExpeditionEngine {
   /// A bigger squad carries more out, just not explosively.
   static double teamFactorFor(int size) => 1 + 0.15 * (size - 1).clamp(0, 5);
 
-  /// The chance of a gear find on a clean run of this length, for the
-  /// dispatch preview. Deliberately the only number shown before a run - the
-  /// loot itself stays hidden until the debrief, which is the whole point.
+  /// Per-attempt chance of any gear, at the given Integrity. Rarity is
+  /// selected separately; the preview never rolls or reveals actual loot.
   static double rareChanceFor({
     required Sector sector,
     required double minutes,

@@ -1,11 +1,14 @@
 import 'dart:math';
 
 import '../data/content.dart';
+import 'guild_identity.dart';
 import 'models.dart';
 
 /// The entire save file. One object, serialised to JSON.
 class GuildState {
   String guildName;
+  GuildSigil guildSigil;
+  Facility campProject;
   int level;
   int xp;
 
@@ -75,6 +78,8 @@ class GuildState {
 
   GuildState({
     required this.guildName,
+    this.guildSigil = GuildSigil.lantern,
+    this.campProject = Facility.forge,
     required this.level,
     required this.xp,
     required this.credits,
@@ -106,7 +111,7 @@ class GuildState {
 
   /// A fresh save: two members, one sector, nothing else.
   factory GuildState.fresh() => GuildState(
-        guildName: 'THE SILVER LANTERN',
+        guildName: 'The Silver Lantern',
         level: 1,
         xp: 0,
         credits: 0,
@@ -219,6 +224,8 @@ class GuildState {
   Map<String, dynamic> toJson() => {
         'v': 1,
         'guildName': guildName,
+        'guildSigil': guildSigil.name,
+        'campProject': campProject.name,
         'level': level,
         'xp': xp,
         'credits': credits,
@@ -260,7 +267,12 @@ class GuildState {
     }
 
     return GuildState(
-      guildName: j['guildName'] as String? ?? 'THE SILVER LANTERN',
+      guildName: j['guildName'] as String? ?? 'The Silver Lantern',
+      guildSigil: GuildSigil.fromId(j['guildSigil']),
+      campProject: Facility.values.firstWhere(
+        (f) => f.name == j['campProject'],
+        orElse: () => Facility.forge,
+      ),
       level: j['level'] as int? ?? 1,
       xp: j['xp'] as int? ?? 0,
       credits: j['credits'] as int? ?? 0,

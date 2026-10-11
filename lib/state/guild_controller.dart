@@ -14,6 +14,7 @@ import '../services/launch_actions.dart';
 import '../services/lock_screen.dart';
 import '../services/persistence.dart';
 import '../services/redeploy.dart';
+import '../models/guild_identity.dart';
 
 /// Owns the save file, the live run, and every mutation the UI can make.
 class GuildController extends ChangeNotifier with WidgetsBindingObserver {
@@ -265,7 +266,27 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
     );
   }
 
+  Future<void>? _dispatching;
+
   Future<void> startRun({
+    required String sectorId,
+    required String intent,
+    required List<String> squad,
+    required int minutes,
+  }) {
+    if (hasActiveRun) return Future.value();
+    if (_dispatching != null) return _dispatching!;
+    final pending = _startRun(
+      sectorId: sectorId,
+      intent: intent,
+      squad: squad,
+      minutes: minutes,
+    );
+    _dispatching = pending;
+    return pending.whenComplete(() => _dispatching = null);
+  }
+
+  Future<void> _startRun({
     required String sectorId,
     required String intent,
     required List<String> squad,
@@ -323,6 +344,7 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
   /// Takes back a dispatch made by mistake. Unlike a recall it leaves no
   /// trace: no log entry, no expedition counted, no survey line spent.
   Future<bool> cancelRun() async {
+    if (_resolution != null) return false;
     if (!canCancel(DateTime.now())) return false;
     _g.active = null;
     _g.runCounter--;
@@ -335,7 +357,18 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   /// Ends the run and banks everything. [recalled] = the user stopped early.
-  Future<RunRecord?> finishRun({required bool recalled}) async {
+  Future<RunRecord?>? _resolution;
+
+  /// Resume, the timer, and an explicit recall can all arrive together.
+  /// Share the in-flight resolution so a run can only be banked once.
+  Future<RunRecord?> finishRun({required bool recalled}) {
+    if (_resolution != null) return _resolution!;
+    final pending = _finishRun(recalled: recalled);
+    _resolution = pending;
+    return pending.whenComplete(() => _resolution = null);
+  }
+
+  Future<RunRecord?> _finishRun({required bool recalled}) async {
     final run = _g.active;
     if (run == null) return null;
     final t = DateTime.now();
@@ -475,17 +508,27 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
 
   // -- roster ----------------------------------------------------------------
 
-  Future<void> equip(String memberId, String gearUid) async {
+  Future<void> equip(String memberId, String gearUid,
+      {String? replacingUid}) async {
     final m = _g.memberById(memberId);
-    if (m == null) return;
+    if (m == null || _g.gearByUid(gearUid) == null) return;
+    if (m.equipped.contains(gearUid)) return;
+    // A slot review names the piece it replaces. Reject stale reviews rather
+    // than silently removing a different piece of equipment.
+    if (replacingUid != null && !m.equipped.contains(replacingUid)) return;
+    final slot = replacingUid == null ? -1 : m.equipped.indexOf(replacingUid);
     // Take it off whoever is wearing it.
     for (final other in _g.roster) {
       other.equipped.remove(gearUid);
     }
-    if (m.equipped.length >= kGearSlots) {
-      m.equipped.removeAt(0);
+    if (slot >= 0) {
+      m.equipped[slot] = gearUid;
+    } else {
+      if (m.equipped.length >= kGearSlots) {
+        m.equipped.removeAt(0);
+      }
+      m.equipped.add(gearUid);
     }
-    m.equipped.add(gearUid);
     await _save();
     notifyListeners();
   }
@@ -595,7 +638,23 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
       .toList();
 
   Future<void> renameGuild(String name) async {
-    _g.guildName = name.trim().isEmpty ? _g.guildName : name.trim().toUpperCase();
+    if (name.trim().isEmpty) return;
+    await updateGuildIdentity(name, _g.guildSigil);
+  }
+
+  Future<void> updateGuildIdentity(String name, GuildSigil sigil) async {
+    final clean = name.trim().replaceAll(RegExp(r'\s+'), ' ');
+    if (clean.isEmpty || clean.characters.length > guildNameLimit) {
+      throw ArgumentError('Use a guild name of 1–$guildNameLimit characters.');
+    }
+    _g.guildName = clean;
+    _g.guildSigil = sigil;
+    await _save();
+    notifyListeners();
+  }
+
+  Future<void> selectCampProject(Facility facility) async {
+    _g.campProject = facility;
     await _save();
     notifyListeners();
   }

@@ -24,6 +24,14 @@ Future<void> main() async {
   // licence registry too, rather than in a screen of the game.
   LicenseRegistry.addLicense(() async* {
     yield LicenseEntryWithLineBreaks(
+      const ['IBM Plex Sans'],
+      await rootBundle.loadString('assets/fonts/OFL-IBMPlexSans.txt'),
+    );
+    yield LicenseEntryWithLineBreaks(
+      const ['IBM Plex Sans Condensed'],
+      await rootBundle.loadString('assets/fonts/OFL-IBMPlexSansCondensed.txt'),
+    );
+    yield LicenseEntryWithLineBreaks(
       const ['JetBrains Mono'],
       await rootBundle.loadString('assets/fonts/OFL.txt'),
     );
@@ -65,14 +73,38 @@ class TelosApp extends StatelessWidget {
   }
 }
 
-/// Decides what the player sees on open. A live run always wins - you cannot
-/// wander off into the roster while the squad is out.
-class Root extends StatelessWidget {
+/// Owns focus/return routing, including closing management pages when a
+/// platform action starts a run above an existing navigation stack.
+class Root extends StatefulWidget {
   const Root({super.key});
+
+  @override
+  State<Root> createState() => _RootState();
+}
+
+class _RootState extends State<Root> {
+  String? _foreground;
 
   @override
   Widget build(BuildContext context) {
     final c = context.watch<GuildController>();
+    final foreground = c.pendingDebrief != null
+        ? 'return:${c.pendingDebrief!.id}'
+        : c.hasActiveRun
+            ? 'focus:${c.active!.id}'
+            : null;
+    if (foreground != _foreground) {
+      _foreground = foreground;
+      if (foreground != null) {
+        // A widget/Shortcut can dispatch while a management route is open.
+        // State routing must also close routes sitting above this root.
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted && _foreground == foreground) {
+            Navigator.of(context).popUntil((route) => route.isFirst);
+          }
+        });
+      }
+    }
     if (!c.ready) {
       return const Scaffold(body: SizedBox.shrink());
     }

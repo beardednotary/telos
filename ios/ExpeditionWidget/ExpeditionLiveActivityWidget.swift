@@ -3,7 +3,7 @@ import SwiftUI
 import WidgetKit
 
 /// The session screen, cut down to what survives on a lock screen: the
-/// sector in its own colour, the countdown, and the progress bar.
+/// Night Watch type and brass, the countdown, and the progress bar.
 ///
 /// Every moving part here is driven by the system clock (Text(timerInterval:)
 /// and ProgressView(timerInterval:)), and the switch to RETURNED is driven by
@@ -15,7 +15,7 @@ struct ExpeditionLiveActivityWidget: Widget {
                 .activityBackgroundTint(Palette.black)
                 .activitySystemActionForegroundColor(Palette.text)
         } dynamicIsland: { context in
-            let accent = Palette.accent(context.attributes.accent)
+            let accent = Palette.amber
             let returned = context.isStale
             return DynamicIsland {
                 DynamicIslandExpandedRegion(.leading) {
@@ -42,7 +42,7 @@ struct ExpeditionLiveActivityWidget: Widget {
                         .padding(.top, 6)
                 }
             } compactLeading: {
-                // The session screen's status square, in the sector's colour.
+                // A restrained status mark; it never reveals rewards.
                 Rectangle()
                     .fill(returned ? Palette.good : accent)
                     .frame(width: 7, height: 7)
@@ -70,7 +70,7 @@ private struct LockScreenView: View {
     let context: ActivityViewContext<ExpeditionAttributes>
 
     var body: some View {
-        let accent = Palette.accent(context.attributes.accent)
+        let accent = Palette.amber
         let returned = context.isStale
 
         VStack(alignment: .leading, spacing: 10) {
@@ -153,13 +153,11 @@ private struct RunProgress: View {
 /// The subset of lib/theme/telos_theme.dart the extension uses. Shared by
 /// the Live Activity and the Dispatch widget.
 enum Palette {
-    static let black = Color(argb: 0xFF0B0C0E)
-    static let text = Color(argb: 0xFFE6E8EB)
-    static let amber = Color(argb: 0xFFF5A623)
-    static let good = Color(argb: 0xFF3DD68C)
-    static let dim = Color(argb: 0xFF6B7280)
-
-    static func accent(_ argb: UInt32) -> Color { Color(argb: argb) }
+    static let black = Color(argb: 0xFF1E252B)
+    static let text = Color(argb: 0xFFE6EAEB)
+    static let amber = Color(argb: 0xFFD3B779)
+    static let good = Color(argb: 0xFFABD1AB)
+    static let dim = Color(argb: 0xFFACBBC1)
 }
 
 /// The same fonts as the app, bundled into the extension (see its Info.plist).
@@ -172,9 +170,11 @@ enum Typeface {
         .custom("JetBrainsMono-Light", size: size)
     }
 
-    /// Sector names: Syne at its heavy end, like T.display.
+    static let body = Font.custom("IBMPlexSans-Regular", size: 13, relativeTo: .body)
+
+    /// PostScript name from the bundled condensed font, matching T.display.
     static func name(_ size: CGFloat) -> Font {
-        .custom("Syne-Bold", size: size)
+        .custom("IBMPlexSansCond-SemiBold", size: size, relativeTo: .headline)
     }
 }
 

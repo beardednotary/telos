@@ -49,43 +49,45 @@ void main() {
     await t.pumpAndSettle();
 
     // Home
-    expect(find.text('THE SILVER LANTERN'), findsOneWidget);
-    expect(find.text('DISPATCH'), findsOneWidget);
+    expect(find.text('The Silver Lantern'), findsOneWidget);
+    expect(find.byKey(const Key('camp-dispatch')), findsOneWidget);
 
-    await t.tap(find.text('DISPATCH'));
+    await t.tap(find.byKey(const Key('camp-dispatch')));
     await t.pumpAndSettle();
 
-    // Dispatch: nothing selected yet, so the action is blocked.
-    expect(find.text('INTENT'), findsOneWidget);
-    expect(find.text('SELECT A SQUAD'), findsOneWidget);
+    // A fresh plan starts at 25 minutes with no squad selected.
+    expect(find.text('Your focus'), findsOneWidget);
+    expect(find.text('Choose a squad'), findsOneWidget);
 
     await t.enterText(find.byType(TextField).first, 'Refactor the auth flow');
-    await t.tap(find.text('15 MIN'));
+    await t.tap(find.byKey(const Key('duration-15')));
+    await t.tap(find.text('Choose their destination'));
     await t.pumpAndSettle();
 
     // 15 minutes only reaches Mosswood. Blackstone is open but too deep for
     // this block of time; the Cinder Archive is not open at all.
-    expect(find.text('MOSSWOOD VERGE'), findsOneWidget);
-    expect(find.text('NEEDS 25+ MIN'), findsOneWidget);
-    expect(find.text('LOCKED - 320 INTEL, GUILD LV 3'), findsOneWidget);
+    expect(find.text('Mosswood Verge'), findsWidgets);
+    expect(find.text('Needs 25+ minutes'), findsOneWidget);
+    expect(find.text('Locked · 320 intel · Guild 3'), findsOneWidget);
 
+    await t.tap(find.byKey(const Key('deploy')));
+    await t.pumpAndSettle();
     await t.tap(find.text('KAEL'));
     await t.pumpAndSettle();
-    expect(find.text('BEGIN EXPEDITION'), findsOneWidget);
+    expect(find.text('Deploy · 15 minutes'), findsOneWidget);
 
-    await t.tap(find.text('BEGIN EXPEDITION'));
+    await t.tap(find.byKey(const Key('deploy')));
     // startRun, then the pop, then its transition. Settling rather than a
     // fixed wait, because how many frames startRun takes depends on how many
     // services it awaits.
     await t.pumpAndSettle();
 
     // Session
-    expect(find.text('MOSSWOOD VERGE'), findsOneWidget);
+    expect(find.text('Mosswood Verge'), findsOneWidget);
     expect(find.text('KAEL'), findsOneWidget);
-    expect(find.text('INTEGRITY'), findsOneWidget);
-    expect(find.text('100%'), findsOneWidget);
+    expect(find.text('Integrity 100%'), findsOneWidget);
     // Just dispatched, so the way out is still a clean cancel.
-    expect(find.textContaining('CANCEL DISPATCH'), findsOneWidget);
+    expect(find.byKey(const Key('cancel-dispatch')), findsOneWidget);
     expect(find.text('Refactor the auth flow'), findsOneWidget);
 
     // Recalling resolves the run and hands back a debrief.
@@ -95,19 +97,23 @@ void main() {
     await t.pump();
     await t.pumpAndSettle();
 
-    expect(find.text('DEBRIEF'), findsOneWidget);
-    expect(find.text('FIELD JOURNAL'), findsOneWidget);
-    expect(find.text('RECOVERED'), findsOneWidget);
-    expect(find.text('DID YOU MAKE PROGRESS?'), findsOneWidget);
+    expect(find.text('Back from Mosswood Verge.'), findsOneWidget);
+    await t.tap(find.text('Expedition report'));
+    await t.pumpAndSettle();
+    expect(find.text('Field journal'), findsOneWidget);
+    expect(find.text('Already in the stores.'), findsOneWidget);
+    await t.tap(find.text('Your focus'));
+    await t.pumpAndSettle();
+    expect(find.text('Did you make progress?'), findsOneWidget);
 
     // Honour-system answer is recorded against the log entry.
-    await t.tap(find.text('SOME'));
+    await t.tap(find.byKey(const Key('progress-SOME')));
     await t.pumpAndSettle();
     expect(c.g.log.first.progress, 'SOME');
 
-    await t.tap(find.text('RETURN TO OUTPOST'));
+    await t.tap(find.byKey(const Key('return-to-camp')));
     await t.pumpAndSettle();
-    expect(find.text('DISPATCH'), findsOneWidget);
+    expect(find.byKey(const Key('camp-dispatch')), findsOneWidget);
     expect(c.g.log.length, 1);
 
     c.dispose();
@@ -143,19 +149,22 @@ void main() {
 
     await t.pumpWidget(wrap(c, const RosterScreen()));
     await t.pumpAndSettle();
-    expect(find.text('ROSTER'), findsOneWidget);
+    expect(find.text('Roster & equipment'), findsOneWidget);
     expect(find.text('KAEL'), findsOneWidget);
     expect(find.text('MIRA'), findsOneWidget);
-    expect(find.text('EMPTY SLOT'), findsNWidgets(4)); // 2 members x 2 slots
+    await t.tap(find.text('KAEL'));
+    await t.pumpAndSettle();
+    expect(find.text('Empty slot 1'), findsOneWidget);
+    expect(find.text('Empty slot 2'), findsOneWidget);
 
     await t.pumpWidget(wrap(c, const OutpostScreen()));
     await t.pumpAndSettle();
-    expect(find.text('BARRACKS'), findsOneWidget);
-    expect(find.text('SECTOR ACCESS'), findsOneWidget);
+    expect(find.text('Barracks'), findsOneWidget);
+    expect(find.text('Sector access'), findsOneWidget);
 
     await t.pumpWidget(wrap(c, const LogScreen()));
     await t.pumpAndSettle();
-    expect(find.text('FIELD LOG'), findsOneWidget);
+    expect(find.text('Field log'), findsOneWidget);
     expect(find.text('No expeditions logged yet.'), findsOneWidget);
 
     c.dispose();
@@ -169,7 +178,9 @@ void main() {
     await t.pumpAndSettle();
 
     final before = c.g.facilities.values.toList();
-    await t.tap(find.text('UPGRADE').first);
+    await t.tap(find.byKey(const Key('review-forge')));
+    await t.pumpAndSettle();
+    await t.tap(find.byKey(const Key('confirm-upgrade')));
     await t.pumpAndSettle();
     expect(c.g.facilities.values.toList(), before);
     expect(c.g.credits, 0);
@@ -188,24 +199,24 @@ void main() {
     await t.pumpAndSettle();
 
     // The one rule, before anything else.
-    expect(find.text('I  //  THE ONE RULE'), findsOneWidget);
-    expect(find.text('DISPATCH'), findsNothing);
+    expect(find.text('THE ONE RULE'), findsOneWidget);
+    expect(find.byKey(const Key('camp-dispatch')), findsNothing);
 
-    await t.tap(find.text('CONTINUE'));
+    await t.tap(find.text('Continue'));
     await t.pumpAndSettle();
-    expect(find.text('II  //  INTEGRITY'), findsOneWidget);
+    expect(find.text('INTEGRITY'), findsOneWidget);
 
-    await t.tap(find.text('CONTINUE'));
+    await t.tap(find.text('Continue'));
     await t.pumpAndSettle();
-    expect(find.text('III  //  WHAT COMES BACK'), findsOneWidget);
+    expect(find.text('YOUR PACE'), findsOneWidget);
 
-    await t.tap(find.text('CONTINUE'));
+    await t.tap(find.text('Continue'));
     await t.pumpAndSettle();
-    await t.tap(find.text('OPEN THE OUTPOST'));
+    await t.tap(find.text('Open camp'));
     await t.pumpAndSettle();
 
     expect(c.g.onboarded, isTrue);
-    expect(find.text('DISPATCH'), findsOneWidget);
+    expect(find.byKey(const Key('camp-dispatch')), findsOneWidget);
     c.dispose();
   });
 
@@ -286,14 +297,18 @@ void _exhaustedSectorTests() {
     c.g.surveyRead['mosswood'] = mosswood.priorSurvey.length - 1;
     await t.pumpWidget(wrap(c, const DispatchScreen()));
     await t.pumpAndSettle();
-    expect(find.text('NOTHING FURTHER TO RECOVER HERE'), findsNothing);
+    await t.tap(find.text('Their destination'));
+    await t.pumpAndSettle();
+    expect(find.text('All prior records recovered. Resources and gear remain.'),
+        findsNothing);
 
     // Every trace recovered. The sector is still perfectly dispatchable - it
     // just has no story left, and saying nothing reads as a bug.
     c.g.surveyRead['mosswood'] = mosswood.priorSurvey.length;
     await t.pumpWidget(wrap(c, const DispatchScreen()));
     await t.pumpAndSettle();
-    expect(find.text('NOTHING FURTHER TO RECOVER HERE'), findsOneWidget);
+    expect(find.text('All prior records recovered. Resources and gear remain.'),
+        findsOneWidget);
 
     c.dispose();
   });

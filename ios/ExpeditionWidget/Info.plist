@@ -29,7 +29,8 @@
 	<array>
 		<string>JetBrainsMono-Light.ttf</string>
 		<string>JetBrainsMono-Regular.ttf</string>
-		<string>Syne-Variable.ttf</string>
+		<string>IBMPlexSansCondensed-SemiBold.ttf</string>
+		<string>IBMPlexSans-Variable.ttf</string>
 	</array>
 </dict>
 </plist>

@@ -3,148 +3,147 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 
 import '../data/content.dart';
-import '../models/guild_state.dart';
 import '../models/models.dart';
 import '../state/guild_controller.dart';
 import '../theme/telos_theme.dart';
-import '../widgets/flash.dart';
+import '../widgets/camp_controls.dart';
+import '../widgets/expedition_widgets.dart';
+import '../widgets/management_widgets.dart';
+import '../widgets/sector_scene.dart';
+import '../widgets/sigil.dart';
 import 'backup_screen.dart';
 import 'onboarding_screen.dart';
-import '../widgets/terminal.dart';
 
-/// Everything you spend resources on. This is the between-sessions layer -
-/// the reason a finished run makes you want to start the next one.
-class OutpostScreen extends StatelessWidget {
+class OutpostScreen extends StatefulWidget {
   const OutpostScreen({super.key});
+
+  @override
+  State<OutpostScreen> createState() => _OutpostScreenState();
+}
+
+class _OutpostScreenState extends State<OutpostScreen> {
+  late String? _open;
+
+  @override
+  void initState() {
+    super.initState();
+    _open = context.read<GuildController>().g.campProject.name;
+  }
+
+  void _toggle(String id) => setState(() => _open = _open == id ? null : id);
 
   @override
   Widget build(BuildContext context) {
     final c = context.watch<GuildController>();
     final g = c.g;
-    final locked = kSectors.where((s) => !g.sectorUnlocked(s.id)).toList();
-
-    return TerminalScaffold(
-      title: 'FACILITIES',
-      child: ListView(
-        padding: const EdgeInsets.only(top: 4, bottom: 24),
-        children: [
-          Section(child: _Balances(g: g)),
-
-          Section(
-            label: 'UPGRADES',
-            rows: [
-              Section.note(
-                'Upgrades apply to every run from now on. BARRACKS raises how '
-                'many members you can keep, FORGE how deep it can work, '
-                'ARCHIVE how much INTEL comes home.',
-              ),
-              for (final f in Facility.values) _FacilityBand(facility: f),
-            ],
-          ),
-
-          Section(
-            label: 'RECRUITING',
-            trailing: '${g.roster.length}/${g.rosterSlots} SLOTS',
-            rows: [
-              if (recruitableClasses(g).isEmpty)
-                Section.note(
-                  'No new archetypes available yet. The ARCHIVIST opens up at '
-                  'guild level 2.',
-                )
-              else
-                for (final cls in recruitableClasses(g)) _RecruitBand(cls: cls),
-            ],
-          ),
-
-          Section(
-            label: 'SECTOR ACCESS',
-            labelColor: T.cyan,
-            rows: [
-              if (locked.isEmpty)
-                Section.note('Every charted sector is open.')
-              else
-                for (final s in locked) _SectorBand(sector: s),
-            ],
-          ),
-
-          Section(
-            label: 'ABOUT',
-            rows: [
-              _LinkRow(
-                accent: T.steel,
-                title: 'SAVE DATA',
-                hint: 'Export a backup, or restore one',
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const BackupScreen()),
-                ),
-              ),
-              _LinkRow(
-                accent: T.amber,
-                title: 'FIELD MANUAL',
-                hint: 'How this works, and why not opening it is the point',
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const OnboardingScreen(asReview: true),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          // Which build this is, so a tester can say without guessing.
-          FutureBuilder<PackageInfo>(
-            future: PackageInfo.fromPlatform(),
-            builder: (context, snap) {
-              final info = snap.data;
-              if (info == null) return const SizedBox(height: 24);
-              return Padding(
-                padding: const EdgeInsets.fromLTRB(20, 2, 20, 24),
-                child: Text('TELOS ${info.version} (${info.buildNumber})',
-                    style: T.micro),
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _LinkRow extends StatelessWidget {
-  const _LinkRow({
-    required this.accent,
-    required this.title,
-    required this.hint,
-    required this.onTap,
-  });
-  final Color accent;
-  final String title;
-  final String hint;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(0, 16, 16, 16),
-        child: Row(
+    final recruits = kClasses.values.where((cls) => cls.recruitCost > 0);
+    return Scaffold(
+      appBar: AppBar(title: const Text('Facilities & recruiting')),
+      body: SafeArea(
+        top: false,
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
           children: [
-            Container(width: 4, height: 40, color: accent),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title, style: T.title.copyWith(fontSize: 18)),
-                  const SizedBox(height: 4),
-                  Text(hint, style: T.micro.copyWith(letterSpacing: 0.4)),
-                ],
+            const Text('Build the company.', style: T.display),
+            const SizedBox(height: 8),
+            Text('Permanent upgrades. More hands. New ground.',
+                style: T.secondary),
+            const SizedBox(height: 20),
+            StoreBalance(guild: g),
+            const SizedBox(height: 24),
+            for (final facility in Facility.values) ...[
+              CampDisclosure(
+                key: Key('facility-${facility.name}'),
+                title: fieldName(facility.label),
+                summary: 'Level ${g.facilities[facility]}'
+                    '${g.campProject == facility ? ' · Camp project' : ''}',
+                icon: switch (facility) {
+                  Facility.barracks => Icons.cabin_outlined,
+                  Facility.forge => Icons.handyman_outlined,
+                  Facility.archive => Icons.menu_book_outlined,
+                },
+                expanded: _open == facility.name,
+                onToggle: () => _toggle(facility.name),
+                child: _FacilityDetails(facility: facility),
               ),
+              const SizedBox(height: 12),
+            ],
+            CampDisclosure(
+              key: const Key('recruiting-disclosure'),
+              title: 'Recruiting',
+              summary:
+                  '${g.roster.length}/${g.rosterSlots} places filled · Guild level ${g.level}',
+              icon: Icons.person_add_alt_outlined,
+              expanded: _open == 'recruiting',
+              onToggle: () => _toggle('recruiting'),
+              child: Column(children: [
+                if (g.roster.length >= g.rosterSlots)
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(
+                        'The roster is full. Upgrade the barracks to make room.',
+                        style: T.secondary),
+                  ),
+                for (final cls in recruits)
+                  CampLink(
+                    key: Key('recruit-${cls.id}'),
+                    title: fieldName(cls.name),
+                    detail: g.level < cls.unlockGuildLevel
+                        ? 'Requires guild level ${cls.unlockGuildLevel}'
+                        : '${cls.recruitCost} credits · ${cls.windowText}',
+                    onTap: () =>
+                        showCampSheet(context, _RecruitReview(cls: cls)),
+                  ),
+              ]),
             ),
-            Text('>', style: T.mono.copyWith(color: T.dim)),
+            const SizedBox(height: 12),
+            CampDisclosure(
+              key: const Key('sectors-disclosure'),
+              title: 'Sector access',
+              summary: '${g.unlockedSectors.length} of ${kSectors.length} open',
+              icon: Icons.explore_outlined,
+              expanded: _open == 'sectors',
+              onToggle: () => _toggle('sectors'),
+              child: Column(children: [
+                for (final sector in kSectors)
+                  CampLink(
+                    key: Key('access-${sector.id}'),
+                    title: fieldName(sector.name),
+                    detail: g.sectorUnlocked(sector.id)
+                        ? 'Open · ${sector.minMinutes}+ minute expeditions'
+                        : '${sector.intelToUnlock} intel · Guild ${sector.guildLevelToUnlock} · ${sector.minMinutes}+ min',
+                    onTap: () =>
+                        showCampSheet(context, _SectorReview(sector: sector)),
+                  ),
+              ]),
+            ),
+            const SizedBox(height: 12),
+            CampDisclosure(
+              key: const Key('camp-reference'),
+              title: 'Camp reference',
+              summary: 'Field manual, backups & build information',
+              icon: Icons.info_outline,
+              expanded: _open == 'reference',
+              onToggle: () => _toggle('reference'),
+              child: Column(children: [
+                CampLink(
+                  title: 'Settings & backup',
+                  detail: 'Export a save or restore one',
+                  onTap: () => Navigator.push(context,
+                      MaterialPageRoute(builder: (_) => const BackupScreen())),
+                ),
+                CampLink(
+                  title: 'Field manual',
+                  detail: 'How expeditions and Integrity work',
+                  onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) =>
+                              const OnboardingScreen(asReview: true))),
+                ),
+                const _BuildInfo(),
+              ]),
+            ),
           ],
         ),
       ),
@@ -152,279 +151,232 @@ class _LinkRow extends StatelessWidget {
   }
 }
 
-class _Balances extends StatelessWidget {
-  const _Balances({required this.g});
-  final GuildState g;
+/// Mounted only when the reference disclosure is open. The builder attaches
+/// an error listener immediately, including where platform metadata is absent.
+class _BuildInfo extends StatelessWidget {
+  const _BuildInfo();
 
   @override
-  Widget build(BuildContext context) {
-    Widget cell(String label, int v, Color color) => Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label, style: T.micro),
-              const SizedBox(height: 6),
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: Alignment.centerLeft,
-                child: Text('$v',
-                    style: T.numeric.copyWith(fontSize: 28, color: color)),
-              ),
-            ],
+  Widget build(BuildContext context) => FutureBuilder<PackageInfo>(
+        future: PackageInfo.fromPlatform(),
+        builder: (context, snap) => Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text(
+            snap.hasData
+                ? 'Telos ${snap.data!.version} (${snap.data!.buildNumber})'
+                : 'Telos',
+            style: T.secondary,
           ),
-        );
-
-    return Row(
-      children: [
-        cell('CREDITS', g.credits, T.amber),
-        cell('ALLOY', g.alloy, T.steel),
-        cell('INTEL', g.intel, T.cyan),
-      ],
-    );
-  }
+        ),
+      );
 }
 
-/// One shared shape for facilities, recruits and sectors: accent bar, a big
-/// Light name, the cost, and the action. Repetition here is structure, not
-/// sameness - each row is doing the same job.
-class _SpendBand extends StatelessWidget {
-  const _SpendBand({
-    required this.accent,
-    required this.kicker,
-    required this.name,
-    required this.blurb,
-    required this.trailing,
-    required this.cost,
-    required this.action,
-    required this.enabled,
-    required this.onTap,
-    this.note,
-  });
-
-  final Color accent;
-  final String kicker;
-  final String name;
-  final String blurb;
-  final Widget trailing;
-  final String cost;
-  final String action;
-  final bool enabled;
-  final VoidCallback? onTap;
-  final String? note;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(0, 16, 16, 16),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(width: 4, height: 54, color: enabled ? accent : T.line),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(kicker, style: T.micro.copyWith(color: accent)),
-                          const SizedBox(height: 5),
-                          Text(name, style: T.title.copyWith(fontSize: 19)),
-                        ],
-                      ),
-                    ),
-                    trailing,
-                  ],
-                ),
-                const SizedBox(height: 7),
-                Text(blurb,
-                    style: T.micro.copyWith(letterSpacing: 0.4, height: 1.6)),
-                if (note != null) ...[
-                  const SizedBox(height: 5),
-                  Text(note!, style: T.micro.copyWith(color: T.good)),
-                ],
-                const SizedBox(height: 14),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(cost,
-                          style: T.mono.copyWith(
-                              fontSize: 13,
-                              letterSpacing: 0.8,
-                              color: enabled ? T.text : T.dim)),
-                    ),
-                    GestureDetector(
-                      onTap: enabled ? onTap : null,
-                      behavior: HitTestBehavior.opaque,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: enabled
-                              ? accent.withValues(alpha: 0.12)
-                              : Colors.transparent,
-                          border:
-                              Border.all(color: enabled ? accent : T.line),
-                        ),
-                        child: Text(action,
-                            style: T.mono.copyWith(
-                                fontSize: 12,
-                                letterSpacing: 2,
-                                color: enabled ? accent : T.dim)),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+String _facilityBenefit(Facility facility, int level) {
+  final bonus = describeBonus(facility.bonusAt(level));
+  final effects = <String>[
+    if (facility == Facility.barracks) '${2 + level} roster places',
+    if (facility == Facility.forge)
+      'Craft ${Rarity.values.where((r) => kForgeLevelFor[r]! <= level).map((r) => r.name).join(', ')} equipment',
+    if (bonus.isNotEmpty) bonus,
+  ];
+  return effects.isEmpty ? 'No added resource bonus yet.' : effects.join('\n');
 }
 
-class _FacilityBand extends StatelessWidget {
-  const _FacilityBand({required this.facility});
+class _FacilityDetails extends StatelessWidget {
+  const _FacilityDetails({required this.facility});
   final Facility facility;
 
   @override
   Widget build(BuildContext context) {
     final c = context.watch<GuildController>();
     final level = c.g.facilities[facility]!;
-    final (costC, costA) = facility.costAt(level);
-    final can = c.canUpgrade(facility);
-
-    return _SpendBand(
-      accent: T.steel,
-      kicker: 'FACILITY',
-      name: facility.label,
-      blurb: facility.effect,
-      trailing: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Text('LEVEL', style: T.micro),
-          const SizedBox(height: 2),
-          Text('$level'.padLeft(2, '0'),
-              style: T.numeric.copyWith(fontSize: 28, color: T.steel)),
+    final (credits, alloy) = facility.costAt(level);
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text('NEXT · LEVEL ${level + 1}', style: T.label),
+        const SizedBox(height: 8),
+        Text(_facilityBenefit(facility, level + 1), style: T.body),
+        const SizedBox(height: 12),
+        Text('$credits credits · $alloy alloy', style: T.data),
+        const SizedBox(height: 16),
+        CampButton(
+          key: Key('review-${facility.name}'),
+          label: 'Review upgrade',
+          onPressed: () =>
+              showCampSheet(context, _UpgradeReview(facility: facility)),
+        ),
+        if (c.g.campProject != facility) ...[
+          const SizedBox(height: 8),
+          CampButton(
+            key: Key('track-${facility.name}'),
+            label: 'Make this the camp project',
+            onPressed: () async {
+              await c.selectCampProject(facility);
+              if (context.mounted) {
+                campNotice(context,
+                    '${fieldName(facility.label)} is now the camp project.');
+              }
+            },
+          ),
         ],
-      ),
-      cost: '$costC CR   +   $costA AL',
-      action: 'UPGRADE',
-      enabled: can,
-      onTap: () async {
-        await c.upgrade(facility);
-        if (!context.mounted) return;
-        final now = c.g.facilities[facility]!;
-        showFlash(
-          context,
-          kicker: 'FACILITY UPGRADED',
-          title: '${facility.label}  LV ${now.toString().padLeft(2, '0')}',
-          lines: [
-            facility.effect,
-            if (facility == Facility.barracks)
-              'Roster capacity now ${c.g.rosterSlots}',
-          ],
-          color: T.steel,
-        );
-      },
+      ]),
     );
   }
 }
 
-class _RecruitBand extends StatelessWidget {
-  const _RecruitBand({required this.cls});
+class _UpgradeReview extends StatelessWidget {
+  const _UpgradeReview({required this.facility});
+  final Facility facility;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.watch<GuildController>();
+    final level = c.g.facilities[facility]!;
+    final (credits, alloy) = facility.costAt(level);
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      CampSheetHeader(title: fieldName(facility.label)),
+      Text('Level $level → ${level + 1}', style: T.display),
+      const SizedBox(height: 24),
+      Text('NOW', style: T.label),
+      const SizedBox(height: 8),
+      Text(_facilityBenefit(facility, level), style: T.secondary),
+      const SizedBox(height: 20),
+      Text('AFTER THE UPGRADE', style: T.label),
+      const SizedBox(height: 8),
+      Text(_facilityBenefit(facility, level + 1), style: T.body),
+      if (facility == Facility.barracks) ...[
+        const SizedBox(height: 12),
+        Text(
+            'Roster places hold recruits. Expedition squad size grows with guild level.',
+            style: T.secondary),
+      ],
+      const SizedBox(height: 24),
+      SpendCost(guild: c.g, credits: credits, alloy: alloy),
+      const SizedBox(height: 24),
+      CampAction(
+        key: const Key('confirm-upgrade'),
+        label: c.canUpgrade(facility)
+            ? 'Upgrade to level ${level + 1}'
+            : 'More resources needed',
+        onPressed: c.canUpgrade(facility)
+            ? () async {
+                await c.upgrade(facility);
+                if (!context.mounted) return;
+                Navigator.pop(context);
+                campNotice(context,
+                    '${fieldName(facility.label)} upgraded to level ${c.g.facilities[facility]}.');
+              }
+            : null,
+      ),
+    ]);
+  }
+}
+
+class _RecruitReview extends StatelessWidget {
+  const _RecruitReview({required this.cls});
   final ClassDef cls;
 
   @override
   Widget build(BuildContext context) {
     final c = context.watch<GuildController>();
-    final can = c.canRecruit(cls);
     final full = c.g.roster.length >= c.g.rosterSlots;
-
-    return _SpendBand(
-      accent: T.amber,
-      kicker: 'ARCHETYPE',
-      name: cls.name,
-      blurb: cls.blurb,
-      note: cls.windowText.toUpperCase(),
-      trailing: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Text('COST', style: T.micro),
-          const SizedBox(height: 2),
-          Text('${cls.recruitCost}',
-              style: T.numeric.copyWith(fontSize: 26, color: T.amber)),
-        ],
+    final locked = c.g.level < cls.unlockGuildLevel;
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      const CampSheetHeader(title: 'Meet a recruit'),
+      ClassEmblem(classId: cls.id, color: T.amber, size: 64),
+      const SizedBox(height: 16),
+      Text(fieldName(cls.name), style: T.display),
+      const SizedBox(height: 8),
+      Text(cls.blurb, style: T.body),
+      const SizedBox(height: 16),
+      Text('Always · ${describeBonus(cls.base)}', style: T.secondary),
+      const SizedBox(height: 12),
+      Text(cls.windowText, style: T.body),
+      Text('Additional · ${describeBonus(cls.windowBonus)}',
+          style: T.secondary),
+      const SizedBox(height: 24),
+      SpendCost(guild: c.g, credits: cls.recruitCost),
+      const SizedBox(height: 16),
+      if (locked || full) ...[
+        Text(
+            locked
+                ? 'Requires guild level ${cls.unlockGuildLevel}. Your guild is level ${c.g.level}.'
+                : 'The roster is full. Upgrade the barracks first.',
+            style: T.body),
+        const SizedBox(height: 16),
+      ],
+      CampAction(
+        key: const Key('confirm-recruit'),
+        label: locked
+            ? 'Guild level too low'
+            : full
+                ? 'Roster full'
+                : c.canRecruit(cls)
+                    ? 'Recruit ${fieldName(cls.name)}'
+                    : 'More credits needed',
+        onPressed: c.canRecruit(cls)
+            ? () async {
+                final member = await c.recruit(cls);
+                if (!context.mounted || member == null) return;
+                Navigator.pop(context);
+                campNotice(context,
+                    '${member.name} joined as ${fieldName(cls.name)}.');
+              }
+            : null,
       ),
-      cost: full ? 'ROSTER FULL - UPGRADE BARRACKS' : '${cls.recruitCost} CREDITS',
-      action: 'RECRUIT',
-      enabled: can,
-      onTap: () async {
-        final hire = await c.recruit(cls);
-        if (!context.mounted || hire == null) return;
-        showFlash(
-          context,
-          kicker: 'RECRUITED',
-          title: '${hire.name}  //  ${cls.name}',
-          lines: [cls.windowText],
-          color: T.amber,
-        );
-      },
-    );
+    ]);
   }
 }
 
-class _SectorBand extends StatelessWidget {
-  const _SectorBand({required this.sector});
+class _SectorReview extends StatelessWidget {
+  const _SectorReview({required this.sector});
   final Sector sector;
 
   @override
   Widget build(BuildContext context) {
     final c = context.watch<GuildController>();
-    final can = c.canUnlock(sector);
-    final levelShort = c.g.level < sector.guildLevelToUnlock;
-
-    return _SpendBand(
-      accent: T.cyan,
-      kicker: '${sector.designation}   //   ${sector.minMinutes}+ MIN',
-      name: sector.name,
-      blurb: sector.blurb,
-      trailing: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Text('INTEL', style: T.micro),
-          const SizedBox(height: 2),
-          Text('${sector.intelToUnlock}',
-              style: T.numeric.copyWith(fontSize: 26, color: T.cyan)),
+    final open = c.g.sectorUnlocked(sector.id);
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      const CampSheetHeader(title: 'Sector access'),
+      Text(fieldName(sector.name), style: T.display),
+      const SizedBox(height: 16),
+      SectorScene(
+          sectorId: sector.id, color: T.amber, animate: false, height: 140),
+      const SizedBox(height: 16),
+      Text(sector.blurb, style: T.body),
+      const SizedBox(height: 12),
+      Text('Requires a focus session of ${sector.minMinutes} minutes or more.',
+          style: T.secondary),
+      const SizedBox(height: 24),
+      if (open)
+        const Text('This sector is open for expeditions.', style: T.body)
+      else ...[
+        SpendCost(guild: c.g, intel: sector.intelToUnlock),
+        if (c.g.level < sector.guildLevelToUnlock) ...[
+          const SizedBox(height: 16),
+          Text(
+              'Requires guild level ${sector.guildLevelToUnlock}. Your guild is level ${c.g.level}.',
+              style: T.body),
         ],
-      ),
-      cost: levelShort
-          ? 'REQUIRES GUILD LV ${sector.guildLevelToUnlock}'
-          : 'HAVE ${c.g.intel} OF ${sector.intelToUnlock}',
-      action: 'UNLOCK',
-      enabled: can,
-      onTap: () async {
-        await c.unlockSector(sector);
-        if (!context.mounted) return;
-        showFlash(
-          context,
-          kicker: 'SECTOR OPEN',
-          title: sector.name,
-          lines: [
-            sector.blurb,
-            'Needs ${sector.minMinutes}+ minutes to reach',
-          ],
-          color: Color(sector.accent),
-          heavy: true,
-          sigilSectorId: sector.id,
-        );
-      },
-    );
+        const SizedBox(height: 24),
+        CampAction(
+          key: const Key('confirm-unlock'),
+          label: c.canUnlock(sector)
+              ? 'Open this sector'
+              : c.g.level < sector.guildLevelToUnlock
+                  ? 'Guild level too low'
+                  : 'More intel needed',
+          onPressed: c.canUnlock(sector)
+              ? () async {
+                  await c.unlockSector(sector);
+                  if (!context.mounted) return;
+                  Navigator.pop(context);
+                  campNotice(context, '${fieldName(sector.name)} is now open.');
+                }
+              : null,
+        ),
+      ],
+    ]);
   }
 }
