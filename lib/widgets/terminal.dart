@@ -507,11 +507,10 @@ class TButton extends StatelessWidget {
       alignment: Alignment.center,
       child: Text(
         '[ $label ]',
-        style: T.mono.copyWith(
+        style: T.printed.copyWith(
           color: c,
-          fontSize: dense ? 11 : 13,
-          letterSpacing: 1.6,
-          fontWeight: FontWeight.w600,
+          fontSize: dense ? 13 : 15,
+          letterSpacing: 1.3,
         ),
       ),
     );
@@ -561,10 +560,10 @@ class TChip extends StatelessWidget {
           children: [
             Text(
               label,
-              style: T.mono.copyWith(
+              style: T.printed.copyWith(
                 color: enabled ? (selected ? color : T.text) : T.dim,
-                fontSize: 13,
-                letterSpacing: 1.2,
+                fontSize: 15,
+                letterSpacing: 1.0,
               ),
             ),
             if (sub != null)

@@ -217,7 +217,8 @@ class _DispatchBlock extends StatelessWidget {
               hasHistory
                   ? 'Squad at camp. Nothing in here advances while you watch it.'
                   : 'The outpost has reopened. Nobody has been sent out yet.',
-              style: T.mono.copyWith(fontSize: 13, height: 1.6, color: T.dim),
+              style: T.prose.copyWith(
+                  fontSize: 15, height: 1.6, color: T.dim),
             ),
             const SizedBox(height: 16),
             // The signature line. Signing it is the act; there is no button.

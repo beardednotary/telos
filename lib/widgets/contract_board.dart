@@ -125,7 +125,7 @@ class _ContractBand extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(contractTitle(k, ctrl.g),
-                    style: T.mono.copyWith(fontSize: 15, height: 1.5)),
+                    style: T.prose.copyWith(height: 1.5)),
                 const SizedBox(height: 10),
                 if (done)
                   Row(
