@@ -8,6 +8,7 @@ import '../services/expedition_engine.dart';
 import '../services/redeploy.dart';
 import '../state/guild_controller.dart';
 import '../theme/telos_theme.dart';
+import '../widgets/sector_header.dart';
 import '../widgets/camp_controls.dart';
 import '../widgets/expedition_widgets.dart';
 import '../widgets/sector_scene.dart';
@@ -232,7 +233,8 @@ class _DispatchScreenState extends State<DispatchScreen> {
               expanded: _open == 'destination',
               onToggle: () => _toggle('destination'),
               child: Column(children: [
-                if (sector != null)
+                if (sector != null) ...[
+                  SectorHeader(sector: sector, height: 132),
                   Padding(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -242,6 +244,7 @@ class _DispatchScreenState extends State<DispatchScreen> {
                         height: 88,
                         animate: false),
                   ),
+                ],
                 for (final choice in kSectors)
                   _sectorChoice(c, choice, members),
                 Padding(

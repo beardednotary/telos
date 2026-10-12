@@ -6,6 +6,7 @@ import '../data/content.dart';
 import '../models/models.dart';
 import '../state/guild_controller.dart';
 import '../theme/telos_theme.dart';
+import '../widgets/sector_header.dart';
 import '../widgets/camp_controls.dart';
 import '../widgets/expedition_widgets.dart';
 import '../widgets/management_widgets.dart';
@@ -340,6 +341,10 @@ class _SectorReview extends StatelessWidget {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       const CampSheetHeader(title: 'Sector access'),
       Text(fieldName(sector.name), style: T.display),
+      const SizedBox(height: 16),
+      // Mood first, then the stakes. The header is the place; the scene
+      // below it is where this guild has actually got to in it.
+      SectorHeader(sector: sector, height: 150),
       const SizedBox(height: 16),
       SectorScene(
           sectorId: sector.id, color: T.amber, animate: false, height: 140),
