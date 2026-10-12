@@ -9,6 +9,7 @@ import '../theme/telos_theme.dart';
 import '../widgets/sector_header.dart';
 import '../widgets/camp_controls.dart';
 import '../widgets/expedition_widgets.dart';
+import '../widgets/camp_acknowledgement.dart';
 import '../widgets/management_widgets.dart';
 import '../widgets/sector_scene.dart';
 import '../widgets/sigil.dart';
@@ -262,11 +263,23 @@ class _UpgradeReview extends StatelessWidget {
             : 'More resources needed',
         onPressed: c.canUpgrade(facility)
             ? () async {
+                // The acknowledgement is shown after this sheet is popped,
+                // so it cannot use this sheet's context - that element is on
+                // its way out and showDialog can silently do nothing. Take
+                // the root navigator's context first, which outlives both.
+                final root = Navigator.of(context, rootNavigator: true).context;
                 await c.upgrade(facility);
                 if (!context.mounted) return;
+                final now = c.g.facilities[facility]!;
                 Navigator.pop(context);
-                campNotice(context,
-                    '${fieldName(facility.label)} upgraded to level ${c.g.facilities[facility]}.');
+                showCampAcknowledgement(
+                  root,
+                  kicker: 'THE WORK IS DONE',
+                  title: '${fieldName(facility.label)} · Level $now',
+                  mark: Text('$now',
+                      style: T.display.copyWith(fontSize: 56, color: T.amber)),
+                  lines: [facility.effect],
+                );
               }
             : null,
       ),
@@ -318,11 +331,20 @@ class _RecruitReview extends StatelessWidget {
                     : 'More credits needed',
         onPressed: c.canRecruit(cls)
             ? () async {
+                final root = Navigator.of(context, rootNavigator: true).context;
                 final member = await c.recruit(cls);
                 if (!context.mounted || member == null) return;
                 Navigator.pop(context);
-                campNotice(context,
-                    '${member.name} joined as ${fieldName(cls.name)}.');
+                showCampAcknowledgement(
+                  root,
+                  kicker: 'A NEW HAND',
+                  title: fieldName(member.name),
+                  mark: ClassEmblem(classId: cls.id, color: T.amber, size: 72),
+                  lines: [
+                    '${fieldName(cls.name)} · ${cls.blurb}',
+                    'Ready to send out.',
+                  ],
+                );
               }
             : null,
       ),
@@ -377,10 +399,22 @@ class _SectorReview extends StatelessWidget {
                   : 'More intel needed',
           onPressed: c.canUnlock(sector)
               ? () async {
+                  final root =
+                      Navigator.of(context, rootNavigator: true).context;
                   await c.unlockSector(sector);
                   if (!context.mounted) return;
                   Navigator.pop(context);
-                  campNotice(context, '${fieldName(sector.name)} is now open.');
+                  showCampAcknowledgement(
+                    root,
+                    kicker: 'THE WAY IS OPEN',
+                    title: fieldName(sector.name),
+                    mark: Sigil(sectorId: sector.id, color: T.amber, size: 72),
+                    lines: [
+                      sector.blurb,
+                      'Expeditions of ${sector.minMinutes} minutes or more '
+                          'reach it.',
+                    ],
+                  );
                 }
               : null,
         ),

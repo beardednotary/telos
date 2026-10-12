@@ -70,6 +70,13 @@ void main() {
     await tap(t, find.byTooltip('Close review'));
   }
 
+  /// Recruiting, opening a sector and finishing a project now acknowledge
+  /// themselves with something the player dismisses rather than a notice
+  /// that times out, so a successful action leaves it on screen.
+  Future<void> dismissAcknowledgement(WidgetTester t) async {
+    await tap(t, find.text('Back to camp'));
+  }
+
   test('slot replacement preserves the other slot and ownership after restart',
       () async {
     final c = await boot();
@@ -220,6 +227,7 @@ void main() {
     expect(c.g.facilities[Facility.barracks], 1);
     await tap(t, find.byKey(const Key('review-barracks')));
     await tap(t, find.byKey(const Key('confirm-upgrade')));
+    await dismissAcknowledgement(t);
     expect((c.g.credits, c.g.alloy), (880, 475));
     expect(c.g.facilities[Facility.barracks], 2);
     expect(c.g.rosterSlots, 4);
@@ -242,6 +250,7 @@ void main() {
     c.g.level = 2;
     await tap(t, find.byKey(const Key('recruit-archivist')));
     await tap(t, find.byKey(const Key('confirm-recruit')));
+    await dismissAcknowledgement(t);
     expect(c.g.roster.length, 3);
     expect(c.g.roster.last.classId, 'archivist');
     expect(c.g.credits, 4350);
@@ -298,6 +307,9 @@ void main() {
     await closeSheet(t);
     await mount(t, c, const OutpostScreen(), small: true);
     await tap(t, find.byKey(const Key('review-forge')));
+    // Nothing is dismissed here: the craft above spent the resources, so
+    // this upgrade is disabled and the tap is only checking that a large
+    // text size leaves the control reachable and harmless.
     await tap(t, find.byKey(const Key('confirm-upgrade')));
     expect(t.takeException(), isNull);
     expect(c.g.facilities[Facility.forge], 1);
