@@ -45,6 +45,7 @@ flutter:
     # rather than editing this list and the code that reads it.
     - assets/art/
     - assets/art/sectors/
+    - assets/art/gear/
     - assets/fonts/OFL-IBMPlexSans.txt
     - assets/fonts/OFL-IBMPlexSansCondensed.txt
     - assets/fonts/OFL.txt

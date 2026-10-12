@@ -6,9 +6,9 @@ import '../models/guild_state.dart';
 import '../models/models.dart';
 import '../state/guild_controller.dart';
 import '../theme/telos_theme.dart';
+import '../widgets/gear_art.dart';
 import '../widgets/camp_controls.dart';
 import '../widgets/expedition_widgets.dart';
-import '../widgets/gear_mark.dart';
 import '../widgets/run_card.dart';
 import '../widgets/sector_scene.dart';
 import '../widgets/terminal.dart';
@@ -376,7 +376,7 @@ class _DebriefScreenState extends State<DebriefScreen>
               textAlign: TextAlign.center,
               style: T.label.copyWith(color: T.amber)),
           const SizedBox(height: 16),
-          Center(child: GearMark(id: def.id, size: 88)),
+          Center(child: GearArt(id: def.id, size: 88)),
           const SizedBox(height: 18),
           Text(fieldName(def.name),
               textAlign: TextAlign.center, style: T.display),

@@ -5,6 +5,7 @@ import '../models/models.dart';
 import '../theme/telos_theme.dart';
 import 'camp_controls.dart';
 import 'expedition_widgets.dart';
+import 'gear_art.dart';
 import 'gear_mark.dart';
 
 /// Reviews scroll as a whole so actions remain reachable with larger text.
@@ -167,7 +168,7 @@ class GearDetail extends StatelessWidget {
   Widget build(BuildContext context) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Center(child: GearMark(id: def.id, size: 96)),
+          Center(child: GearArt(id: def.id, size: 96)),
           const SizedBox(height: 16),
           Text(fieldName(def.name), style: T.display),
           const SizedBox(height: 4),
