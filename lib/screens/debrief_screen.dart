@@ -7,6 +7,7 @@ import '../models/models.dart';
 import '../state/guild_controller.dart';
 import '../theme/telos_theme.dart';
 import '../widgets/gear_art.dart';
+import '../widgets/guild_sigil.dart';
 import '../widgets/camp_controls.dart';
 import '../widgets/expedition_widgets.dart';
 import '../widgets/run_card.dart';
@@ -126,9 +127,13 @@ class _DebriefScreenState extends State<DebriefScreen>
                         ])),
                 const SizedBox(height: 24),
                 _beat(1, _find(c, gear, sector)),
+                if (_milestone(c) case final milestone?) ...[
+                  const SizedBox(height: 16),
+                  _beat(2, milestone),
+                ],
                 const SizedBox(height: 16),
                 _beat(
-                    2,
+                    3,
                     ExpeditionPanel(
                         child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -335,6 +340,64 @@ class _DebriefScreenState extends State<DebriefScreen>
           Text(describeBonus(def.bonus), style: T.body),
         ],
       );
+
+  /// Crossing a threshold, given the same weight as finding something.
+  ///
+  /// A guild level opens sectors and classes, and it was a line of text
+  /// inside a collapsed report: "Guild level 3 reached". A find got a card
+  /// with a plate. Both are the loop paying out, so both get a beat.
+  ///
+  /// Member levels are quieter on purpose - they happen most runs, and a
+  /// thing that happens most runs stops being a milestone if it shouts.
+  Widget? _milestone(GuildController c) {
+    final r = widget.record;
+    final g = c.g;
+    if (r.guildLevelUps == 0 && r.levelUps.isEmpty) return null;
+
+    final unlocks = [
+      for (var level = g.level - r.guildLevelUps + 1; level <= g.level; level++)
+        ...guildLevelUnlocks(level),
+    ];
+    final risen = [
+      for (final id in r.levelUps)
+        if (g.memberById(id) != null) g.memberById(id)!,
+    ];
+
+    return ExpeditionPanel(
+        child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(r.guildLevelUps > 0 ? 'THE GUILD HAS RISEN' : 'THE SQUAD HAS RISEN',
+            textAlign: TextAlign.center,
+            style: T.label.copyWith(color: T.amber)),
+        const SizedBox(height: 16),
+        if (r.guildLevelUps > 0) ...[
+          Center(child: GuildEmblem(sigil: g.guildSigil, size: 88)),
+          const SizedBox(height: 18),
+          Text('Guild level ${g.level}',
+              textAlign: TextAlign.center, style: T.display),
+          if (unlocks.isNotEmpty) ...[
+            const SizedBox(height: 14),
+            const Divider(height: 1),
+            const SizedBox(height: 14),
+            for (final unlock in unlocks)
+              Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Text(unlock,
+                      textAlign: TextAlign.center, style: T.body)),
+          ],
+        ],
+        if (risen.isNotEmpty) ...[
+          if (r.guildLevelUps > 0) const SizedBox(height: 14),
+          for (final m in risen)
+            Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text('${fieldName(m.name)} reached level ${m.level}',
+                    textAlign: TextAlign.center, style: T.body)),
+        ],
+      ],
+    ));
+  }
 
   Widget _find(GuildController c, List<Gear> gear, Sector sector) {
     final r = widget.record;
