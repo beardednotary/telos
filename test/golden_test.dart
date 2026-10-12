@@ -545,7 +545,7 @@ void main() {
     await c.boot();
     await t.pumpWidget(_phone(c, const OnboardingScreen()));
     await t.runAsync(() => precacheImage(
-          const AssetImage('assets/art/camp.png'),
+          const AssetImage('assets/art/camp.webp'),
           t.element(find.byType(OnboardingScreen)),
         ));
     await t.pumpAndSettle();
@@ -606,7 +606,7 @@ void main() {
 
     await t.pumpWidget(_phone(c, const HomeScreen()));
     await t.runAsync(() => precacheImage(
-          const AssetImage('assets/art/camp.png'),
+          const AssetImage('assets/art/camp.webp'),
           t.element(find.byType(HomeScreen)),
         ));
     await t.pumpAndSettle();

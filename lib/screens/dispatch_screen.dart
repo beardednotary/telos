@@ -296,7 +296,12 @@ class _DispatchScreenState extends State<DispatchScreen> {
                   child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text('Expected haul · 100% Integrity', style: T.secondary),
+                  // Stated as the thing the player does, not as the stat
+                  // it is scored on. The forecast is a promise Integrity
+                  // keeps, so it should say what keeping it looks like
+                  // before the run rather than only grading it after.
+                  Text('Expected haul, if you leave it alone',
+                      style: T.secondary),
                   const SizedBox(height: 10),
                   ResourceAmounts(
                       credits: forecast.credits,
