@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../state/guild_controller.dart';
 import '../theme/telos_theme.dart';
-import '../widgets/gear_art.dart';
+import '../widgets/gear_mark.dart';
 import '../widgets/camp_controls.dart';
 import '../widgets/expedition_widgets.dart';
 
@@ -235,7 +235,7 @@ class _PanelViewState extends State<_PanelView> {
           const SizedBox(height: 24),
         ],
         if (p.gear) ...[
-          const Center(child: GearArt(id: 'deep_lamp', size: 72)),
+          const Center(child: GearMark(id: 'deep_lamp', size: 72)),
           const SizedBox(height: 24),
         ],
         for (final line in p.body)

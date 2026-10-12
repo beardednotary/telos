@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Telos salvage plate review</title>
+<style>
+  :root { color-scheme: dark; font-family: system-ui, sans-serif; background: #171c18; color: #e8e1ce; }
+  body { max-width: 720px; margin: 32px auto; padding: 0 20px 48px; }
+  h1 { font-size: 26px; margin-bottom: 8px; }
+  p { color: #bab9ab; line-height: 1.5; }
+  fieldset { border: 1px solid #495045; padding: 12px; margin: 24px 0; }
+  label { display: inline-block; margin: 6px 18px 6px 0; cursor: pointer; }
+  input { accent-color: #c4a266; }
+  .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+  figure { margin: 0; background: #20251f; padding: 20px; text-align: center; }
+  .art { display: block; width: 264px; max-width: 100%; aspect-ratio: 1; object-fit: contain; margin: 0 auto; }
+  body:has(#actual:checked) .art { width: 88px; }
+  figcaption { padding-top: 16px; line-height: 1.5; }
+  small { display: block; color: #a4aa9b; }
+  a { color: #dac395; }
+  @media (max-width: 580px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+</style>
+<body>
+  <h1>Epic salvage illustrations</h1>
+  <p>640 × 640 WebP, quality 86. Four catalogue plates in the camp's ink style. The three endgame plates are excluded from this preview.</p>
+  <fieldset>
+    <legend>Review size</legend>
+    <label><input id="large" type="radio" name="size" checked> 3× inspection · 264px</label>
+    <label><input id="actual" type="radio" name="size"> Actual reveal · 88px</label>
+  </fieldset>
+  <div class="grid">
+    <figure>
+      <img class="art" src="../../../assets/art/gear/ore_sense.webp" alt="A repaired leather sensing harness with a single dial, bound wire coils and an attached probe.">
+      <figcaption>Ore-Sense Rig<small>33.7 kB · <a href="../../../assets/art/gear/ore_sense.webp">WebP</a> · <a href="sources/ore_sense.png">Master</a></small></figcaption>
+    </figure>
+    <figure>
+      <img class="art" src="../../../assets/art/gear/quiet_seal.webp" alt="A short handled seal matrix beside its soft, slumping dark wax impression.">
+      <figcaption>Quiet Seal<small>34.0 kB · <a href="../../../assets/art/gear/quiet_seal.webp">WebP</a> · <a href="sources/quiet_seal.png">Master</a></small></figcaption>
+    </figure>
+    <figure>
+      <img class="art" src="../../../assets/art/gear/null_core.webp" alt="A featureless matte dark sphere in a brass meridian cage with two gauges resting at their bottom stops.">
+      <figcaption>Null Core<small>27.0 kB · <a href="../../../assets/art/gear/null_core.webp">WebP</a> · <a href="sources/null_core.png">Master</a></small></figcaption>
+    </figure>
+    <figure>
+      <img class="art" src="../../../assets/art/gear/first_light.webp" alt="A worn squat stone lamp with a shallow bowl and one small muted ochre flame.">
+      <figcaption>First Light<small>32.0 kB · <a href="../../../assets/art/gear/first_light.webp">WebP</a> · <a href="sources/first_light.png">Master</a></small></figcaption>
+    </figure>
+  </div>
+  <p>In the game, these plates appear only at the debrief reveal. Equipment lists, comparisons and the field manual retain their GearMark engravings.</p>
+</body>
+</html>

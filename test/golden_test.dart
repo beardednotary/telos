@@ -25,6 +25,7 @@ import 'package:telos/services/persistence.dart';
 import 'package:telos/state/guild_controller.dart';
 import 'package:telos/theme/telos_theme.dart';
 import 'package:telos/widgets/camp_controls.dart';
+import 'package:telos/widgets/gear_art.dart';
 import 'package:telos/widgets/contract_board.dart';
 import 'package:telos/widgets/run_card.dart';
 import 'package:telos/widgets/sector_header.dart';
@@ -308,7 +309,16 @@ void main() {
     );
 
     await t.pumpWidget(_phone(c, DebriefScreen(record: rec)));
+    // Asset decoding runs outside the fake clock. Wait for the actual plate
+    // so this preview cannot silently capture the loading engraving.
+    await t.runAsync(() => precacheImage(
+        AssetImage(GearArt.assetFor('ore_sense')),
+        t.element(find.byType(DebriefScreen))));
     await t.pumpAndSettle();
+    expect(
+        find.descendant(
+            of: find.byType(GearArt), matching: find.byType(RawImage)),
+        findsOneWidget);
     await expectLater(
       find.byType(DebriefScreen),
       matchesGoldenFile('goldens/debrief.png'),

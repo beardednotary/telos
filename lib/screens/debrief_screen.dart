@@ -376,7 +376,9 @@ class _DebriefScreenState extends State<DebriefScreen>
               textAlign: TextAlign.center,
               style: T.label.copyWith(color: T.amber)),
           const SizedBox(height: 16),
-          Center(child: GearArt(id: def.id, size: 88)),
+          // The one beat the whole return screen builds to, so it gets
+          // the room. Larger here than on an item's own page.
+          Center(child: GearArt(id: def.id, size: 124)),
           const SizedBox(height: 18),
           Text(fieldName(def.name),
               textAlign: TextAlign.center, style: T.display),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../theme/telos_theme.dart';
 import 'gear_mark.dart';
 
 /// A drawn plate of one piece of salvage, if it has one yet.
@@ -24,6 +25,11 @@ class GearArt extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Framed, the way the camp illustration is on the outpost screen. The
+    // plates are drawn on bone paper, so without a border they are a bright
+    // hard-edged rectangle pasted onto charcoal rather than something
+    // mounted on the page. The fallback engraving gets no frame: it is
+    // drawn in the theme's own colours and has no rectangle to contain.
     return Image.asset(
       assetFor(id),
       width: size,
@@ -34,7 +40,10 @@ class GearArt extends StatelessWidget {
       // so this degrades to it rather than to a gap.
       errorBuilder: (_, __, ___) => GearMark(id: id, size: size),
       frameBuilder: (_, child, frame, wasSync) => wasSync || frame != null
-          ? child
+          ? DecoratedBox(
+              decoration: BoxDecoration(border: Border.all(color: T.boundary)),
+              child: child,
+            )
           : SizedBox(
               width: size, height: size, child: GearMark(id: id, size: size)),
     );
