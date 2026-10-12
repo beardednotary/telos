@@ -1,7 +1,8 @@
-# Epic salvage illustrations
+# Salvage illustrations
 
-Seven of the nineteen gear items, drawn. The epics first, because rarity
-should feel different and these are the ones people remember finding.
+All nineteen gear items. The seven epics were drawn first, because rarity
+should feel different and those are the ones people remember finding; the
+remaining twelve follow below.
 
 They exist for one moment: the salvage beat in the debrief, where "and
 something else came back with them" currently pays off with a code-drawn
@@ -92,3 +93,99 @@ listings, galleries and any preview that is not the player's own debrief.
 > A single folded sheet of heavy paper, creased and weathered, weighted flat
 > by a rough cut stone laid across one corner. Ruled lines and a blank
 > signature line visible as marks only, never as readable writing.
+
+
+---
+
+# The remaining twelve
+
+Commons and uncommons are the harder half, and worth knowing that before
+starting. A brass sensing rig has mechanism to draw; a frayed cord does
+not. **Resist the urge to make a common item more interesting than it is.**
+A piece of worn rope rendered as an intricate artefact breaks the economy
+of the whole set - rarity has to be visible at a glance, and the cheapest
+way to signal it is restraint.
+
+Rough guide for how much is on the plate:
+
+| Rarity | What the plate carries |
+|---|---|
+| Common | One object. Plain, worn, no mechanism. Lots of paper around it |
+| Uncommon | One object with a single working part - a lens, a hinge, a strap |
+| Rare | One object with real mechanism, or something that is visibly wrong |
+| Epic | Already drawn. Mechanism, a stand, or an obvious impossibility |
+
+Same skeleton, same lock, same 640px square WebP as the seven above.
+
+## Mosswood Verge
+
+### scav_cord — SCAVENGER CORD · common
+*"Frayed, but it holds."*
+> A coil of waxed rope, laid flat in a loose spiral. One end whipped with
+> thread, the other frayed open and splaying. Nothing else.
+
+### mossglass — MOSSGLASS SHARD · common
+*"Green where it should be clear."*
+> A single flat shard of thick broken glass, edges chipped, lying on its
+> side. Clouded through its body rather than on its surface.
+
+### field_optic — FIELD OPTIC · uncommon
+*"One cracked lens, still true."*
+> A short brass monocular with a knurled focus ring, scuffed from carrying.
+> A single clean crack runs across the front lens, corner to corner.
+
+### verge_charm — VERGE CHARM · rare
+*"Nobody remembers who carved it."*
+> A small flat token of pale wood on a worn thong, carved with a mark nobody
+> uses any more. Handled until the carving is nearly smooth.
+
+## Blackstone Hollow
+
+### hollow_pick — HOLLOW PICK · common
+*"Worn to the shape of a hand."*
+> A short miner's hand pick, head dulled and chipped, the wooden haft worn
+> into a shallow grip where it has been held for years.
+
+### slag_brace — SLAG BRACE · uncommon
+*"Heavy. Worth it."*
+> A thick forearm brace of blackened iron plate over leather, buckled with
+> two heavy straps. Dented across one face.
+
+### deep_lamp — DEEP LAMP · rare
+*"Burns on something that is not oil."*
+> A miner's safety lamp: a brass base and cap with a tall mesh-guarded glass
+> between them, a wire bail over the top. The flame inside is small, steady
+> and the wrong colour - pale, almost white. Muted ochre only, no halo.
+
+## The Cinder Archive
+
+### ash_ledger — ASH LEDGER · common
+*"Half the pages are still readable."*
+> A bound ledger lying closed, its cover scorched and its page block burned
+> away unevenly along one edge. Ruled lines visible as marks only, never as
+> readable writing.
+
+### archivist_optic — ARCHIVIST OPTIC · uncommon
+*"Ground for reading, not for seeing."*
+> A reading glass with an unusually shallow, wide lens in a thin brass rim,
+> on a short flat handle made to rest on a page rather than be held up.
+
+### cinder_key — CINDER KEY · rare
+*"Warm to the touch, always."*
+> A long iron key with a complicated ward, its bit blackened as though it has
+> been in a fire. The metal is faintly discoloured along its length, the way
+> iron is after heat.
+
+## Riftline Descent
+
+### rift_anchor — RIFT ANCHOR · uncommon
+*"Holds to nothing and does not move."*
+> A forged steel anchor bolt with a wide eye, set into nothing - no rock, no
+> plate, no fixing. It sits flat on the paper as though the surface it was
+> driven into has been removed.
+
+### descent_rig — DESCENT RIG · rare
+*"Rated for depths nobody has measured."*
+> A rope descender: a figure-of-eight steel plate strung on a worn line,
+> with a locking carabiner through the upper eye. Scored bright along the
+> bends where the rope has run through it.
