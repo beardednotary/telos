@@ -11,6 +11,7 @@ import 'package:telos/services/persistence.dart';
 import 'package:telos/state/guild_controller.dart';
 import 'package:telos/theme/telos_theme.dart';
 import 'package:telos/widgets/camp_controls.dart';
+import 'package:telos/widgets/sector_header.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -257,6 +258,24 @@ void main() {
     await tap(t, find.byKey(const Key('confirm-unlock')));
     expect(c.g.sectorUnlocked('blackstone'), isTrue);
     expect(c.g.intel, 500 - sectorById('blackstone').intelToUnlock);
+  });
+
+  testWidgets('Spire illustration is revealed only after sector access',
+      (t) async {
+    final c = await boot();
+    await mount(t, c, const OutpostScreen());
+    await tap(t, find.text('Sector access'));
+    expect(find.byType(SectorHeader), findsNothing,
+        reason: 'the sector list has no illustration thumbnails');
+    await tap(t, find.byKey(const Key('access-spire')));
+    expect(find.byType(SectorHeader), findsNothing,
+        reason: 'the locked Spire review must not reveal its illustration');
+    await closeSheet(t);
+
+    c.g.unlockedSectors.add('spire');
+    await tap(t, find.byKey(const Key('access-spire')));
+    expect(t.widget<SectorHeader>(find.byType(SectorHeader)).sector.id, 'spire');
+    expect(t.takeException(), isNull);
   });
 
   testWidgets(

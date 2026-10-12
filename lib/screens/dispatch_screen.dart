@@ -177,6 +177,13 @@ class _DispatchScreenState extends State<DispatchScreen> {
           children: [
             const Text('Prepare to head out.', style: T.display),
             const SizedBox(height: 20),
+            // Where they are going, before anything has to be tapped. It was
+            // inside the destination disclosure, which is closed by default,
+            // so the best thing on the screen was behind a tap.
+            if (sector != null) ...[
+              SectorHeader(sector: sector, height: 132),
+              const SizedBox(height: 16),
+            ],
             CampDisclosure(
               key: const Key('focus-step'),
               title: 'Your focus',
@@ -233,8 +240,7 @@ class _DispatchScreenState extends State<DispatchScreen> {
               expanded: _open == 'destination',
               onToggle: () => _toggle('destination'),
               child: Column(children: [
-                if (sector != null) ...[
-                  SectorHeader(sector: sector, height: 132),
+                if (sector != null)
                   Padding(
                     padding:
                         const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -244,7 +250,6 @@ class _DispatchScreenState extends State<DispatchScreen> {
                         height: 88,
                         animate: false),
                   ),
-                ],
                 for (final choice in kSectors)
                   _sectorChoice(c, choice, members),
                 Padding(

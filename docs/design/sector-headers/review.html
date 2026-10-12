@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Telos sector art review</title>
+<style>
+  :root { color-scheme: dark; font-family: system-ui, sans-serif; background: #171c18; color: #e8e1ce; }
+  body { max-width: 908px; margin: 32px auto; padding: 0 20px 48px; }
+  h1 { font-size: 26px; margin-bottom: 8px; }
+  p { color: #bab9ab; line-height: 1.5; }
+  fieldset { border: 1px solid #495045; padding: 12px; margin: 24px 0; }
+  label { display: inline-block; margin: 6px 18px 6px 0; cursor: pointer; }
+  input { accent-color: #c4a266; }
+  .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 430px)); gap: 24px; }
+  figure { margin: 0; }
+  .art { display: block; width: 100%; aspect-ratio: 2.3; object-fit: cover; object-position: center; }
+  body:has(#full:checked) .art { aspect-ratio: 16 / 9; }
+  body:has(#dispatch:checked) .art { aspect-ratio: 2.7; }
+  figcaption { padding: 12px 0 4px; line-height: 1.5; }
+  small { display: block; color: #a4aa9b; }
+  a { color: #dac395; }
+  details { border-top: 1px solid #495045; padding-top: 18px; margin-top: 28px; }
+  summary { cursor: pointer; margin-bottom: 18px; }
+  details figure { max-width: 430px; }
+  .reference { width: 100%; display: block; }
+  @media (max-width: 640px) { .grid { grid-template-columns: minmax(0, 430px); } }
+</style>
+<body>
+  <h1>Sector header illustrations</h1>
+  <p>1290 × 726 WebP, quality 86. These previews use the delivered files and a centered cover crop, at up to 430 CSS pixels wide.</p>
+  <fieldset>
+    <legend>Preview framing</legend>
+    <label><input id="full" type="radio" name="crop"> Full 16:9 artwork</label>
+    <label><input id="header" type="radio" name="crop" checked> 2.3:1 header</label>
+    <label><input id="dispatch" type="radio" name="crop"> 2.7:1 shallow header</label>
+  </fieldset>
+  <div class="grid">
+    <figure>
+      <img class="art" src="../../../assets/art/sectors/mosswood.webp" alt="A wet forest service road, incised timber survey posts, and a fallen lattice relay mast dissolving into mist.">
+      <figcaption>01 · Mosswood Verge <small>231.2 kB · <a href="../../../assets/art/sectors/mosswood.webp">WebP</a> · <a href="sources/mosswood.png">Master</a></small></figcaption>
+    </figure>
+    <figure>
+      <img class="art" src="../../../assets/art/sectors/blackstone.webp" alt="A leaning timber headframe over a shored mine shaft beside a shuttered winch house and canvas-covered equipment.">
+      <figcaption>02 · Blackstone Hollow <small>183.8 kB · <a href="../../../assets/art/sectors/blackstone.webp">WebP</a> · <a href="sources/blackstone.png">Master</a></small></figcaption>
+    </figure>
+    <figure>
+      <img class="art" src="../../../assets/art/sectors/cinder.webp" alt="Charred stone bookcases filled with ledgers, a sealed reading-room door, and thin smoke rising through cracked flooring.">
+      <figcaption>03 · The Cinder Archive <small>228.1 kB · <a href="../../../assets/art/sectors/cinder.webp">WebP</a> · <a href="sources/cinder.png">Master</a></small></figcaption>
+    </figure>
+    <figure>
+      <img class="art" src="../../../assets/art/sectors/riftline.webp" alt="Ropes and repeated anchors descend past rock ledges and incised depth marks into a narrow dark chasm.">
+      <figcaption>04 · Riftline Descent <small>166.2 kB · <a href="../../../assets/art/sectors/riftline.webp">WebP</a> · <a href="sources/riftline.png">Master</a></small></figcaption>
+    </figure>
+  </div>
+  <details id="spire-review">
+    <summary>Reveal 05 · Spire of Telos — spoiler, internal review only</summary>
+    <p>Keep this illustration out of store listings and sector list thumbnails. Its in-app access review reveals the image only once the sector is unlocked.</p>
+    <figure>
+      <img class="art" src="../../../assets/art/sectors/spire.webp" alt="A narrow unfinished tower on a rise, with differing masonry stages, an open circular aperture, stacked stone and scaffolding at the unfinished crown.">
+      <figcaption>05 · Spire of Telos <small>103.7 kB · <a href="../../../assets/art/sectors/spire.webp">WebP</a> · <a href="sources/spire.png">Master</a></small></figcaption>
+    </figure>
+  </details>
+  <details>
+    <summary>Camp style reference</summary>
+    <figure><img class="reference" src="../camp-study/camp-concept.png" alt="The original camp concept used as the palette, ink technique, and Spire silhouette reference."></figure>
+  </details>
+</body>
+</html>

@@ -344,8 +344,11 @@ class _SectorReview extends StatelessWidget {
       const SizedBox(height: 16),
       // Mood first, then the stakes. The header is the place; the scene
       // below it is where this guild has actually got to in it.
-      SectorHeader(sector: sector, height: 150),
-      const SizedBox(height: 16),
+      // The Spire's full illustration is a reveal, reserved for access.
+      if (sector.id != 'spire' || open) ...[
+        SectorHeader(sector: sector, height: 150),
+        const SizedBox(height: 16),
+      ],
       SectorScene(
           sectorId: sector.id, color: T.amber, animate: false, height: 140),
       const SizedBox(height: 16),

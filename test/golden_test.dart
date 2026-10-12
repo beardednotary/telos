@@ -27,6 +27,7 @@ import 'package:telos/theme/telos_theme.dart';
 import 'package:telos/widgets/camp_controls.dart';
 import 'package:telos/widgets/contract_board.dart';
 import 'package:telos/widgets/run_card.dart';
+import 'package:telos/widgets/sector_header.dart';
 import 'package:telos/widgets/sigil.dart';
 
 import 'support/archive_fixtures.dart';
@@ -160,6 +161,18 @@ void main() {
     c.g.level = 3;
 
     await t.pumpWidget(_phone(c, const DispatchScreen()));
+    // Image.asset resolves asynchronously, so without this the golden
+    // records the placeholder rather than the illustration.
+    await t.runAsync(() => precacheImage(
+          AssetImage(SectorHeader.assetFor('blackstone')),
+          t.element(find.byType(DispatchScreen)),
+        ));
+    await t.pumpAndSettle();
+    // The destination illustration sits above the disclosures now, so the
+    // squad step starts below the fold. A ListView does not build what is
+    // off-screen, so it has to be scrolled to rather than found.
+    await t.drag(
+        find.byKey(const Key('dispatch-scroll')), const Offset(0, -220));
     await t.pumpAndSettle();
     await t.tap(find.text('The squad'));
     await t.pumpAndSettle();
