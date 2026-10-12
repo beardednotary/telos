@@ -5,47 +5,122 @@
 <title>Telos salvage plate review</title>
 <style>
   :root { color-scheme: dark; font-family: system-ui, sans-serif; background: #171c18; color: #e8e1ce; }
-  body { max-width: 720px; margin: 32px auto; padding: 0 20px 48px; }
+  body { max-width: 1180px; margin: 32px auto; padding: 0 20px 48px; }
   h1 { font-size: 26px; margin-bottom: 8px; }
-  p { color: #bab9ab; line-height: 1.5; }
-  fieldset { border: 1px solid #495045; padding: 12px; margin: 24px 0; }
+  h2 { font-size: 20px; margin: 0 0 6px; }
+  p { color: #bab9ab; line-height: 1.5; margin-top: 6px; }
+  fieldset { border: 1px solid #495045; padding: 12px; margin: 24px 0 32px; }
   label { display: inline-block; margin: 6px 18px 6px 0; cursor: pointer; }
   input { accent-color: #c4a266; }
-  .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
-  figure { margin: 0; background: #20251f; padding: 20px; text-align: center; }
-  .art { display: block; width: 264px; max-width: 100%; aspect-ratio: 1; object-fit: contain; margin: 0 auto; }
-  body:has(#actual:checked) .art { width: 88px; }
-  figcaption { padding-top: 16px; line-height: 1.5; }
+  section { margin: 32px 0; }
+  .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+  figure { margin: 0; background: #20251f; padding: 16px; text-align: center; }
+  .art { display: block; width: 124px; height: auto; max-width: 100%; aspect-ratio: 1; object-fit: contain; margin: 0 auto; outline: 1px solid #495045; }
+  body:has(#large:checked) .art { width: 248px; }
+  body:has(#small:checked) .art { width: 88px; }
+  figcaption { padding-top: 16px; line-height: 1.5; font-size: 13px; }
   small { display: block; color: #a4aa9b; }
   a { color: #dac395; }
-  @media (max-width: 580px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+  @media (max-width: 920px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 360px) { .grid { grid-template-columns: minmax(0, 1fr); } }
 </style>
 <body>
-  <h1>Epic salvage illustrations</h1>
-  <p>640 × 640 WebP, quality 86. Four catalogue plates in the camp's ink style. The three endgame plates are excluded from this preview.</p>
+  <h1>Salvage illustrations</h1>
+  <p>Twelve standard discoveries and four epic plates. All 640 × 640 WebP, quality 86, in the camp's ink style. The three endgame plates are excluded from this preview.</p>
   <fieldset>
     <legend>Review size</legend>
-    <label><input id="large" type="radio" name="size" checked> 3× inspection · 264px</label>
-    <label><input id="actual" type="radio" name="size"> Actual reveal · 88px</label>
+    <label><input id="actual" type="radio" name="size" checked> Current reveal · 124px</label>
+    <label><input id="large" type="radio" name="size"> 2× inspection · 248px</label>
+    <label><input id="small" type="radio" name="size"> Small check · 88px</label>
   </fieldset>
-  <div class="grid">
-    <figure>
-      <img class="art" src="../../../assets/art/gear/ore_sense.webp" alt="A repaired leather sensing harness with a single dial, bound wire coils and an attached probe.">
-      <figcaption>Ore-Sense Rig<small>33.7 kB · <a href="../../../assets/art/gear/ore_sense.webp">WebP</a> · <a href="sources/ore_sense.png">Master</a></small></figcaption>
-    </figure>
-    <figure>
-      <img class="art" src="../../../assets/art/gear/quiet_seal.webp" alt="A short handled seal matrix beside its soft, slumping dark wax impression.">
-      <figcaption>Quiet Seal<small>34.0 kB · <a href="../../../assets/art/gear/quiet_seal.webp">WebP</a> · <a href="sources/quiet_seal.png">Master</a></small></figcaption>
-    </figure>
-    <figure>
-      <img class="art" src="../../../assets/art/gear/null_core.webp" alt="A featureless matte dark sphere in a brass meridian cage with two gauges resting at their bottom stops.">
-      <figcaption>Null Core<small>27.0 kB · <a href="../../../assets/art/gear/null_core.webp">WebP</a> · <a href="sources/null_core.png">Master</a></small></figcaption>
-    </figure>
-    <figure>
-      <img class="art" src="../../../assets/art/gear/first_light.webp" alt="A worn squat stone lamp with a shallow bowl and one small muted ochre flame.">
-      <figcaption>First Light<small>32.0 kB · <a href="../../../assets/art/gear/first_light.webp">WebP</a> · <a href="sources/first_light.png">Master</a></small></figcaption>
-    </figure>
-  </div>
+  <section aria-labelledby="common">
+    <h2 id="common">Common</h2>
+    <p>Plain, worn objects with abundant empty paper.</p>
+    <div class="grid">
+      <figure>
+        <img class="art" src="../../../assets/art/gear/scav_cord.webp" width="640" height="640" alt="A coil of waxed rope, laid flat in a loose spiral. One end whipped with thread, the other frayed open and splaying. Nothing else.">
+        <figcaption>SCAVENGER CORD<small><a href="../../../assets/art/gear/scav_cord.webp">WebP</a> · <a href="sources/scav_cord.png">Master</a></small></figcaption>
+      </figure>
+      <figure>
+        <img class="art" src="../../../assets/art/gear/mossglass.webp" width="640" height="640" alt="A single flat shard of thick broken glass, edges chipped, lying on its side. Clouded through its body rather than on its surface.">
+        <figcaption>MOSSGLASS SHARD<small><a href="../../../assets/art/gear/mossglass.webp">WebP</a> · <a href="sources/mossglass.png">Master</a></small></figcaption>
+      </figure>
+      <figure>
+        <img class="art" src="../../../assets/art/gear/hollow_pick.webp" width="640" height="640" alt="A short miner's hand pick, head dulled and chipped, the wooden haft worn into a shallow grip where it has been held for years.">
+        <figcaption>HOLLOW PICK<small><a href="../../../assets/art/gear/hollow_pick.webp">WebP</a> · <a href="sources/hollow_pick.png">Master</a></small></figcaption>
+      </figure>
+      <figure>
+        <img class="art" src="../../../assets/art/gear/ash_ledger.webp" width="640" height="640" alt="A bound ledger lying closed, its cover scorched and its page block burned away unevenly along one edge. Ruled lines visible as marks only, never as readable writing.">
+        <figcaption>ASH LEDGER<small><a href="../../../assets/art/gear/ash_ledger.webp">WebP</a> · <a href="sources/ash_ledger.png">Master</a></small></figcaption>
+      </figure>
+    </div>
+  </section>
+  <section aria-labelledby="uncommon">
+    <h2 id="uncommon">Uncommon</h2>
+    <p>One useful working feature.</p>
+    <div class="grid">
+      <figure>
+        <img class="art" src="../../../assets/art/gear/field_optic.webp" width="640" height="640" alt="A short brass monocular with a knurled focus ring, scuffed from carrying. A single clean crack runs across the front lens, corner to corner.">
+        <figcaption>FIELD OPTIC<small><a href="../../../assets/art/gear/field_optic.webp">WebP</a> · <a href="sources/field_optic.png">Master</a></small></figcaption>
+      </figure>
+      <figure>
+        <img class="art" src="../../../assets/art/gear/slag_brace.webp" width="640" height="640" alt="A thick forearm brace of blackened iron plate over leather, buckled with two heavy straps. Dented across one face.">
+        <figcaption>SLAG BRACE<small><a href="../../../assets/art/gear/slag_brace.webp">WebP</a> · <a href="sources/slag_brace.png">Master</a></small></figcaption>
+      </figure>
+      <figure>
+        <img class="art" src="../../../assets/art/gear/archivist_optic.webp" width="640" height="640" alt="A reading glass with an unusually shallow, wide lens in a thin brass rim, on a short flat handle made to rest on a page rather than be held up.">
+        <figcaption>ARCHIVIST OPTIC<small><a href="../../../assets/art/gear/archivist_optic.webp">WebP</a> · <a href="sources/archivist_optic.png">Master</a></small></figcaption>
+      </figure>
+      <figure>
+        <img class="art" src="../../../assets/art/gear/rift_anchor.webp" width="640" height="640" alt="A forged steel anchor bolt with a wide eye, set into nothing - no rock, no plate, no fixing. It sits flat on the paper as though the surface it was driven into has been removed.">
+        <figcaption>RIFT ANCHOR<small><a href="../../../assets/art/gear/rift_anchor.webp">WebP</a> · <a href="sources/rift_anchor.png">Master</a></small></figcaption>
+      </figure>
+    </div>
+  </section>
+  <section aria-labelledby="rare">
+    <h2 id="rare">Rare</h2>
+    <p>Mechanism, or a specific unsettling detail.</p>
+    <div class="grid">
+      <figure>
+        <img class="art" src="../../../assets/art/gear/verge_charm.webp" width="640" height="640" alt="A small flat token of pale wood on a worn thong, carved with a mark nobody uses any more. Handled until the carving is nearly smooth.">
+        <figcaption>VERGE CHARM<small><a href="../../../assets/art/gear/verge_charm.webp">WebP</a> · <a href="sources/verge_charm.png">Master</a></small></figcaption>
+      </figure>
+      <figure>
+        <img class="art" src="../../../assets/art/gear/deep_lamp.webp" width="640" height="640" alt="A miner's safety lamp: a brass base and cap with a tall mesh-guarded glass between them, a wire bail over the top. The flame inside is small, steady and the wrong colour - pale, almost white. Muted ochre only, no halo.">
+        <figcaption>DEEP LAMP<small><a href="../../../assets/art/gear/deep_lamp.webp">WebP</a> · <a href="sources/deep_lamp.png">Master</a></small></figcaption>
+      </figure>
+      <figure>
+        <img class="art" src="../../../assets/art/gear/cinder_key.webp" width="640" height="640" alt="A long iron key with a complicated ward, its bit blackened as though it has been in a fire. The metal is faintly discoloured along its length, the way iron is after heat.">
+        <figcaption>CINDER KEY<small><a href="../../../assets/art/gear/cinder_key.webp">WebP</a> · <a href="sources/cinder_key.png">Master</a></small></figcaption>
+      </figure>
+      <figure>
+        <img class="art" src="../../../assets/art/gear/descent_rig.webp" width="640" height="640" alt="A rope descender: a figure-of-eight steel plate strung on a worn line, with a locking carabiner through the upper eye. Scored bright along the bends where the rope has run through it.">
+        <figcaption>DESCENT RIG<small><a href="../../../assets/art/gear/descent_rig.webp">WebP</a> · <a href="sources/descent_rig.png">Master</a></small></figcaption>
+      </figure>
+    </div>
+  </section>
+  <section aria-labelledby="epic">
+    <h2 id="epic">Epic</h2>
+    <p>The four non-spoiler epic plates, for comparison.</p>
+    <div class="grid">
+      <figure>
+        <img class="art" src="../../../assets/art/gear/ore_sense.webp" width="640" height="640" alt="A repaired leather sensing harness with a single dial, bound wire coils and an attached probe.">
+        <figcaption>Ore-Sense Rig<small><a href="../../../assets/art/gear/ore_sense.webp">WebP</a> · <a href="sources/ore_sense.png">Master</a></small></figcaption>
+      </figure>
+      <figure>
+        <img class="art" src="../../../assets/art/gear/quiet_seal.webp" width="640" height="640" alt="A short handled seal matrix beside its soft, slumping dark wax impression.">
+        <figcaption>Quiet Seal<small><a href="../../../assets/art/gear/quiet_seal.webp">WebP</a> · <a href="sources/quiet_seal.png">Master</a></small></figcaption>
+      </figure>
+      <figure>
+        <img class="art" src="../../../assets/art/gear/null_core.webp" width="640" height="640" alt="A featureless matte dark sphere in a meridian cage with two gauges resting at their bottom stops.">
+        <figcaption>Null Core<small><a href="../../../assets/art/gear/null_core.webp">WebP</a> · <a href="sources/null_core.png">Master</a></small></figcaption>
+      </figure>
+      <figure>
+        <img class="art" src="../../../assets/art/gear/first_light.webp" width="640" height="640" alt="A worn squat stone lamp with a shallow bowl and one small muted ochre flame.">
+        <figcaption>First Light<small><a href="../../../assets/art/gear/first_light.webp">WebP</a> · <a href="sources/first_light.png">Master</a></small></figcaption>
+      </figure>
+    </div>
+  </section>
   <p>In the game, these plates appear only at the debrief reveal. Equipment lists, comparisons and the field manual retain their GearMark engravings.</p>
 </body>
 </html>

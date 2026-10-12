@@ -1,10 +1,12 @@
 """Export the selected salvage plates. Requires Pillow with WebP support.
 
-Run: python docs/design/gear-art/export.py
+Run: python docs/design/gear-art/export.py [gear_id ...]
+Omit IDs to export all plates; provide IDs to export only selected items.
 Only resizes and encodes; all illustration edits used built-in image_gen.
 No gallery or preview is generated, including for the three spoiler items.
 """
 
+import argparse
 import json
 from pathlib import Path
 
@@ -17,8 +19,19 @@ manifest = json.loads((study / "generation.json").read_text(encoding="utf-8"))
 settings = manifest["export"]
 size = (settings["width"], settings["height"])
 total = 0
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument("ids", nargs="*", help="Gear IDs to export; default: all")
+args = parser.parse_args()
+known_ids = {asset["id"] for asset in manifest["assets"]}
+unknown_ids = set(args.ids) - known_ids
+if unknown_ids:
+    parser.error(f"Unknown gear IDs: {', '.join(sorted(unknown_ids))}")
+assets = [
+    asset for asset in manifest["assets"]
+    if not args.ids or asset["id"] in args.ids
+]
 
-for asset in manifest["assets"]:
+for asset in assets:
     source = study / asset["source"]
     destination = root / asset["asset"]
     with Image.open(source) as master:
@@ -44,4 +57,4 @@ for asset in manifest["assets"]:
     total += byte_count
     print(f"{destination.relative_to(root)}: {size[0]} x {size[1]}, q86, {byte_count:,} bytes")
 
-print(f"Seven-plate total: {total:,} bytes")
+print(f"{len(assets)}-plate total: {total:,} bytes")

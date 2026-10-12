@@ -3,12 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:telos/data/content.dart';
 import 'package:telos/theme/telos_theme.dart';
-import 'package:telos/models/models.dart';
 import 'package:telos/widgets/gear_art.dart';
 import 'package:telos/widgets/gear_mark.dart';
 import 'package:telos/widgets/management_widgets.dart';
 
-/// Missing art still falls back even after the current epics have plates.
+/// Missing art still falls back even after all current gear has plates.
 class _MissingPlateBundle extends CachingAssetBundle {
   @override
   Future<ByteData> load(String key) {
@@ -38,8 +37,8 @@ void main() {
     expect(t.takeException(), isNull);
   });
 
-  testWidgets('epic lists and comparisons keep their engravings', (t) async {
-    for (final def in kGear.values.where((def) => def.rarity == Rarity.epic)) {
+  testWidgets('all gear lists and comparisons keep their engravings', (t) async {
+    for (final def in kGear.values) {
       await t.pumpWidget(MaterialApp(
         theme: T.theme(),
         home: Scaffold(
