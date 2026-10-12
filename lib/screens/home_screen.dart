@@ -166,7 +166,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Column(children: [
                     // A mood illustration of camp, not the selected squad.
                     Image.asset(
-                      'assets/art/camp.png',
+                      'assets/art/camp.webp',
                       height:
                           MediaQuery.sizeOf(context).width <= 340 ? 150 : 184,
                       width: double.infinity,

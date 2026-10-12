@@ -229,7 +229,7 @@ class _PanelViewState extends State<_PanelView> {
         if (p.illustration) ...[
           ClipRRect(
             borderRadius: BorderRadius.circular(3),
-            child: Image.asset('assets/art/camp.png',
+            child: Image.asset('assets/art/camp.webp',
                 height: 160, fit: BoxFit.cover, excludeFromSemantics: true),
           ),
           const SizedBox(height: 24),

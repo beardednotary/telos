@@ -41,7 +41,7 @@ flutter_launcher_icons:
 flutter:
   uses-material-design: true
   assets:
-    - assets/art/camp.png
+    - assets/art/camp.webp
     - assets/fonts/OFL-IBMPlexSans.txt
     - assets/fonts/OFL-IBMPlexSansCondensed.txt
     - assets/fonts/OFL.txt
