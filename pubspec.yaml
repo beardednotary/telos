@@ -1,7 +1,7 @@
 name: telos
 description: "Telos — a distraction-free focus timer wrapped in an incremental guild RPG."
 publish_to: 'none'
-version: 0.1.0+13
+version: 0.1.0+14
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -35,7 +35,7 @@ flutter_launcher_icons:
   # Android masks adaptive icons to a circle or squircle and can crop the
   # outer quarter, so the foreground is the glyph alone at 62% on a
   # transparent canvas, over the icon's own black.
-  adaptive_icon_background: "#090B0C"
+  adaptive_icon_background: "#151D22"
   adaptive_icon_foreground: "assets/icon/icon_foreground.png"
 
 flutter:
