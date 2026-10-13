@@ -74,6 +74,51 @@ class _CampActionState extends State<CampAction> {
       );
 }
 
+/// A payout, shown the way the rest of the app shows resources.
+///
+/// Claiming a contract is a transaction, not a reveal - the card states the
+/// reward before the button is pressed, so there is nothing to stage and no
+/// surprise to protect. It stays non-blocking for the same reason: several
+/// contracts can come due at once, and three dialogs in a row is a worse
+/// experience than the thing it was meant to celebrate.
+///
+/// What it should not be is a default SnackBar reading its figures out as a
+/// sentence, indistinguishable from an error. A contract often pays more
+/// than the expedition that completed it, and was getting the smaller
+/// treatment of the two.
+void campPayout(
+  BuildContext context, {
+  required String kicker,
+  required int credits,
+  required int alloy,
+  required int intel,
+  String? footnote,
+}) {
+  ScaffoldMessenger.of(context)
+    ..hideCurrentSnackBar()
+    ..showSnackBar(SnackBar(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      behavior: SnackBarBehavior.floating,
+      padding: EdgeInsets.zero,
+      duration: const Duration(milliseconds: 3200),
+      content: ExpeditionPanel(
+          child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(kicker, style: T.label.copyWith(color: T.amber)),
+          const SizedBox(height: 10),
+          ResourceAmounts(
+              credits: credits, alloy: alloy, intel: intel, gains: true),
+          if (footnote != null) ...[
+            const SizedBox(height: 8),
+            Text(footnote, style: T.secondary),
+          ],
+        ],
+      )),
+    ));
+}
+
 void campNotice(BuildContext context, String message) {
   ScaffoldMessenger.of(context)
     ..hideCurrentSnackBar()

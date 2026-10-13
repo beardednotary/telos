@@ -137,11 +137,14 @@ class _ContractBoardPanelState extends State<ContractBoardPanel> {
                           final paid = await c.claimContract(contract.id);
                           if (paid == null || !context.mounted) return;
                           setState(() => _open = null);
-                          campNotice(
-                              context,
-                              'Contract paid. +${paid.rewardCredits} credits, '
-                              '+${paid.rewardAlloy} alloy, +${paid.rewardIntel} intel and '
-                              '+${paid.rewardXp} guild XP.');
+                          campPayout(
+                            context,
+                            kicker: 'CONTRACT PAID',
+                            credits: paid.rewardCredits,
+                            alloy: paid.rewardAlloy,
+                            intel: paid.rewardIntel,
+                            footnote: '+${paid.rewardXp} guild XP',
+                          );
                         },
                       )
                     else
