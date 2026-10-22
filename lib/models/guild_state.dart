@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import '../data/content.dart';
+import 'caravan.dart';
 import 'guild_identity.dart';
 import 'models.dart';
 
@@ -50,6 +51,13 @@ class GuildState {
   List<Contract> contracts;
   int contractCounter;
 
+  /// The player's punch clock, or null when they have not set one. The
+  /// departure last met (yyyy-mm-dd), so each is met once; and how far into
+  /// the caravan's manifest they have read.
+  CaravanSchedule? caravan;
+  String? caravanClaimed;
+  int caravanRead;
+
   int gearCounter;
   int runCounter;
   bool onboarded;
@@ -96,6 +104,9 @@ class GuildState {
     required this.log,
     List<Contract>? contracts,
     this.contractCounter = 0,
+    this.caravan,
+    this.caravanClaimed,
+    this.caravanRead = 0,
     this.active,
     this.pendingDebrief,
     this.gearCounter = 0,
@@ -190,6 +201,11 @@ class GuildState {
 
   int get cleanRuns => log.where((r) => r.integrity >= 0.999).length;
 
+  /// Departures met at the gate. A record, like [daysWorked]: it only goes
+  /// up, and a missed morning takes nothing off it.
+  int get caravansMet =>
+      log.where((r) => (r.caravan ?? 0) >= 1 && !r.recalled).length;
+
   /// The Spire is unfinished. Everyone who worked on it stopped, which is
   /// why nobody knows what it is for. After the player arrives, their own
   /// hours start adding to it.
@@ -242,6 +258,9 @@ class GuildState {
         'log': log.map((r) => r.toJson()).toList(),
         'contracts': contracts.map((c) => c.toJson()).toList(),
         'contractCounter': contractCounter,
+        'caravan': caravan?.toJson(),
+        'caravanClaimed': caravanClaimed,
+        'caravanRead': caravanRead,
         'active': active?.toJson(),
         'pendingDebrief': pendingDebrief?.toJson(),
         'gearCounter': gearCounter,
@@ -303,6 +322,9 @@ class GuildState {
           .map((e) => Contract.fromJson(e as Map<String, dynamic>))
           .toList(),
       contractCounter: j['contractCounter'] as int? ?? 0,
+      caravan: CaravanSchedule.fromJson(j['caravan']),
+      caravanClaimed: j['caravanClaimed'] as String?,
+      caravanRead: j['caravanRead'] as int? ?? 0,
       active: j['active'] == null
           ? null
           : ActiveRun.fromJson(j['active'] as Map<String, dynamic>),

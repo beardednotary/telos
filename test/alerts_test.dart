@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:telos/models/caravan.dart';
 import 'package:telos/models/models.dart';
 import 'package:telos/services/alerts.dart';
 import 'package:telos/services/persistence.dart';
@@ -38,6 +39,12 @@ class FakeAlerts implements Alerts {
 
   @override
   Future<void> cancel() async => cancels++;
+
+  final List<List<CaravanNotice>> caravanArmed = [];
+
+  @override
+  Future<void> scheduleCaravan(List<CaravanNotice> notices) async =>
+      caravanArmed.add(notices);
 }
 
 void main() {

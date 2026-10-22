@@ -12,6 +12,7 @@ import '../widgets/camp_controls.dart';
 import '../widgets/contract_board.dart';
 import '../widgets/guild_sigil.dart';
 import 'backup_screen.dart';
+import 'caravan_screen.dart';
 import 'dispatch_screen.dart';
 import 'forge_screen.dart';
 import 'guild_identity_sheet.dart';
@@ -190,6 +191,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ]),
                 ),
                 const SizedBox(height: 16),
+                CaravanCard(onDispatch: () => _visit(const DispatchScreen())),
                 Material(
                   color: T.card,
                   shape: const RoundedRectangleBorder(
@@ -317,6 +319,14 @@ class _HomeScreenState extends State<HomeScreen> {
                           ? '$contracts ready to claim'
                           : '${c.contracts.length} on the board',
                       onTap: () => _visit(const _ContractsScreen()),
+                    ),
+                    CampLink(
+                      key: const Key('caravan-link'),
+                      title: 'Caravan',
+                      detail: g.caravan == null
+                          ? 'Set a time to start, and be rewarded for keeping it.'
+                          : caravanSummary(context, g.caravan!),
+                      onTap: () => _visit(const CaravanScreen()),
                     ),
                     CampLink(
                       title: 'Field log',

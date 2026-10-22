@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:flutter/widgets.dart';
 
 import '../data/content.dart';
+import '../models/caravan.dart';
 import '../models/guild_state.dart';
 import '../models/models.dart';
 import '../services/alerts.dart';
@@ -72,6 +73,7 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
     _noteOpen();
     // The board is always full, so there is never a refresh to remember.
     ContractBoard.refill(_g);
+    await _armCaravan();
     _ready = true;
     _syncTicker();
     notifyListeners();
@@ -188,8 +190,13 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed && _ready && _noteDay()) {
-      unawaited(_save());
+    if (state == AppLifecycleState.resumed && _ready) {
+      if (_noteDay()) unawaited(_save());
+      // Notices are armed a week ahead from the last open; coming back
+      // extends them, and a clock or timezone change gets picked up.
+      unawaited(_armCaravan());
+      // The caravan card on camp reads the time; let it catch up.
+      if (_g.caravan != null && _g.active == null) notifyListeners();
     }
     final run = _g.active;
     if (run == null) return;
@@ -297,6 +304,7 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
     await _alerts.requestPermission();
 
     final t = DateTime.now();
+    final caravan = caravanAt(t);
     _g.runCounter++;
     _g.active = ActiveRun(
       id: 'r${_g.runCounter}-${t.millisecondsSinceEpoch}',
@@ -306,6 +314,8 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
       startedAt: t,
       plannedMinutes: minutes,
       watchingSince: t,
+      caravan: caravan?.strength,
+      caravanDay: caravan?.day,
     );
     now = t;
     _syncTicker();
@@ -315,6 +325,7 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
       squad: _squadLabel(squad),
     );
     await _showLockScreen(_g.active!);
+    await _armCaravan();
     await _save();
     notifyListeners();
   }
@@ -350,6 +361,8 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
     _g.runCounter--;
     await _alerts.cancel();
     await _lockScreen.clear();
+    // Taken back, so the departure is still there to be met.
+    await _armCaravan();
     _syncTicker();
     await _save();
     notifyListeners();
@@ -433,6 +446,10 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
 
     ContractBoard.applyRun(_g, res.record);
 
+    // Met or followed, the departure is spent: one run per caravan.
+    if (run.caravanDay != null) _g.caravanClaimed = run.caravanDay;
+    if (res.record.caravanLine != null) _g.caravanRead++;
+
     _g.log.insert(0, res.record);
     // After the insert, so the run that arrived is counted on the Charter
     // rather than becoming the first of the floors.
@@ -446,9 +463,54 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
     _ticker?.cancel();
     _ticker = null;
 
+    await _armCaravan();
     await _save();
     notifyListeners();
     return res.record;
+  }
+
+  // -- caravan ---------------------------------------------------------------
+
+  /// The departure a run started at [t] would go out with. Null when none is
+  /// in reach, it has already been met, or its tracks have gone cold.
+  CaravanStatus? caravanAt(DateTime t) {
+    final status = caravanStatus(_g.caravan, t, claimedDay: _g.caravanClaimed);
+    if (status == null || status.strength <= 0) return null;
+    // A squad already out with it cannot be sent again.
+    if (_g.active?.caravanDay == status.day) return null;
+    return status;
+  }
+
+  /// Sets or clears the punch clock. Asks for notification permission, since
+  /// the gate notice is most of the point.
+  Future<void> setCaravan(CaravanSchedule? schedule) async {
+    _g.caravan = schedule;
+    if (schedule != null) await _alerts.requestPermission();
+    await _armCaravan();
+    await _save();
+    notifyListeners();
+  }
+
+  String? _armedCaravan;
+
+  /// Rebuilds the week of caravan notices from the current schedule, run and
+  /// claim. Cheap to call often: it only reaches the platform on a change.
+  Future<void> _armCaravan() async {
+    final run = _g.active;
+    final notices = caravanNotices(
+      schedule: _g.caravan,
+      now: DateTime.now(),
+      claimedDay: _g.caravanClaimed,
+      runStart: run?.startedAt,
+      runEnd: run?.endsAt,
+      runDay: run?.caravanDay,
+    );
+    final signature = [
+      for (final n in notices) '${n.at.toIso8601String()} ${n.title}',
+    ].join('|');
+    if (signature == _armedCaravan) return;
+    _armedCaravan = signature;
+    await _alerts.scheduleCaravan(notices);
   }
 
   Future<void> completeOnboarding() async {
@@ -671,6 +733,7 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
     // resurrect a countdown from another phone.
     _g.active = null;
     _g.pendingDebrief = null;
+    await _armCaravan();
     await _save();
     notifyListeners();
   }
@@ -681,6 +744,7 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
     await _alerts.cancel();
     await _lockScreen.clear();
     _g = GuildState.fresh();
+    await _armCaravan();
     await _store.wipe();
     notifyListeners();
   }

@@ -136,6 +136,29 @@ class ExpeditionEngine {
     final priorSurvey =
         seen < sector.priorSurvey.length ? sector.priorSurvey[seen] : null;
 
+    // -- caravan -------------------------------------------------------------
+    // Rolled on its own seed, so a run's ordinary loot is identical whether
+    // or not the caravan went with it. Granted on scraps too, for the same
+    // reason as the prior survey: the caravan rewards starting, and how long
+    // the player could work today is not its business. A recall is the one
+    // exception - the caravan went on and the squad turned back.
+    final caravanLoot = <Gear>[];
+    String? caravanLine;
+    final share = run.caravan;
+    if (share != null && share > 0 && !recalled) {
+      final crng = Random('${run.id}/caravan'.hashCode);
+      if (crng.nextDouble() < kCaravanGearChance * share) {
+        caravanLoot.add(Gear(
+          'g${guild.gearCounter + loot.length}',
+          _pickCaravanLoot(crng),
+        ));
+      }
+      if (share >= 1 && guild.caravanRead < kCaravanManifest.length) {
+        caravanLine = kCaravanManifest[guild.caravanRead];
+      }
+    }
+    loot.addAll(caravanLoot);
+
     final record = RunRecord(
       id: run.id,
       sectorId: run.sectorId,
@@ -158,6 +181,9 @@ class ExpeditionEngine {
       guildLevelUps: gLvl - guild.level,
       journal: journal,
       priorSurvey: priorSurvey,
+      caravan: run.caravan,
+      caravanLine: caravanLine,
+      caravanLoot: caravanLoot.map((g) => g.uid).toList(),
     );
 
     return Resolution(record, loot);
@@ -284,6 +310,27 @@ class ExpeditionEngine {
       if (roll <= 0) return e.key;
     }
     return sector.lootPool.first;
+  }
+
+  /// The caravan's own pool. Fixed odds: roughly three in five uncommon, one
+  /// in four rare, one in twelve epic.
+  static String _pickCaravanLoot(Random rng) {
+    final weights = {
+      for (final id in kCaravanGear)
+        id: switch (gearById(id).rarity) {
+          Rarity.common => 60.0,
+          Rarity.uncommon => 45.0,
+          Rarity.rare => 20.0,
+          Rarity.epic => 6.0,
+        },
+    };
+    final total = weights.values.fold(0.0, (a, b) => a + b);
+    var roll = rng.nextDouble() * total;
+    for (final e in weights.entries) {
+      roll -= e.value;
+      if (roll <= 0) return e.key;
+    }
+    return kCaravanGear.first;
   }
 
   static String _closingLine({
