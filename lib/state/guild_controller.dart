@@ -446,6 +446,10 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
 
     ContractBoard.applyRun(_g, res.record);
 
+    // After contracts are scored, which read the kit as it went into the
+    // field: new finds must not count as carried on the run that found them.
+    _wearNewFinds(run.squad, res.gear);
+
     // Met or followed, the departure is spent: one run per caravan.
     if (run.caravanDay != null) _g.caravanClaimed = run.caravanDay;
     if (res.record.caravanLine != null) _g.caravanRead++;
@@ -511,6 +515,35 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
     if (signature == _armedCaravan) return;
     _armedCaravan = signature;
     await _alerts.scheduleCaravan(notices);
+  }
+
+  /// Puts each new find straight on whoever brought it home, if they have
+  /// an empty slot. Never replaces anything: a player who arranges kit by
+  /// hand keeps their arrangement, and a player who never opens the roster
+  /// still gets the benefit of what they found.
+  void _wearNewFinds(List<String> squad, List<Gear> finds) {
+    final pending = [...finds]..sort((a, b) => gearById(b.defId)
+        .rarity
+        .index
+        .compareTo(gearById(a.defId).rarity.index));
+    for (final gear in pending) {
+      for (final id in squad) {
+        final m = _g.memberById(id);
+        if (m != null && m.equipped.length < kGearSlots) {
+          m.equipped.add(gear.uid);
+          break;
+        }
+      }
+    }
+  }
+
+  /// Who is wearing [gearUid], if anyone. For the debrief's "KAEL is
+  /// wearing it" line.
+  Adventurer? wearerOf(String gearUid) {
+    for (final m in _g.roster) {
+      if (m.equipped.contains(gearUid)) return m;
+    }
+    return null;
   }
 
   Future<void> completeOnboarding() async {

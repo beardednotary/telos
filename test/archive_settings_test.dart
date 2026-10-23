@@ -137,7 +137,7 @@ void main() {
   });
 
   testWidgets(
-      'first-run manual supports back, optional detail and completion on a small phone',
+      'first-run manual supports back and completion on a small phone',
       (t) async {
     final c = await boot();
     c.g.onboarded = false;
@@ -146,13 +146,12 @@ void main() {
     expect(c.g.manualDoneAt, isNull);
     await tap(t, find.byKey(const Key('manual-next')));
     expect(find.text('INTEGRITY'), findsOneWidget);
-    await tap(t, find.text('How Integrity works'));
-    expect(find.textContaining('Equipment rarity is rolled separately.'),
-        findsOneWidget);
+    // The detail lives in the full manual under Settings, not on day one.
+    expect(find.text('How Integrity works'), findsNothing);
     expect(c.g.onboarded, isFalse);
     await tap(t, find.text('Previous page'));
     expect(find.text('THE ONE RULE'), findsOneWidget);
-    for (var i = 0; i < 3; i++) {
+    for (var i = 0; i < 2; i++) {
       await tap(t, find.byKey(const Key('manual-next')));
     }
     expect(find.text('Open camp'), findsOneWidget);
@@ -176,7 +175,11 @@ void main() {
     await tap(t, find.text('Help & about'));
     await tap(t, find.byKey(const Key('settings-manual')));
     expect(find.byType(OnboardingScreen), findsOneWidget);
-    for (var i = 0; i < 4; i++) {
+    await tap(t, find.byKey(const Key('manual-next')));
+    await tap(t, find.text('How Integrity works'));
+    expect(find.textContaining('Equipment rarity is rolled separately.'),
+        findsOneWidget);
+    for (var i = 0; i < 3; i++) {
       await tap(t, find.byKey(const Key('manual-next')));
     }
     expect(find.text('REPEAT A DISPATCH'), findsOneWidget);

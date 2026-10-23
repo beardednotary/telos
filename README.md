@@ -273,8 +273,13 @@ not inferred from the current roster; equipment removed from the vault is shown
 as a count because older records retain only its ID. Log totals describe the
 retained history, up to 500 expeditions.
 
-The first-run field manual has four short pages with optional rule explanations.
-Reviewing it from settings adds repeat-dispatch help. Settings groups guild
+First launch is three pages of one line each, because a tester's first
+word on the longer briefing was "overwhelming". Everything else is taught
+where it comes up: the first dispatch arrives pre-filled (25 minutes, the
+nearest sector, the first member), the timer explains Integrity for the
+first three runs, and new finds go straight into empty slots on the squad
+that found them, never replacing anything worn. The full four-page manual,
+with its rule explanations and repeat-dispatch help, is under Settings. Settings groups guild
 identity, save/restore, and help. Backup review compares the current guild with
 the actual decoded save before replacement; unreadable or unsupported files
 cannot be restored. Exported copies in the app's folder still need to be kept

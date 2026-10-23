@@ -55,9 +55,10 @@ void main() {
     await t.tap(find.byKey(const Key('camp-dispatch')));
     await t.pumpAndSettle();
 
-    // A fresh plan starts at 25 minutes with no squad selected.
+    // A first plan is ready to send: 25 minutes, the first member.
     expect(find.text('Your focus'), findsOneWidget);
-    expect(find.text('Choose a squad'), findsOneWidget);
+    expect(find.text('Deploy · 25 minutes'), findsOneWidget);
+    expect(find.text('KAEL · 1/1'), findsOneWidget);
 
     await t.enterText(find.byType(TextField).first, 'Refactor the auth flow');
     await t.tap(find.byKey(const Key('duration-15')));
@@ -70,10 +71,6 @@ void main() {
     expect(find.text('Needs 25+ minutes'), findsOneWidget);
     expect(find.text('Locked · 320 intel · Guild 3'), findsOneWidget);
 
-    await t.tap(find.byKey(const Key('deploy')));
-    await t.pumpAndSettle();
-    await t.tap(find.text('KAEL'));
-    await t.pumpAndSettle();
     expect(find.text('Deploy · 15 minutes'), findsOneWidget);
 
     await t.tap(find.byKey(const Key('deploy')));
@@ -208,10 +205,9 @@ void main() {
 
     await t.tap(find.text('Continue'));
     await t.pumpAndSettle();
-    expect(find.text('YOUR PACE'), findsOneWidget);
+    expect(find.text('BACK AT CAMP'), findsOneWidget);
 
-    await t.tap(find.text('Continue'));
-    await t.pumpAndSettle();
+    // Three short pages: the rest is taught where it comes up.
     await t.tap(find.text('Open camp'));
     await t.pumpAndSettle();
 
