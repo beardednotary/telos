@@ -224,6 +224,51 @@ void main() {
   });
 
   testWidgets(
+      'a backup saved anywhere can be picked and restored through the same review',
+      (t) async {
+    final c = await boot();
+    final replacement = GuildState.fresh()
+      ..guildName = 'The Ash Company'
+      ..credits = 812
+      ..onboarded = true;
+    final files = MemoryBackupFiles()
+      ..picked = PickedBackup(
+          'my renamed backup.json', Backup.encode(replacement));
+    await mount(t, c, BackupScreen(files: files), small: true);
+    await tap(t, find.text('Save & restore'));
+    expect(find.text('No backup files found.'), findsOneWidget,
+        reason: 'the case the tester hit: nothing in the app folder');
+    await tap(t, find.byKey(const Key('pick-backup')));
+    expect(files.picks, 1);
+    expect(find.text('Replace this guild?'), findsOneWidget);
+    expect(find.text('my renamed backup.json'), findsOneWidget);
+    await tap(t, find.byKey(const Key('confirm-restore')));
+    expect(c.g.guildName, 'The Ash Company');
+    expect(c.g.credits, 812);
+    expect(t.takeException(), isNull);
+  });
+
+  testWidgets('picking something that is not a backup says so and changes nothing',
+      (t) async {
+    final c = await boot();
+    final before = jsonEncode(c.g.toJson());
+    final files = MemoryBackupFiles()
+      ..picked = const PickedBackup('notes.json', '{"hello": 1}');
+    await mount(t, c, BackupScreen(files: files), small: true);
+    await tap(t, find.text('Save & restore'));
+    await tap(t, find.byKey(const Key('pick-backup')));
+    expect(find.text('Replace this guild?'), findsNothing);
+    expect(find.textContaining('notes.json is not a Telos backup'),
+        findsOneWidget);
+    // Cancelling the picker clears nothing and opens nothing.
+    files.picked = null;
+    await tap(t, find.byKey(const Key('pick-backup')));
+    expect(find.text('Replace this guild?'), findsNothing);
+    expect(jsonEncode(c.g.toJson()), before);
+    expect(t.takeException(), isNull);
+  });
+
+  testWidgets(
       'restore cancellation preserves the save; confirmation replaces it and clears live state',
       (t) async {
     final c = await boot();

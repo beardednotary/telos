@@ -42,9 +42,10 @@ class _BackupScreenState extends State<BackupScreen> {
       final found = await Future.wait(files.map((file) async {
         try {
           final text = await widget.files.read(file);
-          return _BackupFile(file, Backup.inspect(text), Backup.decode(text));
+          return _BackupFile(
+              _nameOf(file), Backup.inspect(text), Backup.decode(text));
         } catch (_) {
-          return _BackupFile(file, null, null);
+          return _BackupFile(_nameOf(file), null, null);
         }
       }));
       if (mounted) setState(() => _found = found);
@@ -57,6 +58,32 @@ class _BackupScreenState extends State<BackupScreen> {
       }
     } finally {
       if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  String? _pickError;
+
+  /// For a backup saved anywhere the list cannot see: iCloud Drive, a folder
+  /// of the player's own, a download. Goes to the same review as the list.
+  Future<void> _pick() async {
+    setState(() => _pickError = null);
+    try {
+      final picked = await widget.files.pick();
+      if (picked == null || !mounted) return;
+      final backup = _BackupFile(picked.name, Backup.inspect(picked.text),
+          Backup.decode(picked.text));
+      if (backup.info == null || backup.state == null) {
+        setState(() => _pickError =
+            '${picked.name} is not a Telos backup, or it is from a version '
+            'this one cannot read.');
+        return;
+      }
+      await showCampSheet(context, _RestoreReview(backup: backup));
+    } catch (_) {
+      if (mounted) {
+        setState(() => _pickError = 'Could not open that file. Try again, or '
+            'move it into the Telos folder and refresh the list.');
+      }
     }
   }
 
@@ -169,7 +196,7 @@ class _BackupScreenState extends State<BackupScreen> {
                       Text('LOCAL BACKUPS', style: T.label),
                       const SizedBox(height: 12),
                       Text(
-                          'On iPhone, place a Telos backup in the Telos folder in Files, then refresh this list. Exported copies also appear here.',
+                          'Backups in On My iPhone › Telos appear here, including exported copies. Saved one somewhere else, like iCloud Drive or a folder of your own? Choose it below.',
                           style: T.secondary),
                       const SizedBox(height: 16),
                       if (_loading)
@@ -202,6 +229,17 @@ class _BackupScreenState extends State<BackupScreen> {
                           const Divider(height: 16),
                         ],
                       const SizedBox(height: 12),
+                      CampButton(
+                        key: const Key('pick-backup'),
+                        label: 'Choose a backup file',
+                        onPressed: _pick,
+                      ),
+                      if (_pickError != null) ...[
+                        const SizedBox(height: 8),
+                        Text(_pickError!,
+                            key: const Key('pick-error'), style: T.secondary),
+                      ],
+                      const SizedBox(height: 8),
                       CampButton(
                         key: const Key('refresh-backups'),
                         label: 'Refresh backups',
@@ -254,13 +292,13 @@ class _BackupScreenState extends State<BackupScreen> {
   }
 }
 
+String _nameOf(File file) => file.path.split(RegExp(r'[/\\]')).last;
+
 class _BackupFile {
-  const _BackupFile(this.file, this.info, this.state);
-  final File file;
+  const _BackupFile(this.name, this.info, this.state);
+  final String name;
   final BackupInfo? info;
   final GuildState? state;
-
-  String get name => file.path.split(RegExp(r'[/\\]')).last;
 }
 
 class _RestoreReview extends StatelessWidget {
