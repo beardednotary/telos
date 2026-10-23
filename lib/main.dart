@@ -12,6 +12,7 @@ import 'screens/session_screen.dart';
 import 'services/alerts.dart';
 import 'services/launch_actions.dart';
 import 'services/lock_screen.dart';
+import 'services/music.dart';
 import 'services/persistence.dart';
 import 'state/guild_controller.dart';
 import 'theme/telos_theme.dart';
@@ -39,6 +40,14 @@ Future<void> main() async {
       const ['Syne'],
       await rootBundle.loadString('assets/fonts/OFL-Syne.txt'),
     );
+    // Pixabay's licence asks for no attribution; this is the credit anyway.
+    yield const LicenseEntryWithLineBreaks(
+      ['Camp music'],
+      '"Epic Motivation" by Tony Vodnik (kulakovka), from Pixabay.\n'
+          'https://pixabay.com/users/kulakovka-47183261/\n\n'
+          'Used under the Pixabay Content License: '
+          'https://pixabay.com/service/license-summary/',
+    );
   });
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
@@ -51,6 +60,7 @@ Future<void> main() async {
     alerts: LocalAlerts(),
     lockScreen: SystemLockScreen(),
     launchActions: SystemLaunchActions(),
+    music: CampMusic(),
   );
   await controller.boot();
 

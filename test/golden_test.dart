@@ -578,6 +578,13 @@ void main() {
     );
     for (final name in ['manual-integrity', 'manual-return']) {
       await tapVisible(t, find.byKey(const Key('manual-next')));
+      if (name == 'manual-integrity') {
+        await t.runAsync(() => precacheImage(
+              const AssetImage('assets/art/onboarding-hourglass.webp'),
+              t.element(find.byType(OnboardingScreen)),
+            ));
+        await t.pumpAndSettle();
+      }
       await expectLater(
           find.byType(MaterialApp), matchesGoldenFile('goldens/$name.png'));
     }

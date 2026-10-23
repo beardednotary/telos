@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import '../models/guild_state.dart';
 import '../services/backup.dart';
+import '../services/music.dart';
 import '../state/guild_controller.dart';
 import '../theme/telos_theme.dart';
 import '../widgets/camp_controls.dart';
@@ -115,6 +116,26 @@ class _BackupScreenState extends State<BackupScreen> {
               ],
             )),
             const SizedBox(height: 12),
+            Material(
+              color: T.card,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(3),
+                side: const BorderSide(color: T.boundary),
+              ),
+              child: SwitchListTile(
+                key: const Key('settings-music'),
+                value: g.musicOn,
+                onChanged: c.setMusic,
+                activeThumbColor: T.amber,
+                title: const Text('Camp music', style: T.body),
+                subtitle: Text(
+                    'At camp and on reports, never during a run. Plays under '
+                    'your own audio, and the silent switch mutes it.\n'
+                    '${CampMusic.credit}.',
+                    style: T.secondary),
+              ),
+            ),
+            const SizedBox(height: 12),
             CampDisclosure(
               key: const Key('backup-disclosure'),
               title: 'Save & restore',
@@ -219,7 +240,7 @@ class _BackupScreenState extends State<BackupScreen> {
                 CampLink(
                   key: const Key('settings-licenses'),
                   title: 'Open-source licenses',
-                  detail: 'Fonts and software used in Telos',
+                  detail: 'Fonts, music and software used in Telos',
                   onTap: () => showLicensePage(
                       context: context, applicationName: 'Telos'),
                 ),
