@@ -566,7 +566,7 @@ class _DebriefScreenState extends State<DebriefScreen>
             credits: r.credits, alloy: r.alloy, intel: r.intel, gains: true),
         if (!r.scraps && r.loot.isEmpty) ...[
           const SizedBox(height: 12),
-          Text('No equipment found this time.', style: T.secondary),
+          Text('Nothing worth carrying back this time.', style: T.secondary),
         ],
       ],
     ));

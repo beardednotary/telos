@@ -105,8 +105,8 @@ class _DispatchScreenState extends State<DispatchScreen> {
       if (mounted && Navigator.canPop(context)) Navigator.pop(context);
     } catch (_) {
       if (mounted) {
-        setState(
-            () => _error = 'Could not start the expedition. Please try again.');
+        setState(() => _error = 'Could not start the expedition. The squad is '
+            'still at camp, so nothing is lost. Try again.');
       }
     } finally {
       if (mounted) setState(() => _sending = false);

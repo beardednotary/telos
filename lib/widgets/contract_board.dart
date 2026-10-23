@@ -89,7 +89,10 @@ class _ContractBoardPanelState extends State<ContractBoardPanel> {
         Text('Optional goals. No deadlines.', style: T.secondary),
         const SizedBox(height: 24),
         if (c.contracts.isEmpty)
-          Text('No contracts posted.', style: T.secondary),
+          Text(
+              'Nothing on the board yet. Orders get posted once the guild '
+              'has people and places to send them.',
+              style: T.secondary),
         for (final contract in c.contracts) ...[
           CampDisclosure(
             key: Key('contract-${contract.id}'),

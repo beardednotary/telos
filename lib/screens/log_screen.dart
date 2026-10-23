@@ -79,10 +79,12 @@ class LogScreen extends StatelessWidget {
                             child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('No expeditions logged yet.', style: T.title),
+                            Text('The log is blank.', style: T.title),
                             const SizedBox(height: 8),
                             Text(
-                                'Your focus sessions, field reports and reflections will be kept here.',
+                                'The first company kept theirs for eleven years. '
+                                'Yours starts with your first expedition: every '
+                                'session, report and reflection is kept here.',
                                 style: T.secondary),
                           ],
                         )),

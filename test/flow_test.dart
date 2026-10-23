@@ -162,7 +162,7 @@ void main() {
     await t.pumpWidget(wrap(c, const LogScreen()));
     await t.pumpAndSettle();
     expect(find.text('Field log'), findsOneWidget);
-    expect(find.text('No expeditions logged yet.'), findsOneWidget);
+    expect(find.text('The log is blank.'), findsOneWidget);
 
     c.dispose();
   });
