@@ -14,6 +14,7 @@
   input { accent-color: #c4a266; }
   section { margin: 32px 0; }
   .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+  .caravan .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   figure { margin: 0; background: #20251f; padding: 16px; text-align: center; }
   .art { display: block; width: 124px; height: auto; max-width: 100%; aspect-ratio: 1; object-fit: contain; margin: 0 auto; outline: 1px solid #495045; }
   body:has(#large:checked) .art { width: 248px; }
@@ -21,18 +22,48 @@
   figcaption { padding-top: 16px; line-height: 1.5; font-size: 13px; }
   small { display: block; color: #a4aa9b; }
   a { color: #dac395; }
-  @media (max-width: 920px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-  @media (max-width: 360px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+  @media (max-width: 920px) { .grid, .caravan .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 360px) { .grid, .caravan .grid { grid-template-columns: minmax(0, 1fr); } }
 </style>
 <body>
   <h1>Salvage illustrations</h1>
-  <p>Twelve standard discoveries and four epic plates. All 640 × 640 WebP, quality 86, in the camp's ink style. The three endgame plates are excluded from this preview.</p>
+  <p>Six Caravan plates and sixteen sector discoveries. All 640 × 640 WebP, quality 86, in the camp's ink style. The three endgame plates are excluded from this preview.</p>
   <fieldset>
     <legend>Review size</legend>
     <label><input id="actual" type="radio" name="size" checked> Current reveal · 124px</label>
     <label><input id="large" type="radio" name="size"> 2× inspection · 248px</label>
     <label><input id="small" type="radio" name="size"> Small check · 88px</label>
   </fieldset>
+  <section class="caravan" aria-labelledby="caravan">
+    <h2 id="caravan">The Caravan's six</h2>
+    <p>Issued freight kit from the old service road. All six plates are safe to preview.</p>
+    <div class="grid">
+      <figure>
+        <img class="art" src="../../../assets/art/gear/waybill.webp" width="640" height="640" alt="A single folded freight waybill of heavy creased paper, tied through a brass-ringed eyelet to a short loop of string, the way a tag is tied to cargo. One round inked stamp impression on its face, partly worn away.">
+        <figcaption>TEAMSTER'S WAYBILL<small>Uncommon · <a href="../../../assets/art/gear/waybill.webp">WebP</a> · <a href="sources/waybill.png">Master</a></small></figcaption>
+      </figure>
+      <figure>
+        <img class="art" src="../../../assets/art/gear/road_lantern.webp" width="640" height="640" alt="A plain tin hurricane lantern of the cheap, common kind: a squat fuel font, two thin wire guards around a short glass chimney, and a top cap with a wire carrying bail. Dented, its paint mostly worn off. Lit, with a very small low flame.">
+        <figcaption>ROAD LANTERN<small>Uncommon · <a href="../../../assets/art/gear/road_lantern.webp">WebP</a> · <a href="sources/road_lantern.png">Master</a></small></figcaption>
+      </figure>
+      <figure>
+        <img class="art" src="../../../assets/art/gear/axle_pin.webp" width="640" height="640" alt="A heavy hand-forged iron linchpin, long and slightly tapered, with a flat forged head. A split cotter pin runs through a hole near its tip, with one leg bent back to lock it. Worn smooth and bright in a band where a wheel hub has turned against it for years.">
+        <figcaption>AXLE PIN<small>Rare · <a href="../../../assets/art/gear/axle_pin.webp">WebP</a> · <a href="sources/axle_pin.png">Master</a></small></figcaption>
+      </figure>
+      <figure>
+        <img class="art" src="../../../assets/art/gear/drover_coat.webp" width="640" height="640" alt="A heavy oilskin drover's coat, folded square the way it would be packed on a wagon seat, with a short shoulder cape lying over the fold. One horn button is visible, and beside it a mismatched replacement. A long darkened, smoke-stained patch runs along one edge of the hem.">
+        <figcaption>DROVER'S COAT<small>Rare · <a href="../../../assets/art/gear/drover_coat.webp">WebP</a> · <a href="sources/drover_coat.png">Master</a></small></figcaption>
+      </figure>
+      <figure>
+        <img class="art" src="../../../assets/art/gear/slow_watch.webp" width="640" height="640" alt="A heavy old pocket watch on a short length of chain, its back case hinged open to show the movement: a few large gears and a balance wheel. The front dial carries tick marks only, and its two hands sit at an ordinary-looking time. The case is worn smooth at the edges from years in a pocket.">
+        <figcaption>THE SLOW WATCH<small>Epic · <a href="../../../assets/art/gear/slow_watch.webp">WebP</a> · <a href="sources/slow_watch.png">Master</a></small></figcaption>
+      </figure>
+      <figure>
+        <img class="art" src="../../../assets/art/gear/gate_seal.webp" width="640" height="640" alt="A freight seal: a heavy disc of soft grey lead crimped shut around the two ends of a twisted wire loop, the way cargo and gates are sealed. Its face is pressed with a deep, crisp, simple mark. Beside it lies the pliers-like iron sealing press that made the impression, its jaws still open.">
+        <figcaption>GATE SEAL<small>Epic · <a href="../../../assets/art/gear/gate_seal.webp">WebP</a> · <a href="sources/gate_seal.png">Master</a></small></figcaption>
+      </figure>
+    </div>
+  </section>
   <section aria-labelledby="common">
     <h2 id="common">Common</h2>
     <p>Plain, worn objects with abundant empty paper.</p>
