@@ -88,6 +88,16 @@ class MemoryBackupFiles extends BackupFiles {
   Rect? lastSharePositionOrigin;
   Completer<void>? pendingExport;
 
+  /// What the system picker hands back; null is a cancel.
+  PickedBackup? picked;
+  int picks = 0;
+
+  @override
+  Future<PickedBackup?> pick() async {
+    picks++;
+    return picked;
+  }
+
   @override
   Future<List<File>> available() async {
     if (failList) throw const FileSystemException('Test directory unavailable');

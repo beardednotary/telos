@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' show Rect;
 
+import 'package:file_picker/file_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -15,10 +16,14 @@ import '../models/guild_state.dart';
 /// This is the escape hatch.
 ///
 /// Export goes through the share sheet, so it can land in Files, iCloud, a
-/// message, anywhere. Import reads from the app's own Documents folder, which
-/// is visible in the Files app under "Telos" - drop a backup there and it
-/// appears in the list. That avoids a file-picker plugin, which is native code
-/// that cannot be tested from a Windows machine.
+/// message, anywhere. Import lists what is in the app's own Documents folder
+/// (On My iPhone > Telos in the Files app, subfolders included), and the
+/// system file picker reaches everywhere else. The list alone was not
+/// enough: a tester saved a backup to a "Telos" folder of their own and the
+/// app could not see it.
+///
+/// Files are recognised by what is in them, not what they are called, so a
+/// renamed or duplicated backup ("... 2.json") still turns up.
 class Backup {
   static const _prefix = 'telos-backup-';
 
@@ -107,20 +112,29 @@ class Backup {
     return file.path;
   }
 
-  /// Backups sitting in the app's Documents folder, newest first.
+  /// JSON files anywhere in the app's Documents folder, newest first. The
+  /// screen reads each one and shows the ones that are not Telos backups as
+  /// unreadable, rather than this guessing from the name.
   static Future<List<File>> available() async {
     final dir = await documents();
     if (!await dir.exists()) return [];
     final files = <File>[];
-    await for (final entry in dir.list()) {
-      if (entry is File &&
-          entry.path.endsWith('.json') &&
-          entry.path.split(Platform.pathSeparator).last.startsWith(_prefix)) {
+    await for (final entry in dir.list(recursive: true, followLinks: false)) {
+      if (entry is File && entry.path.toLowerCase().endsWith('.json')) {
         files.add(entry);
       }
     }
-    files.sort((a, b) => b.path.compareTo(a.path));
+    files.sort(
+        (a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
     return files;
+  }
+
+  /// Opens the system file picker. Null when the player cancels.
+  static Future<PickedBackup?> pick() async {
+    final picked = await FilePicker.pickFiles(type: FileType.any);
+    if (picked.isEmpty) return null;
+    final file = picked.first;
+    return PickedBackup(file.name, await file.xFile.readAsString());
   }
 }
 
@@ -133,6 +147,14 @@ class BackupFiles {
   Future<String> read(File file) => file.readAsString();
   Future<String> export(GuildState state, {Rect? sharePositionOrigin}) =>
       Backup.export(state, sharePositionOrigin: sharePositionOrigin);
+  Future<PickedBackup?> pick() => Backup.pick();
+}
+
+/// A file the player chose from outside the app: its name and contents.
+class PickedBackup {
+  const PickedBackup(this.name, this.text);
+  final String name;
+  final String text;
 }
 
 class BackupInfo {
