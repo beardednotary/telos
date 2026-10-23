@@ -136,6 +136,23 @@ scheduled it themselves.
 
 ---
 
+## Camp music
+
+`lib/services/music.dart`. One looped track, "Epic Motivation" by Tony
+Vodnik (kulakovka), under the Pixabay Content License, which requires no
+attribution. The credit is shown in Settings and the licence list anyway.
+
+- Off by default; a switch in Settings turns it on.
+- Plays at camp and on debriefs only: never during a run, never over the
+  first-launch briefing, and it stops when the app is backgrounded.
+- On iOS it uses the ambient audio session, so the silent switch mutes it
+  and the player's own music or podcast keeps playing underneath. On
+  Android it plays as media without taking audio focus.
+- Any playback failure is swallowed: music is decoration and must never
+  surface as an error.
+
+---
+
 ## The caravan: an optional punch clock
 
 `lib/models/caravan.dart`, set up under **Stores & facilities → Caravan**. Off

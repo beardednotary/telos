@@ -13,6 +13,7 @@ import '../services/contracts.dart';
 import '../services/expedition_engine.dart';
 import '../services/launch_actions.dart';
 import '../services/lock_screen.dart';
+import '../services/music.dart';
 import '../services/persistence.dart';
 import '../services/redeploy.dart';
 import '../models/guild_identity.dart';
@@ -24,14 +25,17 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
     Alerts? alerts,
     LockScreen? lockScreen,
     LaunchActions? launchActions,
+    Music? music,
   })  : _alerts = alerts ?? NoopAlerts(),
         _lockScreen = lockScreen ?? NoopLockScreen(),
-        _launch = launchActions ?? NoopLaunchActions();
+        _launch = launchActions ?? NoopLaunchActions(),
+        _music = music ?? NoopMusic();
 
   final Persistence _store;
   final Alerts _alerts;
   final LockScreen _lockScreen;
   final LaunchActions _launch;
+  final Music _music;
 
   GuildState _g = GuildState.fresh();
   GuildState get g => _g;
@@ -114,6 +118,7 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _ticker?.cancel();
+    unawaited(_music.pause());
     super.dispose();
   }
 
@@ -190,6 +195,17 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.resumed:
+        _foreground = true;
+      case AppLifecycleState.paused:
+      case AppLifecycleState.hidden:
+      case AppLifecycleState.detached:
+        _foreground = false;
+      case AppLifecycleState.inactive:
+        break;
+    }
+    _syncMusic();
     if (state == AppLifecycleState.resumed && _ready) {
       if (_noteDay()) unawaited(_save());
       // Notices are armed a week ahead from the last open; coming back
@@ -471,6 +487,32 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
     await _save();
     notifyListeners();
     return res.record;
+  }
+
+  // -- music -----------------------------------------------------------------
+
+  bool _foreground = true;
+
+  /// Every state change passes through here, so music follows the screen
+  /// without any screen having to ask for it.
+  @override
+  void notifyListeners() {
+    _syncMusic();
+    super.notifyListeners();
+  }
+
+  /// At camp or on a debrief, with the app open and the player's say-so.
+  /// Never during a run, and never over the first-launch briefing.
+  bool get _musicWanted =>
+      _ready && _foreground && _g.onboarded && _g.musicOn && _g.active == null;
+
+  void _syncMusic() =>
+      unawaited(_musicWanted ? _music.play() : _music.pause());
+
+  Future<void> setMusic(bool on) async {
+    _g.musicOn = on;
+    await _save();
+    notifyListeners();
   }
 
   // -- caravan ---------------------------------------------------------------
