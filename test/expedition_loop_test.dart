@@ -383,7 +383,7 @@ void main() {
   for (final (label, loot, survey, scraps, charter, headline) in [
     ('common', ['common'], null, false, false, 'COMMON FIND'),
     ('rare', ['rare'], null, false, false, 'RARE FIND'),
-    ('empty', <String>[], null, false, false, 'No equipment found this time.'),
+    ('empty', <String>[], null, false, false, 'Nothing worth carrying back this time.'),
     ('scraps', <String>[], null, true, false, 'Back with scraps.'),
     (
       'survey',
