@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Onboarding hourglass review</title>
+<style>
+  :root { color-scheme: dark; font-family: system-ui, sans-serif; background: #171c18; color: #e8e1ce; }
+  body { max-width: 940px; margin: 32px auto; padding: 0 20px 40px; }
+  h1 { font-size: 26px; margin-bottom: 8px; }
+  p { color: #bab9ab; line-height: 1.5; }
+  label { display: block; margin: 24px 0; cursor: pointer; }
+  input { accent-color: #c4a266; }
+  .grid { display: flex; flex-wrap: wrap; gap: 24px; align-items: start; }
+  figure { width: 430px; max-width: 100%; margin: 0; background: #20251f; }
+  .frame { aspect-ratio: 16 / 9; overflow: hidden; outline: 1px solid #495045; }
+  .crop { aspect-ratio: 2.3; }
+  img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center; }
+  body:has(#narrow:checked) figure { width: 320px; }
+  figcaption { padding: 16px; line-height: 1.5; }
+  a { color: #dac395; }
+</style>
+<body>
+  <h1>Onboarding hourglass</h1>
+  <p>1290 × 726 WebP, quality 86 · 209.4 kB. Still, unhurried.</p>
+  <label><input id="narrow" type="checkbox"> Narrow phone · 320px</label>
+  <div class="grid">
+    <figure>
+      <div class="frame"><img src="../../../assets/art/onboarding-hourglass.webp" alt="An unattended wooden hourglass with falling sand on an upturned crate beside an empty folding stool. Two tiny figures walk away along a misty service road."></div>
+      <figcaption>Full frame · 16:9</figcaption>
+    </figure>
+    <figure>
+      <div class="frame crop"><img src="../../../assets/art/onboarding-hourglass.webp" alt="Centred panoramic crop retaining the hourglass, crate, stool and distant walkers."></div>
+      <figcaption>Optional header crop · 2.3:1</figcaption>
+    </figure>
+  </div>
+  <p><a href="../../../assets/art/onboarding-hourglass.webp">WebP</a> · <a href="sources/onboarding-hourglass.png">Master</a> · <a href="generation.json">Exact prompts</a></p>
+</body>
+</html>
