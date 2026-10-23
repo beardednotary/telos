@@ -217,7 +217,8 @@ class _DebriefScreenState extends State<DebriefScreen>
                                     padding: const EdgeInsets.only(top: 12),
                                     child: _gearDetails(gearById(item.defId),
                                         caravan:
-                                            r.caravanLoot.contains(item.uid)),
+                                            r.caravanLoot.contains(item.uid),
+                                        wearer: c.wearerOf(item.uid)?.name),
                                   ),
                                 if (gear.length < r.loot.length)
                                   Text(
@@ -335,7 +336,8 @@ class _DebriefScreenState extends State<DebriefScreen>
     );
   }
 
-  Widget _gearDetails(GearDef def, {bool caravan = false}) => Column(
+  Widget _gearDetails(GearDef def, {bool caravan = false, String? wearer}) =>
+      Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('${fieldName(def.rarity.name)} · ${fieldName(def.name)}',
@@ -351,6 +353,11 @@ class _DebriefScreenState extends State<DebriefScreen>
                 child: Text(def.flavor, style: T.secondary)),
           const SizedBox(height: 6),
           Text(describeBonus(def.bonus), style: T.body),
+          if (wearer != null)
+            Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text('Worn by ${fieldName(wearer)}',
+                    style: T.secondary)),
         ],
       );
 
@@ -514,6 +521,13 @@ class _DebriefScreenState extends State<DebriefScreen>
           const SizedBox(height: 12),
           Text(describeBonus(def.bonus),
               textAlign: TextAlign.center, style: T.body),
+          if (c.wearerOf(gear.first.uid) case final m?) ...[
+            const SizedBox(height: 10),
+            Text('${fieldName(m.name)} is wearing it.',
+                key: const Key('debrief-worn'),
+                style: T.secondary,
+                textAlign: TextAlign.center),
+          ],
           if (gear.length > 1) ...[
             const SizedBox(height: 10),
             Text('And ${gear.length - 1} more in the expedition report.',

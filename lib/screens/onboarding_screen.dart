@@ -8,7 +8,13 @@ import '../widgets/gear_mark.dart';
 import '../widgets/camp_controls.dart';
 import '../widgets/expedition_widgets.dart';
 
-/// A short first departure briefing; the same manual stays available at camp.
+/// The first-launch briefing, and the full field manual under Settings.
+///
+/// First launch is deliberately three lines. A tester's first word on the
+/// old five-panel briefing was "overwhelming", and nothing in it was needed
+/// before the first run: the dispatch arrives pre-filled, Integrity is
+/// explained on the timer, and gear goes on by itself. Everything the long
+/// manual says is still here, as [asReview], for anyone who wants it.
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key, this.asReview = false});
   final bool asReview;
@@ -67,6 +73,35 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     ),
   ];
 
+  /// One line each. Teach the loop, then get out of the way.
+  static const _firstRun = <_Panel>[
+    _Panel(
+      label: 'THE ONE RULE',
+      title: 'A game you put down.',
+      body: [
+        'Send a squad out, then put your phone down and work. They come back '
+            'with whatever they found.',
+      ],
+      illustration: true,
+    ),
+    _Panel(
+      label: 'INTEGRITY',
+      title: 'Leave it alone.',
+      body: [
+        'Checking on them costs the squad. Locking your phone costs nothing.',
+      ],
+    ),
+    _Panel(
+      label: 'BACK AT CAMP',
+      title: 'Each run funds the next.',
+      body: [
+        'Spend what they bring home, then send them out again. The rest '
+            'explains itself as you find it.',
+      ],
+      gear: true,
+    ),
+  ];
+
   static const _repeat = _Panel(
     label: 'REPEAT A DISPATCH',
     title: 'A familiar departure.',
@@ -81,7 +116,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   );
 
   List<_Panel> get _shown =>
-      widget.asReview ? const [..._panels, _repeat] : _panels;
+      widget.asReview ? const [..._panels, _repeat] : _firstRun;
 
   @override
   void initState() {

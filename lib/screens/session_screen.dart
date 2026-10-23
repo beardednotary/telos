@@ -7,6 +7,10 @@ import '../theme/telos_theme.dart';
 import '../widgets/camp_controls.dart';
 import '../widgets/expedition_widgets.dart';
 
+/// How many runs the timer explains Integrity for, before it trusts the
+/// player to know.
+const int kIntegrityHintRuns = 3;
+
 /// No live loot, animated landscape, or management controls during focus.
 class SessionScreen extends StatelessWidget {
   const SessionScreen({super.key});
@@ -97,8 +101,15 @@ class SessionScreen extends StatelessWidget {
                           onPressed: () => c.finishRun(recalled: false),
                         )
                       else ...[
+                        // The first-launch briefing no longer explains
+                        // Integrity up front, so the first few runs say it
+                        // here, where the number is on screen.
                         Text(
-                            'Lock your phone. They will be here when you return.',
+                            c.g.log.length < kIntegrityHintRuns
+                                ? 'Lock your phone. Each time you come back to '
+                                    'check, Integrity drops, and so does what '
+                                    'they bring home.'
+                                : 'Lock your phone. They will be here when you return.',
                             textAlign: TextAlign.center,
                             style: T.secondary),
                         const SizedBox(height: 12),

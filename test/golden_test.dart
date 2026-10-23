@@ -576,7 +576,7 @@ void main() {
       find.byType(OnboardingScreen),
       matchesGoldenFile('goldens/manual.png'),
     );
-    for (final name in ['manual-integrity', 'manual-pace', 'manual-return']) {
+    for (final name in ['manual-integrity', 'manual-return']) {
       await tapVisible(t, find.byKey(const Key('manual-next')));
       await expectLater(
           find.byType(MaterialApp), matchesGoldenFile('goldens/$name.png'));

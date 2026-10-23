@@ -38,12 +38,18 @@ class _DispatchScreenState extends State<DispatchScreen> {
     super.didChangeDependencies();
     if (_initialized) return;
     _initialized = true;
-    final recent = recentDispatches(context.read<GuildController>().g);
+    final g = context.read<GuildController>().g;
+    final recent = recentDispatches(g);
     if (recent.isNotEmpty) {
       final last = recent.first;
       _minutes = last.minutes;
       _sectorId = last.sectorId;
       _squad.addAll(last.squad);
+    } else if (g.roster.isNotEmpty) {
+      // A first dispatch is one tap: 25 minutes, the nearest sector, and the
+      // first member. The button used to read "Choose a squad" with nobody
+      // picked, which was the first decision a new player hit.
+      _squad.add(g.roster.first.id);
     }
   }
 
