@@ -1,0 +1,34 @@
+{
+  "generator": "Built-in image_gen tool",
+  "references": [
+    "assets/art/sectors/mosswood.webp",
+    "docs/design/camp-study/camp-concept.png"
+  ],
+  "style_lock": "docs/design/camp-study/art-prompt.md",
+  "export": {
+    "width": 1290,
+    "height": 726,
+    "resampling": "BICUBIC",
+    "format": "WebP",
+    "quality": 86,
+    "method": 6,
+    "lossless": false
+  },
+  "display": {
+    "aspect_ratio": 2.3,
+    "fit": "cover",
+    "alignment": "center"
+  },
+  "assets": [
+    {
+      "id": "caravan",
+      "source": "sources/caravan.png",
+      "asset": "assets/art/caravan.webp",
+      "spoiler": false,
+      "prompt": "Use case: stylized-concept. Asset type: a single still illustration for a mobile incremental expedition RPG's Caravan header, wide 16:9 landscape composition, intended canvas 1920 x 1080.\nInput images: Image 1 is mosswood.webp, the direct continuity reference for the old graded service road, squat timber survey posts, mist and forest edge. Image 2 is camp-concept.png, the shared technique and world reference. These are style/continuity references, not edit targets. Draw a new caravan arrival scene, not a copy of either composition.\nScene: A short line of EXACTLY THREE covered freight wagons halted at a plain timber outpost gate in the grey first light of morning. Canvas tilts lashed down over cargo, a hurricane lantern hung from the lead wagon's seat, mules or heavy horses standing in harness with heads down. The old graded service road runs on past the gate into low mist and a treeline. Squat survey posts with marks cut into their faces stand at the roadside. Exactly one small distant human figure at the gate, for scale only.\nComposition: Draw the three distinct covered wagon shapes in a short continuous line along the same road, with the lead wagon beside the gate and two wagons trailing behind it. The draft animals are attached naturally in their harnesses ahead of the wagons, resting with heads lowered. The road continues visibly through the simple gate into mist and the sparse treeline. Make the three canvas tilts separately readable at phone size. Keep the gate simple, two weathered timber posts and a plain crossbeam, no fortification or signboard. The lone gate figure is tiny, subordinate to the wagons, without facial or costume detail. No driver on any wagon, no other people.\nCrop safety: The master MUST be wide 16:9, NOT square or 3:2. It will be centre-cropped to about 2.3:1. Keep all three canvas tilts, wagon wheels, animal heads, lantern, gate opening and the tiny figure within the central horizontal band from about 22 percent to 77 percent of image height. Leave generous mostly empty bone-grey sky/headroom above and a quiet road margin below. Pull back enough to fit the whole scene comfortably; no large foreground wagon, animal or figure. Essential subject stays clear in a panoramic centre crop.\nArt style: confident hand-inked shapes, sparse woodcut hatching, dark graphic silhouette masses against muted bone paper, like a considered pen-and-ink indie RPG rulebook illustration. Restrained palette charcoal #20251F, moss-grey, parchment #E8E1CE, tiny muted ochre accent. Strong, readable shapes at phone size. Crisp shapes, generous negative space, subject occupying the central band. Background sparse, no busy environment. No text, typography, UI, panel borders, numbers, watermarks, glowing magic, photorealism, glossy 3D, anime faces, or decorative fantasy ornament. This is art direction for a place, not a character study; no animation.\nWorld continuity: same flat graded wet service road and square-cut squat weathered survey posts as Mosswood, with a few simple diagonal cuts in each post face. Those cuts are abstract survey marks, not letters or numbers. Practical worn wagon construction, plain lashed canvas, old repair patches, simple freight equipment like the camp. Quiet halted morning, not an action scene. No invented landmark, tower, banners, heraldry, settlement skyline or ornate gateway.\nColour discipline: The lantern's very small flame is the ONLY warm note, a tiny flat muted ochre shape. No glow, halo, radiance, bright lantern glass, pool of light, warm reflection or golden dawn. Everything else, including wood, canvas, animals, harnesses, grass and sky, stays neutral charcoal, moss-grey and muted bone parchment. The early morning is GREY, not orange or yellow.\nMark discipline: No text on the canvas, gate or posts. No writing, letters, numerals, logos, symbols resembling writing, wagon labels or readable signs anywhere.",
+      "revision_prompt": "Edit this exact wide 16:9 hand-inked caravan scene. Preserve its composition, all three covered wagons, resting harnessed animals, road through the simple timber gate, abstract-cut survey posts, mist, sparse treeline, one tiny distant gate figure and the centre-crop-safe arrangement. Make only these corrections: (1) Neutralise ALL warm colour outside the lantern flame. Remove every ochre/golden/yellow/rust/brown tint from grasses, moss, wood, road, stones, animals, leather and canvas. Render these entirely in charcoal #20251F, cool-neutral moss-grey and muted bone parchment #E8E1CE. Keep the same bone paper ground but make the morning feel grey, not golden. (2) Move the sole lantern from the large leftmost rear wagon to the front seat of the RIGHTMOST wagon nearest the gate, which is the lead wagon. Remove the lantern and its long hanging extension from the leftmost wagon entirely. Hang ONE small plain tin hurricane lantern just beside the driver's seat at the front/right end of the rightmost covered wagon, above its draft animal. Its glass must remain neutral and unlit-looking except for ONE minuscule flat muted-ochre flame shape within it. No bright yellow window, fill light, glow, halo, radiance or reflection on glass, nearby objects or paper. No other warm accent anywhere. Preserve the exact sparse woodcut ink style, worn practical freight construction, full 16:9 canvas and generous upper headroom. No letters, numerals, wagon labels, signs, extra people, extra animals, extra wagons, tower, ornament, border or UI.",
+      "revision_reference": "C:\\Users\\rayro\\.codex\\generated_images\\01a12e43-30c3-7bc3-a3ff-698e10e8ae53\\exec-7a8954b6-3c8a-40e0-b95b-acf98e064231.png",
+      "generated_source": "C:\\Users\\rayro\\.codex\\generated_images\\01a12e43-30c3-7bc3-a3ff-698e10e8ae53\\exec-92f46187-f572-4681-a5cb-27ee7c686d6d.png"
+    }
+  ]
+}
