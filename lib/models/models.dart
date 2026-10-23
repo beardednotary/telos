@@ -337,6 +337,13 @@ class ActiveRun {
   int checkIns; // times the app was reopened mid-run
   DateTime? watchingSince; // non-null while Telos is in the foreground
 
+  /// Set when the run left with the caravan or on its tracks: how much of
+  /// the caravan's salvage was still in reach at dispatch (1.0 = at the
+  /// gate), and which departure it was. Fixed at dispatch, so waiting to
+  /// open the debrief cannot change it.
+  final double? caravan;
+  final String? caravanDay;
+
   ActiveRun({
     required this.id,
     required this.sectorId,
@@ -347,6 +354,8 @@ class ActiveRun {
     this.watchSeconds = 0,
     this.checkIns = 0,
     this.watchingSince,
+    this.caravan,
+    this.caravanDay,
   });
 
   DateTime get endsAt => startedAt.add(Duration(minutes: plannedMinutes));
@@ -401,6 +410,8 @@ class ActiveRun {
         'watchSeconds': watchSeconds,
         'checkIns': checkIns,
         'watchingSince': watchingSince?.toIso8601String(),
+        'caravan': caravan,
+        'caravanDay': caravanDay,
       };
 
   factory ActiveRun.fromJson(Map<String, dynamic> j) => ActiveRun(
@@ -415,6 +426,8 @@ class ActiveRun {
         watchingSince: j['watchingSince'] == null
             ? null
             : DateTime.parse(j['watchingSince'] as String),
+        caravan: (j['caravan'] as num?)?.toDouble(),
+        caravanDay: j['caravanDay'] as String?,
       );
 }
 
@@ -450,6 +463,17 @@ class RunRecord {
   /// the record so the log reads back the same way months later.
   final String? priorSurvey;
 
+  /// The caravan's share of this run, as fixed at dispatch: null if it went
+  /// out alone, 1.0 if it left with the caravan, less if it followed late.
+  final double? caravan;
+
+  /// A line of the caravan's manifest, given only to a squad that was at
+  /// the gate.
+  final String? caravanLine;
+
+  /// The subset of [loot] the caravan handed over.
+  final List<String> caravanLoot;
+
   /// True on the one run that recovered the last of the Spire's records.
   /// Mutable and set by the controller rather than the engine, which stays a
   /// pure resolver and knows nothing about the guild's long arc.
@@ -480,6 +504,9 @@ class RunRecord {
     required this.guildLevelUps,
     required this.journal,
     this.priorSurvey,
+    this.caravan,
+    this.caravanLine,
+    this.caravanLoot = const [],
     this.completedSpire = false,
     this.progress,
     this.note,
@@ -509,6 +536,9 @@ class RunRecord {
         'guildLevelUps': guildLevelUps,
         'journal': journal,
         'priorSurvey': priorSurvey,
+        'caravan': caravan,
+        'caravanLine': caravanLine,
+        'caravanLoot': caravanLoot,
         'completedSpire': completedSpire,
         'progress': progress,
         'note': note,
@@ -539,6 +569,9 @@ class RunRecord {
         guildLevelUps: j['guildLevelUps'] as int? ?? 0,
         journal: (j['journal'] as List?)?.cast<String>() ?? <String>[],
         priorSurvey: j['priorSurvey'] as String?,
+        caravan: (j['caravan'] as num?)?.toDouble(),
+        caravanLine: j['caravanLine'] as String?,
+        caravanLoot: (j['caravanLoot'] as List?)?.cast<String>() ?? <String>[],
         completedSpire: j['completedSpire'] as bool? ?? false,
         progress: j['progress'] as String?,
         note: j['note'] as String?,

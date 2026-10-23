@@ -131,6 +131,51 @@ not personally start.
 The `Alerts` interface has a `NoopAlerts` implementation, so tests and the
 desktop/web preview targets never touch a platform channel.
 
+The single exception is the caravan, below, and only for a player who has
+scheduled it themselves.
+
+---
+
+## The caravan: an optional punch clock
+
+`lib/models/caravan.dart`, set up under **Stores & facilities → Caravan**. Off
+by default. It exists for people whose problem is *starting* at the time they
+said they would, which a focus timer on its own does nothing for.
+
+The player picks a departure time and days. On those days:
+
+| When | What happens |
+|---|---|
+| 15 min before | The caravan is at the gate. Camp shows a countdown, and a notice fires. A run started now leaves **with** the caravan. |
+| Departure | It leaves. If no squad went, a notice says: *you missed the caravan, but there is still work to be done. Start a run now.* |
+| Up to 60 min after | Its tracks are fresh. A run started now follows them; what it can bring back fades linearly from 100% to 0. |
+
+What the caravan gives is found nowhere else:
+
+- **Caravan salvage**: six pieces of equipment (`kCaravanGear`) in no
+  sector's pool and not on the forge's list. 60% chance when met at the gate,
+  scaled down by lateness. Rolled on its own seed, so a run's ordinary haul is
+  identical with or without the caravan.
+- **The manifest**: ten lines of the caravan's story (`kCaravanManifest`),
+  read once each, in order, only by a squad that was at the gate. Never
+  counted at the player.
+
+It is the one opportunity in Telos that can be missed, which is a deliberate,
+opt-in exception to "nothing expires". It keeps the rest of the rules:
+
+- Nothing is ever taken away. Late, the bonus fades to zero; it never goes
+  below it. A missed day leaves no mark on the next, and there is no streak.
+- One run per departure. A dispatch cancelled inside the 30-second window
+  gives the departure back. A recalled run turns back from the caravan too.
+- Duration doesn't matter, so a 15-minute run at the gate counts the same as
+  a 90-minute one. It rewards starting, not working longer.
+- Notices skip any departure already met, and any that would land while a
+  squad is out. They're armed a week ahead and re-armed on every open, so
+  someone who stops opening the app stops hearing from it within the week.
+  Each one is a one-off at an absolute instant built from local wall-clock
+  time, so a departure stays at 9:00 across a daylight-saving change without
+  a device-timezone plugin.
+
 ---
 
 ## Timing correctness

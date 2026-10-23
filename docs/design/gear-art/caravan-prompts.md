@@ -58,7 +58,6 @@ and Ore-Sense Rig as style references. Exact prompts, revisions and output
 provenance are recorded in `generation.json`. Selected PNG masters are in
 `sources/`; final files are `assets/art/gear/<id>.webp`, 640 x 640 at quality 86.
 
-The six IDs and rarities come from the supplied brief. `kCaravanGear` was not
-present in this checkout when the art was delivered; the files use those IDs
-for the existing `GearArt` filename convention. Gameplay definitions remain
-part of the Caravan feature implementation.
+The six IDs and rarities match the supplied brief and `kCaravanGear` in
+`lib/data/content.dart`. The files follow the existing `GearArt` filename
+convention and are bundled for the Caravan salvage reveal.

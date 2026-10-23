@@ -9,10 +9,12 @@ import '../theme/telos_theme.dart';
 import '../widgets/gear_art.dart';
 import '../widgets/guild_sigil.dart';
 import '../widgets/camp_controls.dart';
+import '../widgets/caravan_header.dart';
 import '../widgets/expedition_widgets.dart';
 import '../widgets/run_card.dart';
 import '../widgets/sector_scene.dart';
 import '../widgets/terminal.dart';
+import 'caravan_screen.dart';
 
 class DebriefScreen extends StatefulWidget {
   const DebriefScreen({super.key, required this.record});
@@ -127,6 +129,10 @@ class _DebriefScreenState extends State<DebriefScreen>
                         ])),
                 const SizedBox(height: 24),
                 _beat(1, _find(c, gear, sector)),
+                if (_caravan(g) case final caravan?) ...[
+                  const SizedBox(height: 16),
+                  _beat(1, caravan),
+                ],
                 if (_milestone(c) case final milestone?) ...[
                   const SizedBox(height: 16),
                   _beat(2, milestone),
@@ -209,7 +215,9 @@ class _DebriefScreenState extends State<DebriefScreen>
                                 for (final item in gear)
                                   Padding(
                                     padding: const EdgeInsets.only(top: 12),
-                                    child: _gearDetails(gearById(item.defId)),
+                                    child: _gearDetails(gearById(item.defId),
+                                        caravan:
+                                            r.caravanLoot.contains(item.uid)),
                                   ),
                                 if (gear.length < r.loot.length)
                                   Text(
@@ -327,11 +335,16 @@ class _DebriefScreenState extends State<DebriefScreen>
     );
   }
 
-  Widget _gearDetails(GearDef def) => Column(
+  Widget _gearDetails(GearDef def, {bool caravan = false}) => Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('${fieldName(def.rarity.name)} · ${fieldName(def.name)}',
               style: T.title),
+          if (caravan)
+            Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text('From the caravan',
+                    style: T.secondary.copyWith(color: T.amber))),
           if (def.flavor.isNotEmpty)
             Padding(
                 padding: const EdgeInsets.only(top: 6),
@@ -399,6 +412,48 @@ class _DebriefScreenState extends State<DebriefScreen>
     ));
   }
 
+  /// The caravan's beat: whether the squad left with it, what it said, and
+  /// what it handed over. Only for a run that went out with it or after it.
+  Widget? _caravan(GuildState g) {
+    final r = widget.record;
+    final share = r.caravan;
+    if (share == null) return null;
+    final names = [
+      for (final uid in r.caravanLoot)
+        if (g.gearByUid(uid) case final gear?) gearById(gear.defId).name,
+    ];
+    final withIt = share >= 1 && !r.recalled;
+    return ExpeditionPanel(
+        key: const Key('debrief-caravan'),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Only for a squad that left with it: the scene is the caravan
+            // at the gate, which a late or recalled squad never saw.
+            if (withIt) ...[
+              const CaravanHeader(),
+              const SizedBox(height: 14),
+            ],
+            Text(
+                withIt
+                    ? 'WITH THE CARAVAN'
+                    : "ON THE CARAVAN'S TRACKS",
+                style: T.label.copyWith(color: T.amber)),
+            const SizedBox(height: 12),
+            if (r.caravanLine != null) ...[
+              Text(r.caravanLine!, style: T.title.copyWith(height: 1.4)),
+              const SizedBox(height: 12),
+            ],
+            Text(caravanDebriefLine(share: share, recalled: r.recalled),
+                style: T.body),
+            if (!r.recalled) ...[
+              const SizedBox(height: 6),
+              Text(caravanHaulLine(names), style: T.secondary),
+            ],
+          ],
+        ));
+  }
+
   Widget _find(GuildController c, List<Gear> gear, Sector sector) {
     final r = widget.record;
     if (r.completedSpire) {
@@ -435,7 +490,10 @@ class _DebriefScreenState extends State<DebriefScreen>
           child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('${def.rarity.label} FIND',
+          Text(
+              r.caravanLoot.contains(gear.first.uid)
+                  ? '${def.rarity.label} FIND · FROM THE CARAVAN'
+                  : '${def.rarity.label} FIND',
               textAlign: TextAlign.center,
               style: T.label.copyWith(color: T.amber)),
           const SizedBox(height: 16),

@@ -410,9 +410,94 @@ const Map<String, GearDef> kGear = {
     bonus: Bonus(xp: 0.35, credits: 0.15),
     flavor: 'The guild, in its own hand.',
   ),
+
+  // The caravan. In no sector's pool and never on the forge's list: the only
+  // way to own one is to have been at the gate. See models/caravan.dart.
+  'waybill': GearDef(
+    id: 'waybill',
+    name: "TEAMSTER'S WAYBILL",
+    rarity: Rarity.uncommon,
+    bonus: Bonus(credits: 0.10, xp: 0.05),
+    flavor: 'Stamped for a place that was not here yet.',
+  ),
+  'road_lantern': GearDef(
+    id: 'road_lantern',
+    name: 'ROAD LANTERN',
+    rarity: Rarity.uncommon,
+    bonus: Bonus(alloy: 0.08, rare: 0.02),
+    flavor: 'Lit at the gate. Never put out on the road.',
+  ),
+  'axle_pin': GearDef(
+    id: 'axle_pin',
+    name: 'AXLE PIN',
+    rarity: Rarity.rare,
+    bonus: Bonus(alloy: 0.12, credits: 0.10),
+    flavor: 'Turned by hand. It fits every wagon on the line.',
+  ),
+  'drover_coat': GearDef(
+    id: 'drover_coat',
+    name: "DROVER'S COAT",
+    rarity: Rarity.rare,
+    bonus: Bonus(xp: 0.15, intel: 0.08),
+    flavor: 'Proofed against weather with something that still smells of '
+        'smoke.',
+  ),
+  'slow_watch': GearDef(
+    id: 'slow_watch',
+    name: 'THE SLOW WATCH',
+    rarity: Rarity.epic,
+    bonus: Bonus(xp: 0.20, rare: 0.06, credits: 0.10),
+    flavor: 'Eleven years behind, and never once late.',
+  ),
+  'gate_seal': GearDef(
+    id: 'gate_seal',
+    name: 'GATE SEAL',
+    rarity: Rarity.epic,
+    bonus: Bonus(credits: 0.18, alloy: 0.18, intel: 0.12),
+    flavor: 'The caravan stops where this is pressed. Nowhere else.',
+  ),
 };
 
 GearDef gearById(String id) => kGear[id]!;
+
+/// What the caravan can hand over. Kept apart from every sector's loot pool.
+const List<String> kCaravanGear = [
+  'waybill',
+  'road_lantern',
+  'axle_pin',
+  'drover_coat',
+  'slow_watch',
+  'gate_seal',
+];
+
+/// Chance of a caravan find for a squad that went out with it. Following
+/// its tracks late scales this down; see [CaravanStatus.strength].
+const double kCaravanGearChance = 0.6;
+
+/// The caravan's own record, one line per departure met at the gate, in
+/// order, never repeated. Following the tracks late does not earn one: the
+/// teamsters only talk to people who were there. Like the prior survey,
+/// these are never counted at the player.
+const List<String> kCaravanManifest = [
+  'The teamsters do not wait. The lead driver checks a pocket watch against '
+      'the gate post, and goes.',
+  'Waybills are stamped for this outpost by name. The stamp is older than '
+      'the outpost.',
+  'One wagon carries nothing but lamp oil. The driver says it always has.',
+  'The lead driver asks after the first company by its sector numbers, not '
+      'its names.',
+  'Letters in the mail sack, addressed to people at this outpost. None of '
+      'them are us.',
+  'The caravan keeps its own log. It records departures. Never arrivals.',
+  'A teamster points to where the road used to fork. The other branch is '
+      'under the Hollow now.',
+  'They were told the outpost had gone quiet. They kept it on the timetable '
+      'anyway.',
+  "The lead driver's watch is eleven years slow. It has never been reset. "
+      'It is the timetable.',
+  'Our name is on the waybill now, in the same hand as the stamp. Nobody '
+      'asked us for it.',
+];
 
 // ---------------------------------------------------------------------------
 // RECRUIT NAMES - flavour only.

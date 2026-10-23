@@ -13,6 +13,7 @@ import '../widgets/camp_controls.dart';
 import '../widgets/expedition_widgets.dart';
 import '../widgets/sector_scene.dart';
 import '../widgets/sigil.dart';
+import 'caravan_screen.dart';
 import 'roster_screen.dart';
 
 class DispatchScreen extends StatefulWidget {
@@ -360,6 +361,14 @@ class _DispatchScreenState extends State<DispatchScreen> {
                       : 'Choose a squad to see what this plan can bring back.',
                   style: T.secondary),
             const SizedBox(height: 16),
+            if (caravanDispatchLine(c.caravanAt(DateTime.now()))
+                case final line?) ...[
+              Text(line,
+                  key: const Key('dispatch-caravan'),
+                  textAlign: TextAlign.center,
+                  style: T.body.copyWith(color: T.amber)),
+              const SizedBox(height: 8),
+            ],
             Text('Working toward ${projectTitle(g)}.',
                 textAlign: TextAlign.center, style: T.body),
             if (_error != null)

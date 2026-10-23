@@ -36,11 +36,16 @@ const CaravanHeader(),
 // The same widget can head the debrief's "With the caravan" beat.
 ```
 
-The Caravan card and debrief beat do not exist in this checkout yet, so
-the widget is prepared but not mounted in those screens. Their existing
-visibility conditions should control when it appears once the feature
-code is available. The illustration does not itself decide when a caravan
-arrives or create new game state.
+Mounted in two places, both only while the scene is true (the wagons
+waiting at the gate):
+
+- the camp `CaravanCard`, while the caravan is at the gate, not once it
+  has left and its tracks are fading;
+- the debrief's "With the caravan" beat, for a squad that left with it,
+  not one that followed late or was recalled.
+
+The illustration does not itself decide when a caravan arrives or create
+new game state.
 
 Re-export from the repo root with:
 

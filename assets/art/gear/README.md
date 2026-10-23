@@ -53,9 +53,8 @@ salvage debrief, currently at 124px. The directory is already bundled in
 `pubspec.yaml`. Equipment lists, comparison details and the field manual
 use `GearMark`. Missing art still falls back to its engraving.
 
-The Caravan IDs come from the supplied brief. `kCaravanGear` is not yet
-present in this checkout; these six assets are ready under the matching
-filenames for the feature to consume.
+The six Caravan filenames match `kCaravanGear` in `lib/data/content.dart`.
+The existing `GearArt` lookup loads them by ID in the salvage reveal.
 
 **Endgame spoilers:** `spire_sigil`, `telos_lens` and `last_charter` must
 stay out of store listings, galleries and previews outside the player's
