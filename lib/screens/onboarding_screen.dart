@@ -37,7 +37,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         'Put Telos aside during the session. Their discoveries are waiting when you return.',
         'Between expeditions, time alone earns nothing.',
       ],
-      illustration: true,
+      image: _campArt,
     ),
     _Panel(
       label: 'INTEGRITY',
@@ -73,6 +73,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     ),
   ];
 
+  static const _campArt = 'assets/art/camp.webp';
+
+  /// An hourglass running at the edge of camp with nobody watching it: the
+  /// sand falls whether you look or not. Optional - until the file is in
+  /// the bundle the page simply has no picture.
+  static const _hourglassArt = 'assets/art/onboarding-hourglass.webp';
+
   /// One line each. Teach the loop, then get out of the way.
   static const _firstRun = <_Panel>[
     _Panel(
@@ -82,11 +89,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         'Send a squad out, then put your phone down and work. They come back '
             'with whatever they found.',
       ],
-      illustration: true,
+      image: _campArt,
     ),
     _Panel(
       label: 'INTEGRITY',
       title: 'Leave it alone.',
+      image: _hourglassArt,
       body: [
         'Checking on them costs the squad. Locking your phone costs nothing.',
       ],
@@ -224,7 +232,7 @@ class _Panel {
     required this.label,
     required this.title,
     required this.body,
-    this.illustration = false,
+    this.image,
     this.integrity = false,
     this.gear = false,
     this.detailTitle,
@@ -233,7 +241,8 @@ class _Panel {
   final String label;
   final String title;
   final List<String> body;
-  final bool illustration;
+  /// A wide illustration, cropped to a strip above the text.
+  final String? image;
   final bool integrity;
   final bool gear;
   final String? detailTitle;
@@ -261,14 +270,22 @@ class _PanelViewState extends State<_PanelView> {
         const SizedBox(height: 12),
         Text(p.title, style: T.display.copyWith(fontSize: 34)),
         const SizedBox(height: 24),
-        if (p.illustration) ...[
-          ClipRRect(
-            borderRadius: BorderRadius.circular(3),
-            child: Image.asset('assets/art/camp.webp',
-                height: 160, fit: BoxFit.cover, excludeFromSemantics: true),
-          ),
-          const SizedBox(height: 24),
-        ],
+        if (p.image case final image?)
+          Image.asset(image,
+              height: 160,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              excludeFromSemantics: true,
+              // A missing picture collapses rather than leaving a gap.
+              errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+              frameBuilder: (_, child, frame, wasSync) => Padding(
+                    padding: const EdgeInsets.only(bottom: 24),
+                    child: wasSync || frame != null
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(3),
+                            child: child)
+                        : const SizedBox(height: 160),
+                  )),
         if (p.gear) ...[
           const Center(child: GearMark(id: 'deep_lamp', size: 72)),
           const SizedBox(height: 24),
