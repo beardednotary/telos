@@ -9,6 +9,7 @@ import '../theme/telos_theme.dart';
 import '../widgets/gear_art.dart';
 import '../widgets/guild_sigil.dart';
 import '../widgets/camp_controls.dart';
+import '../widgets/caravan_header.dart';
 import '../widgets/expedition_widgets.dart';
 import '../widgets/run_card.dart';
 import '../widgets/sector_scene.dart';
@@ -421,13 +422,20 @@ class _DebriefScreenState extends State<DebriefScreen>
       for (final uid in r.caravanLoot)
         if (g.gearByUid(uid) case final gear?) gearById(gear.defId).name,
     ];
+    final withIt = share >= 1 && !r.recalled;
     return ExpeditionPanel(
         key: const Key('debrief-caravan'),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Only for a squad that left with it: the scene is the caravan
+            // at the gate, which a late or recalled squad never saw.
+            if (withIt) ...[
+              const CaravanHeader(),
+              const SizedBox(height: 14),
+            ],
             Text(
-                share >= 1 && !r.recalled
+                withIt
                     ? 'WITH THE CARAVAN'
                     : "ON THE CARAVAN'S TRACKS",
                 style: T.label.copyWith(color: T.amber)),

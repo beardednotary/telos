@@ -5,6 +5,7 @@ import '../models/caravan.dart';
 import '../state/guild_controller.dart';
 import '../theme/telos_theme.dart';
 import '../widgets/camp_controls.dart';
+import '../widgets/caravan_header.dart';
 import '../widgets/expedition_widgets.dart';
 
 const _dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -211,36 +212,46 @@ class _CaravanCardState extends State<CaravanCard> {
             color: T.card,
             shape: RoundedRectangleBorder(
                 side: BorderSide(color: caught ? T.amber : T.boundary)),
+            clipBehavior: Clip.antiAlias,
             child: InkWell(
               key: const Key('caravan-card'),
               onTap: widget.onDispatch,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                        caught
-                            ? 'THE CARAVAN IS AT THE GATE'
-                            : 'THE CARAVAN HAS LEFT',
-                        style:
-                            T.label.copyWith(color: caught ? T.amber : null)),
-                    const SizedBox(height: 6),
-                    Text(
-                        caught
-                            ? 'Leaves in $mins ${mins == 1 ? 'minute' : 'minutes'}.'
-                            : 'You missed the caravan, but there is still work to be done.',
-                        style: T.title),
-                    const SizedBox(height: 6),
-                    Text(
-                        caught
-                            ? 'Send a squad out with it.'
-                            : 'Start a run now. Its tracks are fresh: '
-                                '${(status.strength * 100).round()}% of its '
-                                'salvage still in reach, fading by the minute.',
-                        style: T.secondary),
-                  ],
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // The scene is the wagons waiting at the gate, so it is
+                  // only true while they are. Once they have gone, the card
+                  // is text alone.
+                  if (caught) const CaravanHeader(),
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                            caught
+                                ? 'THE CARAVAN IS AT THE GATE'
+                                : 'THE CARAVAN HAS LEFT',
+                            style: T.label
+                                .copyWith(color: caught ? T.amber : null)),
+                        const SizedBox(height: 6),
+                        Text(
+                            caught
+                                ? 'Leaves in $mins ${mins == 1 ? 'minute' : 'minutes'}.'
+                                : 'You missed the caravan, but there is still work to be done.',
+                            style: T.title),
+                        const SizedBox(height: 6),
+                        Text(
+                            caught
+                                ? 'Send a squad out with it.'
+                                : 'Start a run now. Its tracks are fresh: '
+                                    '${(status.strength * 100).round()}% of its '
+                                    'salvage still in reach, fading by the minute.',
+                            style: T.secondary),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
           ),

@@ -14,6 +14,7 @@ import 'package:telos/services/expedition_engine.dart';
 import 'package:telos/services/persistence.dart';
 import 'package:telos/state/guild_controller.dart';
 import 'package:telos/theme/telos_theme.dart';
+import 'package:telos/widgets/caravan_header.dart';
 
 const everyDay = {1, 2, 3, 4, 5, 6, 7};
 
@@ -371,6 +372,8 @@ void main() {
       await t.pumpAndSettle();
       expect(find.text('THE CARAVAN IS AT THE GATE'), findsOneWidget);
       expect(find.textContaining('Leaves in'), findsOneWidget);
+      expect(find.byType(CaravanHeader), findsOneWidget,
+          reason: 'the wagons are at the gate, so the scene shows');
     });
 
     testWidgets('late, camp says there is still work to be done', (t) async {
@@ -381,6 +384,8 @@ void main() {
       expect(find.textContaining('still work to be done'), findsOneWidget);
       expect(find.textContaining('of its salvage still in reach'),
           findsOneWidget);
+      expect(find.byType(CaravanHeader), findsNothing,
+          reason: 'the wagons have gone, so the scene would be untrue');
     });
 
     testWidgets('scheduling from the caravan screen', (t) async {
@@ -424,6 +429,7 @@ void main() {
           find.byKey(const Key('debrief-caravan')), 200,
           scrollable: find.byType(Scrollable).first);
       expect(find.text('WITH THE CARAVAN'), findsOneWidget);
+      expect(find.byType(CaravanHeader), findsOneWidget);
       expect(find.text(kCaravanManifest.first), findsOneWidget);
       expect(find.textContaining('The caravan handed over'), findsOneWidget);
     });
