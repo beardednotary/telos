@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../data/content.dart';
 import '../models/models.dart';
 import '../services/expedition_engine.dart';
+import '../services/plan_suggestion.dart';
 import '../services/redeploy.dart';
 import '../state/guild_controller.dart';
 import '../theme/telos_theme.dart';
@@ -110,6 +111,27 @@ class _DispatchScreenState extends State<DispatchScreen> {
     } finally {
       if (mounted) setState(() => _sending = false);
     }
+  }
+
+  /// Picks the destination and squad for the chosen time, and says why. The
+  /// player can still change either afterwards; this only fills them in.
+  void _suggest() {
+    FocusManager.instance.primaryFocus?.unfocus();
+    final c = context.read<GuildController>();
+    final plan = suggestPlan(c.g, _minutes);
+    setState(() {
+      if (plan == null) {
+        _notice = 'Nothing is reachable in $_minutes minutes yet.';
+        return;
+      }
+      _sectorId = plan.sector.id;
+      _squad
+        ..clear()
+        ..addAll(plan.squad.map((m) => m.id));
+      _open = null;
+      _notice = '${fieldName(plan.sector.name)} with '
+          '${plan.squad.map((m) => m.name).join(' & ')}. ${plan.reason}';
+    });
   }
 
   Future<void> _custom() async {
@@ -231,6 +253,11 @@ class _DispatchScreenState extends State<DispatchScreen> {
                       ]),
                       const SizedBox(height: 12),
                       CampButton(
+                          key: const Key('suggest-plan'),
+                          label: 'Suggest a plan for $_minutes minutes',
+                          onPressed: _suggest),
+                      const SizedBox(height: 8),
+                      CampButton(
                           label: 'Choose their destination',
                           onPressed: () => _toggle('destination')),
                     ],
@@ -269,7 +296,8 @@ class _DispatchScreenState extends State<DispatchScreen> {
             if (_notice != null)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Text(_notice!, style: T.secondary),
+                child: Text(_notice!,
+                    key: const Key('dispatch-notice'), style: T.secondary),
               ),
             const SizedBox(height: 8),
             CampDisclosure(
