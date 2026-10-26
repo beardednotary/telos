@@ -9,6 +9,7 @@ import '../widgets/camp_controls.dart';
 import '../widgets/expedition_widgets.dart';
 import '../widgets/management_widgets.dart';
 import '../widgets/sector_scene.dart';
+import '../widgets/share_cards.dart';
 
 String _duration(int seconds) => seconds < 60
     ? '$seconds sec'
@@ -54,27 +55,51 @@ class LogScreen extends StatelessWidget {
                 child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('FOCUS TIME IN THIS LOG', style: T.label),
-                      const SizedBox(height: 10),
-                      Text('${minutes ~/ 60}h ${minutes % 60}m',
-                          style: T.numeric),
-                      const SizedBox(height: 12),
-                      Text(
-                          '${expeditionCount(log.length)} · ${g.cleanRuns} at 100% Integrity',
-                          style: T.secondary),
+                      // Opens like every other screen, with a line, rather
+                      // than straight onto a label and a number.
+                      const Text('Every session, kept.', style: T.display),
+                      const SizedBox(height: 20),
+                      ExpeditionPanel(
+                          child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text('FOCUS TIME', style: T.label),
+                          const SizedBox(height: 10),
+                          Text('${minutes ~/ 60}h ${minutes % 60}m',
+                              style: T.numeric),
+                          const SizedBox(height: 16),
+                          // The same three figures as the shared record.
+                          Row(children: [
+                            _Total('${g.daysWorked}',
+                                g.daysWorked == 1 ? 'Day worked' : 'Days worked'),
+                            _Total('${log.length}',
+                                log.length == 1 ? 'Expedition' : 'Expeditions'),
+                            _Total('${g.cleanRuns}',
+                                g.cleanRuns == 1 ? 'Clean run' : 'Clean runs'),
+                          ]),
+                          if (log.isNotEmpty) ...[
+                            const SizedBox(height: 14),
+                            Text(
+                                'Average ${minutes ~/ log.length} min · $average% Integrity',
+                                style: T.secondary),
+                            const SizedBox(height: 16),
+                            CampButton(
+                              key: const Key('share-record'),
+                              label: 'Share your record',
+                              onPressed: () => shareRecord(context, g),
+                            ),
+                          ],
+                        ],
+                      )),
                       if (log.isNotEmpty) ...[
-                        const SizedBox(height: 4),
-                        Text(
-                            'Average · ${minutes ~/ log.length} min · $average% Integrity',
-                            style: T.secondary),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 20),
                         Text(
                             log.length >= 500
                                 ? 'Your latest 500 expeditions.'
                                 : 'Most recent first. Tap an entry for its report.',
                             style: T.secondary),
                       ] else ...[
-                        const SizedBox(height: 28),
+                        const SizedBox(height: 12),
                         ExpeditionPanel(
                             child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -98,6 +123,23 @@ class LogScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+class _Total extends StatelessWidget {
+  const _Total(this.value, this.label);
+  final String value;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) => Expanded(
+          child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(value, style: T.mono.copyWith(fontSize: 22)),
+          const SizedBox(height: 2),
+          Text(label, style: T.secondary.copyWith(fontSize: 12)),
+        ],
+      ));
 }
 
 class _LogEntry extends StatelessWidget {
@@ -175,7 +217,14 @@ class _ExpeditionRecordScreenState extends State<ExpeditionRecordScreen> {
     final depth =
         (r.elapsedSeconds / 60 / sector.nominalMinutes).clamp(0.0, 1.6);
     return Scaffold(
-      appBar: AppBar(title: const Text('Expedition record')),
+      appBar: AppBar(title: const Text('Expedition record'), actions: [
+        IconButton(
+          key: const Key('record-share'),
+          tooltip: 'Share expedition',
+          onPressed: () => shareExpedition(context, r, g),
+          icon: const Icon(Icons.ios_share, size: 20),
+        ),
+      ]),
       body: SafeArea(
         top: false,
         child: ListView(
