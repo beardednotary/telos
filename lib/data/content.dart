@@ -102,6 +102,28 @@ const List<Sector> kSectors = [
       'Tins in the cache are dated. Eleven years, give or take a season.',
       'The service road runs past our last marker. Graded flat, by something '
           'with an engine.',
+      // Past here, for players whose sessions only reach the shallow
+      // sectors. Their story stays in the everyday work of the first company
+      // and keeps clear of what the deep sectors reveal.
+      'Ruts under the moss on the graded road. One vehicle, the same width, '
+          'over and over.',
+      'A lean-to at the second bend, rebuilt more than once. New timber '
+          'nailed over old.',
+      'Initials cut into the lean-to post. A dozen sets, most of them cut '
+          'more than once.',
+      'A water butt beside the lean-to, still sound. Someone tarred the seams '
+          'every season.',
+      'Tally marks inside the cache lid, in fives. Hundreds of them, and no '
+          'heading.',
+      'The tally runs in short stretches with gaps between. Days out, not '
+          'days in a row.',
+      'Whoever kept it never crossed out a gap. They just started counting '
+          'again.',
+      'The stretches get shorter toward the bottom of the lid. The hand stays '
+          'the same.',
+      'The last stretch is three marks. Below it the lid is bare.',
+      'We have started a tally of our own under theirs. It is already longer '
+          'than their last stretch.',
     ],
   ),
   Sector(
@@ -138,6 +160,25 @@ const List<Sector> kSectors = [
           'and getting them.',
       'Tools racked and signed in, every one. The book ends part way down a '
           'page.',
+      // As in Mosswood: the shallow sectors' own story, past this point.
+      'The book has a column for the time each crew came back up. It is '
+          'never left blank.',
+      'Chalk on the gallery wall: how far each shift got. The numbers are '
+          'small. They add up.',
+      'A note pinned at the face for the next crew. Where the seam turns, '
+          'and mind the third prop.',
+      'The third prop is still there, wedged twice. Somebody minded it.',
+      'Most of the notes at the face are for the next crew, not the one '
+          'writing them.',
+      'A kettle and six cups on a shelf in the winch house. One cup is '
+          'chipped, and kept anyway.',
+      'The roster thins toward the end. Four crews, then three, then two. '
+          'The coming-up column is still filled in.',
+      'The last crew on the roster is one name. Short shifts, and a great '
+          'many of them.',
+      'Under that name the chalk total is the highest on the wall.',
+      'We have signed the book under their last line. The coming-up column '
+          'is filled in.',
     ],
   ),
   Sector(
