@@ -7,7 +7,6 @@ import '../models/models.dart';
 import '../state/guild_controller.dart';
 import '../theme/telos_theme.dart';
 import '../widgets/camp_controls.dart';
-import '../widgets/expedition_widgets.dart';
 import '../widgets/management_widgets.dart';
 import 'roster_screen.dart';
 
@@ -48,7 +47,12 @@ class _ForgeScreenState extends State<ForgeScreen> {
                   key: Key('recipes-${rarity.name}'),
                   title: '${fieldName(rarity.name)} equipment',
                   summary: c.forgeCanWork(rarity)
-                      ? '${catalogue.where((def) => def.rarity == rarity).length} recipes'
+                      ? switch (catalogue
+                          .where((def) => def.rarity == rarity)
+                          .length) {
+                          1 => '1 recipe',
+                          final n => '$n recipes',
+                        }
                       : 'Requires forge level ${kForgeLevelFor[rarity]}',
                   icon: Icons.handyman_outlined,
                   expanded: _open == rarity.name,

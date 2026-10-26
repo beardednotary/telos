@@ -7,7 +7,6 @@ import '../models/models.dart';
 import '../state/guild_controller.dart';
 import '../theme/telos_theme.dart';
 import '../widgets/camp_controls.dart';
-import '../widgets/expedition_widgets.dart';
 
 /// How many runs the timer explains Integrity for, before it trusts the
 /// player to know.
@@ -127,7 +126,7 @@ class SessionScreen extends StatelessWidget {
                             key: const Key('cancel-dispatch'),
                             onPressed: c.cancelRun,
                             child: Text(
-                                'Cancel dispatch · ${(GuildController.cancelWindow - c.now.difference(run.startedAt)).inSeconds + 1}s',
+                                'Cancel dispatch · ${((GuildController.cancelWindow - c.now.difference(run.startedAt)).inMilliseconds / 1000).ceil()}s',
                                 style: T.secondary),
                           )
                         else

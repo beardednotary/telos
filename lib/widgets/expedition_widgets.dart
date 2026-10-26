@@ -4,13 +4,7 @@ import '../models/guild_state.dart';
 import '../models/models.dart';
 import '../theme/telos_theme.dart';
 
-/// Authored content is stored in capitals. Never apply this to player names.
-String fieldName(String name) => name
-    .toLowerCase()
-    .split(' ')
-    .map((word) =>
-        word.isEmpty ? word : '${word[0].toUpperCase()}${word.substring(1)}')
-    .join(' ');
+export '../models/models.dart' show fieldName;
 
 String projectTitle(GuildState g) =>
     '${fieldName(g.campProject.name)} · Level ${g.facilities[g.campProject]! + 1}';

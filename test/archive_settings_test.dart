@@ -105,7 +105,7 @@ void main() {
     expect(find.text('Someone had marked a second route through the stone.'),
         findsOneWidget);
     await tap(t, find.text('Squad & equipment'));
-    expect(find.text('KAEL · +80 XP · Leveled up'), findsOneWidget);
+    expect(find.text('KAEL · +80 XP · Levelled up'), findsOneWidget);
     expect(find.textContaining('no longer in the vault.'), findsOneWidget);
     expect(find.text('Deep Lamp'), findsOneWidget);
     expect(find.textContaining('level 8'), findsNothing);

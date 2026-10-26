@@ -29,7 +29,7 @@ String contractTitle(Contract c, GuildState g) {
       return 'Bring back ${c.target} ${c.res!.label.toLowerCase()} from ${fieldName(sector!.name)} '
           'in a single run';
     case ContractKind.cleanRuns:
-      return 'Finish ${c.target} runs at full integrity';
+      return 'Finish ${c.target} runs at full Integrity';
     case ContractKind.longRun:
       return 'Protect a single block of ${c.target} minutes';
     case ContractKind.minutes:

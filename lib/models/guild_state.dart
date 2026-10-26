@@ -384,16 +384,16 @@ const List<int> kSquadSlotLevels = [3, 6, 10];
 List<String> guildLevelUnlocks(int level) {
   final out = <String>[];
   if (kSquadSlotLevels.contains(level)) {
-    out.add('SQUAD SLOT +1  -  send another member on every run');
+    out.add('Another squad slot: send one more member on every run');
   }
   for (final c in kClasses.values) {
     if (c.recruitCost > 0 && c.unlockGuildLevel == level) {
-      out.add('${c.name} available to recruit');
+      out.add('${fieldName(c.name)} available to recruit');
     }
   }
   for (final s in kSectors) {
     if (s.guildLevelToUnlock == level) {
-      out.add('${s.name} eligible  -  ${s.intelToUnlock} INTEL to open');
+      out.add('${fieldName(s.name)} can be opened for ${s.intelToUnlock} intel');
     }
   }
   return out;

@@ -168,7 +168,7 @@ class _DebriefScreenState extends State<DebriefScreen>
                       title: 'Expedition report',
                       summary:
                           '+${r.credits} credits · +${r.alloy} alloy · +${r.intel} intel'
-                          '${r.guildLevelUps > 0 ? '\nGuild level ${g.level} reached' : r.levelUps.isNotEmpty ? '\n${r.levelUps.length} members levelled up' : ''}',
+                          '${r.guildLevelUps > 0 ? '\nGuild level ${g.level} reached' : r.levelUps.isNotEmpty ? '\n${r.levelUps.length} ${r.levelUps.length == 1 ? 'member' : 'members'} levelled up' : ''}',
                       icon: Icons.receipt_long_outlined,
                       expanded: _open == 'report',
                       onToggle: () => _toggle('report'),
@@ -356,7 +356,7 @@ class _DebriefScreenState extends State<DebriefScreen>
           if (wearer != null)
             Padding(
                 padding: const EdgeInsets.only(top: 4),
-                child: Text('Worn by ${fieldName(wearer)}',
+                child: Text('Worn by $wearer',
                     style: T.secondary)),
         ],
       );
@@ -412,7 +412,7 @@ class _DebriefScreenState extends State<DebriefScreen>
           for (final m in risen)
             Padding(
                 padding: const EdgeInsets.only(top: 4),
-                child: Text('${fieldName(m.name)} reached level ${m.level}',
+                child: Text('${m.name} reached level ${m.level}',
                     textAlign: TextAlign.center, style: T.body)),
         ],
       ],
@@ -523,7 +523,7 @@ class _DebriefScreenState extends State<DebriefScreen>
               textAlign: TextAlign.center, style: T.body),
           if (c.wearerOf(gear.first.uid) case final m?) ...[
             const SizedBox(height: 10),
-            Text('${fieldName(m.name)} is wearing it.',
+            Text('${m.name} is wearing it.',
                 key: const Key('debrief-worn'),
                 style: T.secondary,
                 textAlign: TextAlign.center),

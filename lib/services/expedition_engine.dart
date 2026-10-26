@@ -341,7 +341,7 @@ class ExpeditionEngine {
     required Sector sector,
   }) {
     if (scraps) {
-      return 'Squad turned back short of ${sector.name}. Scraps only.';
+      return 'Squad turned back short of ${fieldName(sector.name)}. Scraps only.';
     }
     if (recalled) {
       return 'Recalled early. They came back with what they had.';

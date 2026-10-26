@@ -77,7 +77,7 @@ void main() {
     expect(find.text('Claim rewards'), findsNothing);
     expect(find.text('Progress is recorded when an expedition returns.'),
         findsOneWidget);
-    await tap(t, find.text('Finish 3 runs at full integrity'));
+    await tap(t, find.text('Finish 3 runs at full Integrity'));
     expect(
         t
             .widgetList<CampDisclosure>(find.byType(CampDisclosure))

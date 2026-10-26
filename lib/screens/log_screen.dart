@@ -296,7 +296,7 @@ class _ExpeditionRecordScreenState extends State<ExpeditionRecordScreen> {
                       for (final id in r.squad) ...[
                         Text(
                             '${g.memberById(id)?.name ?? 'Former member'} · +${r.xpGained[id] ?? 0} XP'
-                            '${r.levelUps.contains(id) ? ' · Leveled up' : ''}',
+                            '${r.levelUps.contains(id) ? ' · Levelled up' : ''}',
                             style: T.body),
                         const SizedBox(height: 8),
                       ],
