@@ -48,7 +48,10 @@ class CampMusic implements Music {
 
   /// Made for Telos: docs/design/return-chime/chime.py.
   static const chimeAsset = 'music/return-chime.wav';
-  static const double chimeVolume = 0.5;
+
+  /// About 5 dB under the track at [volume], so it reads as part of the
+  /// music rather than a notification over it.
+  static const double chimeVolume = 0.3;
 
   /// Under the player's own audio, not over it.
   static const double volume = 0.35;
