@@ -108,6 +108,15 @@ void main() {
       }
     });
 
+    test('a draw not worth asking for does not leave a slot empty', () {
+      final g = GuildState.fresh();
+      for (var seed = 0; seed < 200; seed++) {
+        g.contracts.clear();
+        ContractBoard.refill(g, rng: Random(seed));
+        expect(g.contracts.length, ContractBoard.slots, reason: 'seed $seed');
+      }
+    });
+
     test('only asks for sectors that are open', () {
       final g = GuildState.fresh(); // mosswood only
       for (var seed = 0; seed < 40; seed++) {
