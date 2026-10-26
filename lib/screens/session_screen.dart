@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../data/content.dart';
+import '../models/models.dart';
 import '../state/guild_controller.dart';
 import '../theme/telos_theme.dart';
 import '../widgets/camp_controls.dart';
@@ -13,12 +15,16 @@ const int kIntegrityHintRuns = 3;
 
 /// No live loot, animated landscape, or management controls during focus.
 class SessionScreen extends StatelessWidget {
-  const SessionScreen({super.key});
+  const SessionScreen({super.key, this.run});
+
+  /// The run this screen opened for. Kept so the screen can fade out
+  /// showing it after the run has ended, rather than going blank.
+  final ActiveRun? run;
 
   @override
   Widget build(BuildContext context) {
     final c = context.watch<GuildController>();
-    final run = c.active;
+    final run = c.active ?? this.run;
     if (run == null) return const SizedBox.shrink();
     final sector = sectorById(run.sectorId);
     final done = run.isComplete(c.now);
@@ -98,7 +104,10 @@ class SessionScreen extends StatelessWidget {
                           key: const Key('receive-debrief'),
                           label: 'Receive the report',
                           primary: true,
-                          onPressed: () => c.finishRun(recalled: false),
+                          onPressed: () {
+                            HapticFeedback.mediumImpact();
+                            c.finishRun(recalled: false);
+                          },
                         )
                       else ...[
                         // The first-launch briefing no longer explains
@@ -165,6 +174,9 @@ class SessionScreen extends StatelessWidget {
         ],
       ),
     );
-    if (ok == true && c.active?.id == run.id) await c.finishRun(recalled: true);
+    if (ok == true && c.active?.id == run.id) {
+      HapticFeedback.lightImpact();
+      await c.finishRun(recalled: true);
+    }
   }
 }

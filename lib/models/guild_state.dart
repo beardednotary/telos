@@ -58,8 +58,13 @@ class GuildState {
   String? caravanClaimed;
   int caravanRead;
 
-  /// Camp music. Off until the player turns it on.
+  /// Camp music, and the chime when a squad comes home. Off until the
+  /// player turns it on.
   bool musicOn;
+
+  /// Camp offers the music once, after the first expedition. Either answer
+  /// settles it; Settings has the switch from then on.
+  bool musicOffered;
 
   int gearCounter;
   int runCounter;
@@ -111,6 +116,7 @@ class GuildState {
     this.caravanClaimed,
     this.caravanRead = 0,
     this.musicOn = false,
+    this.musicOffered = false,
     this.active,
     this.pendingDebrief,
     this.gearCounter = 0,
@@ -266,6 +272,7 @@ class GuildState {
         'caravanClaimed': caravanClaimed,
         'caravanRead': caravanRead,
         'musicOn': musicOn,
+        'musicOffered': musicOffered,
         'active': active?.toJson(),
         'pendingDebrief': pendingDebrief?.toJson(),
         'gearCounter': gearCounter,
@@ -331,6 +338,7 @@ class GuildState {
       caravanClaimed: j['caravanClaimed'] as String?,
       caravanRead: j['caravanRead'] as int? ?? 0,
       musicOn: j['musicOn'] as bool? ?? false,
+      musicOffered: j['musicOffered'] as bool? ?? false,
       active: j['active'] == null
           ? null
           : ActiveRun.fromJson(j['active'] as Map<String, dynamic>),

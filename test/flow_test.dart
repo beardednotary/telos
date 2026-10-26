@@ -5,6 +5,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:telos/data/content.dart';
 import 'package:telos/main.dart';
 import 'package:telos/models/models.dart';
+import 'package:telos/screens/session_screen.dart';
+import 'package:telos/screens/debrief_screen.dart';
 import 'package:telos/screens/dispatch_screen.dart';
 import 'package:telos/screens/log_screen.dart';
 import 'package:telos/screens/outpost_screen.dart';
@@ -39,6 +41,28 @@ Widget wrap(GuildController c, Widget child) => ChangeNotifierProvider.value(
 void main() {
   _spireTests();
   _exhaustedSectorTests();
+
+  testWidgets('the run fades into its report rather than cutting',
+      (t) async {
+    tallSurface(t);
+    final c = await bootController();
+    await t.pumpWidget(wrap(c, const Root()));
+    await c.startRun(
+        sectorId: 'mosswood', intent: '', squad: ['a1'], minutes: 25);
+    await t.pumpAndSettle();
+    expect(find.byType(SessionScreen), findsOneWidget);
+
+    await c.finishRun(recalled: true);
+    await t.pump();
+    await t.pump(const Duration(milliseconds: 150));
+    // Halfway: the session is still drawn, holding its run, not blank.
+    expect(find.byType(DebriefScreen), findsOneWidget);
+    expect(find.byKey(const Key('session-integrity')), findsOneWidget);
+
+    await t.pumpAndSettle();
+    expect(find.byType(SessionScreen), findsNothing);
+    expect(find.byType(DebriefScreen), findsOneWidget);
+  });
 
   testWidgets('full loop: home -> dispatch -> session -> debrief', (t) async {
     tallSurface(t);

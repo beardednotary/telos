@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="ic_launcher_background">#151D22</color>
+    <!-- T.black: the launch screen's own background, so the hand-off from
+         the system window to the first Flutter frame does not show. -->
+    <color name="launch_background">#1E252B</color>
 </resources>

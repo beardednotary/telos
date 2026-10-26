@@ -156,8 +156,9 @@ class _BackupScreenState extends State<BackupScreen> {
                 activeThumbColor: T.amber,
                 title: const Text('Camp music', style: T.body),
                 subtitle: Text(
-                    'At camp and on reports, never during a run. Plays under '
-                    'your own audio, and the silent switch mutes it.\n'
+                    'At camp and on reports, with a chime when a squad comes '
+                    'home. Never during a run. Plays under your own audio, '
+                    'and the silent switch mutes it.\n'
                     '${CampMusic.credit}.',
                     style: T.secondary),
               ),

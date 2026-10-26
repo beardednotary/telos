@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 
 import 'screens/debrief_screen.dart';
 import 'screens/home_screen.dart';
+import 'screens/launch_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/session_screen.dart';
 import 'services/alerts.dart';
@@ -61,12 +62,13 @@ Future<void> main() async {
     lockScreen: SystemLockScreen(),
     launchActions: SystemLaunchActions(),
     music: CampMusic(),
+    launchScreen: true,
   );
-  await controller.boot();
-
+  // The launch screen is up while the save loads underneath it.
   runApp(
     ChangeNotifierProvider.value(value: controller, child: const TelosApp()),
   );
+  await controller.boot();
 }
 
 class TelosApp extends StatelessWidget {
@@ -78,7 +80,7 @@ class TelosApp extends StatelessWidget {
       title: 'Telos',
       debugShowCheckedModeBanner: false,
       theme: T.theme(),
-      home: const Root(),
+      home: const LaunchScreen(child: Root()),
     );
   }
 }
@@ -94,6 +96,10 @@ class Root extends StatefulWidget {
 
 class _RootState extends State<Root> {
   String? _foreground;
+
+  /// Camp, a run and its report are the three places the app has. Moving
+  /// between them is a crossfade, not a cut.
+  static const _crossfade = Duration(milliseconds: 350);
 
   @override
   Widget build(BuildContext context) {
@@ -115,18 +121,22 @@ class _RootState extends State<Root> {
         });
       }
     }
-    if (!c.ready) {
-      return const Scaffold(body: SizedBox.shrink());
-    }
-    if (!c.g.onboarded) {
-      return const OnboardingScreen();
-    }
-    if (c.pendingDebrief != null) {
-      return DebriefScreen(record: c.pendingDebrief!);
-    }
-    if (c.hasActiveRun) {
-      return const SessionScreen();
-    }
-    return const HomeScreen();
+    final (String scene, Widget screen) = !c.ready
+        ? ('loading', const Scaffold(body: SizedBox.shrink()))
+        : !c.g.onboarded
+            ? ('briefing', const OnboardingScreen())
+            : c.pendingDebrief != null
+                ? (foreground!, DebriefScreen(record: c.pendingDebrief!))
+                : c.hasActiveRun
+                    ? (foreground!, SessionScreen(run: c.active))
+                    : ('camp', const HomeScreen());
+    return AnimatedSwitcher(
+      duration: MediaQuery.disableAnimationsOf(context)
+          ? Duration.zero
+          : _crossfade,
+      switchInCurve: Curves.easeOut,
+      switchOutCurve: Curves.easeIn,
+      child: KeyedSubtree(key: ValueKey(scene), child: screen),
+    );
   }
 }

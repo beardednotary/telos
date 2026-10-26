@@ -640,6 +640,15 @@ void main() {
           t.element(find.byType(HomeScreen)),
         ));
     await t.pumpAndSettle();
+    // Asked once, after the first expedition.
+    await expectLater(
+      find.byType(HomeScreen),
+      matchesGoldenFile('goldens/home-music-offer.png'),
+    );
+    // A guild this far along has long since answered.
+    c.g.musicOffered = true;
+    c.notifyListeners();
+    await t.pumpAndSettle();
     await expectLater(
       find.byType(HomeScreen),
       matchesGoldenFile('goldens/home.png'),

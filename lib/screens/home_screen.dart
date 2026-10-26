@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../data/content.dart';
@@ -10,6 +11,7 @@ import '../state/guild_controller.dart';
 import '../theme/telos_theme.dart';
 import '../widgets/camp_controls.dart';
 import '../widgets/contract_board.dart';
+import '../widgets/expedition_widgets.dart';
 import '../widgets/guild_sigil.dart';
 import 'backup_screen.dart';
 import 'caravan_screen.dart';
@@ -56,6 +58,8 @@ class _HomeScreenState extends State<HomeScreen> {
     if (_sending) return;
     setState(() => _sending = true);
     try {
+      // The same weight as Deploy on the dispatch screen.
+      HapticFeedback.heavyImpact();
       await context.read<GuildController>().redeploy(dispatch);
     } finally {
       if (mounted) setState(() => _sending = false);
@@ -191,6 +195,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ]),
                 ),
                 const SizedBox(height: 16),
+                if (c.offerMusic) const _MusicOffer(),
                 CaravanCard(onDispatch: () => _visit(const DispatchScreen())),
                 Material(
                   color: T.card,
@@ -387,6 +392,60 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
         ]),
+      ),
+    );
+  }
+}
+
+/// Music is off by default and its switch lives in Settings, where most
+/// players would never find it. Camp asks once instead.
+class _MusicOffer extends StatelessWidget {
+  const _MusicOffer();
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.read<GuildController>();
+    return Padding(
+      key: const Key('music-offer'),
+      padding: const EdgeInsets.only(bottom: 16),
+      child: ExpeditionPanel(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text('CAMP MUSIC', style: T.label),
+            const SizedBox(height: 6),
+            Text('Music while you are at camp?', style: T.title),
+            const SizedBox(height: 6),
+            Text(
+                'A quiet track at camp and on reports, and a chime when a '
+                'squad comes home. Never during a run. You can change this '
+                'in Settings.',
+                style: T.secondary),
+            const SizedBox(height: 12),
+            // Primary buttons stand taller; side by side, they match.
+            IntrinsicHeight(
+                child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                  Expanded(
+                    child: CampButton(
+                      key: const Key('music-offer-no'),
+                      label: 'No thanks',
+                      onPressed: c.declineMusic,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: CampButton(
+                      key: const Key('music-offer-yes'),
+                      label: 'Play it',
+                      primary: true,
+                      onPressed: () => c.setMusic(true),
+                    ),
+                  ),
+                ])),
+          ],
+        ),
       ),
     );
   }

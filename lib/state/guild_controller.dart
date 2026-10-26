@@ -26,7 +26,9 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
     LockScreen? lockScreen,
     LaunchActions? launchActions,
     Music? music,
-  })  : _alerts = alerts ?? NoopAlerts(),
+    bool launchScreen = false,
+  })  : _behindLaunchScreen = launchScreen,
+        _alerts = alerts ?? NoopAlerts(),
         _lockScreen = lockScreen ?? NoopLockScreen(),
         _launch = launchActions ?? NoopLaunchActions(),
         _music = music ?? NoopMusic();
@@ -118,7 +120,7 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _ticker?.cancel();
-    unawaited(_music.pause());
+    unawaited(_music.pause(fade: false));
     super.dispose();
   }
 
@@ -176,7 +178,8 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
     final live = _g.active;
     if (live != null) {
       if (!live.isComplete(DateTime.now())) return;
-      await finishRun(recalled: false);
+      // Its debrief is skipped for the next run, so no chime for it either.
+      await finishRun(recalled: false, chime: false);
     }
 
     final options = recentDispatches(_g);
@@ -390,14 +393,15 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
 
   /// Resume, the timer, and an explicit recall can all arrive together.
   /// Share the in-flight resolution so a run can only be banked once.
-  Future<RunRecord?> finishRun({required bool recalled}) {
+  Future<RunRecord?> finishRun({required bool recalled, bool chime = true}) {
     if (_resolution != null) return _resolution!;
-    final pending = _finishRun(recalled: recalled);
+    final pending = _finishRun(recalled: recalled, chime: chime);
     _resolution = pending;
     return pending.whenComplete(() => _resolution = null);
   }
 
-  Future<RunRecord?> _finishRun({required bool recalled}) async {
+  Future<RunRecord?> _finishRun(
+      {required bool recalled, required bool chime}) async {
     final run = _g.active;
     if (run == null) return null;
     final t = DateTime.now();
@@ -482,6 +486,7 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
     _g.pendingDebrief = res.record;
     _ticker?.cancel();
     _ticker = null;
+    if (chime && _soundWanted) unawaited(_music.chime());
 
     await _armCaravan();
     await _save();
@@ -503,14 +508,45 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
 
   /// At camp or on a debrief, with the app open and the player's say-so.
   /// Never during a run, and never over the first-launch briefing.
-  bool get _musicWanted =>
-      _ready && _foreground && _g.onboarded && _g.musicOn && _g.active == null;
+  bool get _musicWanted => _soundWanted && _g.active == null;
 
-  void _syncMusic() =>
-      unawaited(_musicWanted ? _music.play() : _music.pause());
+  /// The player's say-so, with the app open and camp on screen.
+  bool get _soundWanted =>
+      _ready &&
+      _foreground &&
+      !_behindLaunchScreen &&
+      _g.onboarded &&
+      _g.musicOn;
+
+  /// Eased out when the player starts a run or turns it off; cut when they
+  /// leave the app, which is already silence.
+  void _syncMusic() => unawaited(
+      _musicWanted ? _music.play() : _music.pause(fade: _foreground));
+
+  bool _behindLaunchScreen;
+
+  /// The launch screen calls this as it lifts, so the track fades in over
+  /// camp instead of starting cold under the lantern.
+  void launchScreenLifted() {
+    if (!_behindLaunchScreen) return;
+    _behindLaunchScreen = false;
+    _syncMusic();
+  }
 
   Future<void> setMusic(bool on) async {
     _g.musicOn = on;
+    _g.musicOffered = true;
+    await _save();
+    notifyListeners();
+  }
+
+  /// Camp asks once, on the first visit after an expedition. Not before the
+  /// first one: that visit is for getting a squad out.
+  bool get offerMusic =>
+      _g.log.isNotEmpty && !_g.musicOn && !_g.musicOffered;
+
+  Future<void> declineMusic() async {
+    _g.musicOffered = true;
     await _save();
     notifyListeners();
   }
