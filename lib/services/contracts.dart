@@ -41,7 +41,11 @@ class ContractBoard {
     // drawing duplicates.
     for (var tries = 0; g.contracts.length < slots && tries < 60; tries++) {
       final made = _generate(g, r);
-      if (made == null) break; // nothing sensible to ask for yet
+      // A draw that was not worth asking for, such as a haul of something
+      // a sector barely yields. Draw again: stopping here left a slot empty
+      // until the next claim. When nothing at all is sensible yet, every
+      // draw is null and the bound ends it.
+      if (made == null) continue;
       // Do not offer two of the same thing at once.
       if (g.contracts.any((c) => c.sameShapeAs(made))) continue;
       if (setAside != null && made.sameShapeAs(setAside)) continue;

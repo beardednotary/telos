@@ -59,7 +59,7 @@ The first study lacked delineation. Retain the second study's clear disclosure b
 
 ## Progression that respects a fixed session length
 
-There is a structural tension in the current rules. Cinder needs 40 minutes, Riftline 60, and the Spire 90. No amount of 25-minute runs can meet those per-run minimums. This is more than slower progression. Short-session players can still earn resources, levels, gear, recruits, and upgrades, but their dispatch geography stops at Mosswood and Blackstone. Their finite prior-survey sequences also finish: five lines in Mosswood and six in Blackstone.
+There is a structural tension in the current rules. Cinder needs 40 minutes, Riftline 60, and the Spire 90. No amount of 25-minute runs can meet those per-run minimums. This is more than slower progression. Short-session players can still earn resources, levels, gear, recruits, and upgrades, but their dispatch geography stops at Mosswood and Blackstone. Their finite prior-survey sequences also finish: fifteen lines in Mosswood and sixteen in Blackstone (ten more each were added for short-session players).
 
 The former camp's `GuildState.nextGoal` helper prioritizes locked sectors without considering session length. The new native camp instead shows a saved, player-selected facility project; the helper remains in the code but no longer drives this screen. Contracts can also ask for long runs and full depth. These are places where the game can imply that a different work pattern is the path forward, even without explicit nagging. The existing reachability test deliberately permits duration exclusion; passing it would not establish that the 25-minute player's long-term experience is satisfying.
 
