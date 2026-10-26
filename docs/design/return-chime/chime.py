@@ -38,8 +38,10 @@ def strike(freq: float, start: float, level: float) -> np.ndarray:
 
 
 def main() -> None:
-    d5, a5 = 587.33, 880.0
-    sound = strike(d5, 0.0, 1.0) + strike(a5, 0.16, 0.8)
+    # C# and G#, the root and fifth of the camp track's C# minor, low enough
+    # to sit with it rather than ring over it.
+    cs4, gs4 = 277.18, 415.30
+    sound = strike(cs4, 0.0, 1.0) + strike(gs4, 0.16, 0.8)
     # A short room: two quiet echoes, so it does not end dry.
     for delay, gain in ((0.043, 0.22), (0.089, 0.12)):
         n = int(RATE * delay)

@@ -160,6 +160,18 @@ class _DebriefScreenState extends State<DebriefScreen>
                             style: T.secondary),
                       ],
                     ))),
+                // Claiming happens at camp, several taps from here, so a
+                // finished order would otherwise go unnoticed.
+                if (c.claimableContracts case final n when n > 0) ...[
+                  const SizedBox(height: 12),
+                  _beat(
+                      3,
+                      Text(
+                          '$n ${n == 1 ? 'contract' : 'contracts'} ready to claim at camp.',
+                          key: const Key('debrief-contracts'),
+                          textAlign: TextAlign.center,
+                          style: T.secondary.copyWith(color: T.amber))),
+                ],
                 const SizedBox(height: 16),
                 _beat(
                     2,
@@ -168,7 +180,7 @@ class _DebriefScreenState extends State<DebriefScreen>
                       title: 'Expedition report',
                       summary:
                           '+${r.credits} credits · +${r.alloy} alloy · +${r.intel} intel'
-                          '${r.guildLevelUps > 0 ? '\nGuild level ${g.level} reached' : r.levelUps.isNotEmpty ? '\n${r.levelUps.length} members levelled up' : ''}',
+                          '${r.guildLevelUps > 0 ? '\nGuild level ${g.level} reached' : r.levelUps.isNotEmpty ? '\n${r.levelUps.length} ${r.levelUps.length == 1 ? 'member' : 'members'} levelled up' : ''}',
                       icon: Icons.receipt_long_outlined,
                       expanded: _open == 'report',
                       onToggle: () => _toggle('report'),
@@ -356,7 +368,7 @@ class _DebriefScreenState extends State<DebriefScreen>
           if (wearer != null)
             Padding(
                 padding: const EdgeInsets.only(top: 4),
-                child: Text('Worn by ${fieldName(wearer)}',
+                child: Text('Worn by $wearer',
                     style: T.secondary)),
         ],
       );
@@ -412,7 +424,7 @@ class _DebriefScreenState extends State<DebriefScreen>
           for (final m in risen)
             Padding(
                 padding: const EdgeInsets.only(top: 4),
-                child: Text('${fieldName(m.name)} reached level ${m.level}',
+                child: Text('${m.name} reached level ${m.level}',
                     textAlign: TextAlign.center, style: T.body)),
         ],
       ],
@@ -523,7 +535,7 @@ class _DebriefScreenState extends State<DebriefScreen>
               textAlign: TextAlign.center, style: T.body),
           if (c.wearerOf(gear.first.uid) case final m?) ...[
             const SizedBox(height: 10),
-            Text('${fieldName(m.name)} is wearing it.',
+            Text('${m.name} is wearing it.',
                 key: const Key('debrief-worn'),
                 style: T.secondary,
                 textAlign: TextAlign.center),

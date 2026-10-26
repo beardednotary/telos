@@ -1,5 +1,19 @@
 import 'dart:math';
 
+/// Authored content is stored in capitals. Never apply this to player names.
+/// "THE SPIRE OF TELOS" reads "The Spire of Telos": small joining words stay
+/// lower case unless they start the name.
+String fieldName(String name) {
+  const small = {'of', 'and', 'the', 'a'};
+  final words = name.toLowerCase().split(' ');
+  return [
+    for (var i = 0; i < words.length; i++)
+      words[i].isEmpty || (i > 0 && small.contains(words[i]))
+          ? words[i]
+          : '${words[i][0].toUpperCase()}${words[i].substring(1)}',
+  ].join(' ');
+}
+
 /// ---------------------------------------------------------------------------
 /// RESOURCES
 /// Three currencies. Everything a session produces lands in one of these.
@@ -706,8 +720,8 @@ extension FacilityInfo on Facility {
       };
 
   String get effect => switch (this) {
-        Facility.barracks => 'Roster capacity, and +5% squad XP per level',
-        Facility.forge => '+6% alloy and +2% rare find per level',
+        Facility.barracks => '+1 roster place and +5% squad XP per level',
+        Facility.forge => '+6% alloy and +2% gear-find modifier per level',
         Facility.archive => '+8% intel per level',
       };
 

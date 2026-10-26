@@ -32,7 +32,7 @@ String _facilityName(Facility f) => switch (f) {
 String _facilityBenefit(Facility f) => switch (f) {
       Facility.forge => '+6% alloy · +2% gear-find modifier per level',
       Facility.archive => '+8% intel per level',
-      Facility.barracks => '+1 roster space · +5% squad XP per level',
+      Facility.barracks => '+1 roster place · +5% squad XP per level',
     };
 
 class HomeScreen extends StatefulWidget {
@@ -288,7 +288,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       for (final dispatch in repeats)
                         CampLink(
                           title:
-                              '${dispatch.minutes} min · ${sectorById(dispatch.sectorId).name}',
+                              '${dispatch.minutes} min · ${fieldName(sectorById(dispatch.sectorId).name)}',
                           detail:
                               '${dispatch.squad.map((id) => g.memberById(id)!.name).join(' & ')} · Send again',
                           onTap: () => _repeat(dispatch),
@@ -336,7 +336,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     CampLink(
                       title: 'Field log',
                       detail:
-                          '${g.totalFocusMinutes} protected minutes · ${g.daysWorked} days worked',
+                          '${g.totalFocusMinutes} protected minutes · ${g.daysWorked} ${g.daysWorked == 1 ? 'day' : 'days'} worked',
                       onTap: () => _visit(const LogScreen()),
                     ),
                     if (g.spireComplete)
@@ -383,7 +383,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     CampButton(
                       key: const Key('camp-repeat'),
                       label:
-                          'Repeat ${repeats.first.minutes} min · ${sectorById(repeats.first.sectorId).name}',
+                          'Repeat ${repeats.first.minutes} min · ${fieldName(sectorById(repeats.first.sectorId).name)}',
                       onPressed: _sending ? null : () => _repeat(repeats.first),
                     ),
                   ],

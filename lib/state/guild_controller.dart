@@ -636,8 +636,20 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
   List<Contract> get contracts => _g.contracts;
   int get claimableContracts => _g.contracts.where((c) => c.done).length;
 
-  /// Pays out and replaces the slot. Nothing expires, so this is the only way
-  /// a contract ever leaves the board.
+  /// Takes an unfinished contract off the board for nothing and posts a
+  /// different one. Nothing expires, so without this an order that does not
+  /// suit the player would sit in its slot for good.
+  Future<bool> setAsideContract(String id) async {
+    final i = _g.contracts.indexWhere((c) => c.id == id && !c.done);
+    if (i < 0) return false;
+    final c = _g.contracts.removeAt(i);
+    ContractBoard.refill(_g, setAside: c);
+    await _save();
+    notifyListeners();
+    return true;
+  }
+
+  /// Pays out and replaces the slot.
   Future<Contract?> claimContract(String id) async {
     final i = _g.contracts.indexWhere((c) => c.id == id && c.done);
     if (i < 0) return null;

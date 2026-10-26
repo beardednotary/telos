@@ -506,7 +506,7 @@ void main() {
     await t.pumpAndSettle();
     await expectLater(
         find.byType(MaterialApp), matchesGoldenFile('goldens/contracts.png'));
-    await tapVisible(t, find.text('Finish 3 runs at full integrity'));
+    await tapVisible(t, find.text('Finish 3 runs at full Integrity'));
     await expectLater(find.byType(MaterialApp),
         matchesGoldenFile('goldens/contract-reward.png'));
   });

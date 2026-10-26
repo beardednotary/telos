@@ -46,12 +46,23 @@ class _DispatchScreenState extends State<DispatchScreen> {
       _minutes = last.minutes;
       _sectorId = last.sectorId;
       _squad.addAll(last.squad);
-    } else if (g.roster.isNotEmpty) {
-      // A first dispatch is one tap: 25 minutes, the nearest sector, and the
-      // first member. The button used to read "Choose a squad" with nobody
-      // picked, which was the first decision a new player hit.
-      _squad.add(g.roster.first.id);
+    } else if (suggestPlan(g, _minutes) case final plan?) {
+      // A first dispatch is one tap: 25 minutes and the suggested plan. The
+      // button used to read "Choose a squad" with nobody picked, which was
+      // the first decision a new player hit. It then took the first member,
+      // a Vanguard, while the list said the Recon's bonus was active - so
+      // it says why.
+      _usePlan(plan);
     }
+  }
+
+  void _usePlan(PlanSuggestion plan) {
+    _sectorId = plan.sector.id;
+    _squad
+      ..clear()
+      ..addAll(plan.squad.map((m) => m.id));
+    _notice = '${fieldName(plan.sector.name)} with '
+        '${plan.squad.map((m) => m.name).join(' & ')}. ${plan.reason}';
   }
 
   @override
@@ -124,13 +135,8 @@ class _DispatchScreenState extends State<DispatchScreen> {
         _notice = 'Nothing is reachable in $_minutes minutes yet.';
         return;
       }
-      _sectorId = plan.sector.id;
-      _squad
-        ..clear()
-        ..addAll(plan.squad.map((m) => m.id));
+      _usePlan(plan);
       _open = null;
-      _notice = '${fieldName(plan.sector.name)} with '
-          '${plan.squad.map((m) => m.name).join(' & ')}. ${plan.reason}';
     });
   }
 
@@ -522,6 +528,10 @@ class _DispatchScreenState extends State<DispatchScreen> {
           subtitle:
               Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text('${fieldName(cls.name)} · Level ${member.level}',
+                style: T.secondary),
+            // On every run, so the tradeoff against another member's
+            // session bonus is on screen rather than implied.
+            Text('Always · ${describeBonus(cls.base + member.levelBonus)}',
                 style: T.secondary),
             Text(
                 inWindow

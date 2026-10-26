@@ -29,7 +29,7 @@ String contractTitle(Contract c, GuildState g) {
       return 'Bring back ${c.target} ${c.res!.label.toLowerCase()} from ${fieldName(sector!.name)} '
           'in a single run';
     case ContractKind.cleanRuns:
-      return 'Finish ${c.target} runs at full integrity';
+      return 'Finish ${c.target} runs at full Integrity';
     case ContractKind.longRun:
       return 'Protect a single block of ${c.target} minutes';
     case ContractKind.minutes:
@@ -150,9 +150,25 @@ class _ContractBoardPanelState extends State<ContractBoardPanel> {
                           );
                         },
                       )
-                    else
+                    else ...[
                       Text('Progress is recorded when an expedition returns.',
                           style: T.secondary),
+                      const SizedBox(height: 16),
+                      // Nothing expires, so an order that does not suit the
+                      // player needs a way off the board. It costs nothing.
+                      CampButton(
+                        key: Key('set-aside-${contract.id}'),
+                        label: 'Set aside for another order',
+                        onPressed: () async {
+                          if (!await c.setAsideContract(contract.id) ||
+                              !context.mounted) {
+                            return;
+                          }
+                          setState(() => _open = null);
+                          campNotice(context, 'A new order is on the board.');
+                        },
+                      ),
+                    ],
                   ]),
             ),
           ),

@@ -18,7 +18,10 @@ import '../models/models.dart';
 ///   - Never pay gear. Salvage is what expeditions are for; paying it out
 ///     here would cheapen the debrief reveal.
 ///   - Only ask for things the player can actually do right now - sectors
-///     they have opened, members they actually have, gear in the vault.
+///     they have opened, members they actually have, gear in the vault, and
+///     session lengths they already work in. Players pick the duration that
+///     suits their work; a contract must not be the thing that tells a
+///     25-minute player to work in hour blocks. See [reach].
 ///
 /// The story has one more rule of its own: record lines exist only in the
 /// debrief, and are never counted at the player. So [ContractKind.sectorReturn]
@@ -29,15 +32,33 @@ class ContractBoard {
 
   /// Fills any empty slot. Called on boot and after a claim, so the board is
   /// always full without needing a timer or a refresh button.
-  static void refill(GuildState g, {Random? rng}) {
+  ///
+  /// [setAside] is a contract the player just turned down, so the same order
+  /// does not come straight back in its place.
+  static void refill(GuildState g, {Random? rng, Contract? setAside}) {
     final r = rng ?? Random();
-    while (g.contracts.length < slots) {
+    // Bounded, so a guild with few sensible orders cannot spin here forever
+    // drawing duplicates.
+    for (var tries = 0; g.contracts.length < slots && tries < 60; tries++) {
       final made = _generate(g, r);
       if (made == null) break; // nothing sensible to ask for yet
       // Do not offer two of the same thing at once.
       if (g.contracts.any((c) => c.sameShapeAs(made))) continue;
+      if (setAside != null && made.sameShapeAs(setAside)) continue;
       g.contracts.add(made);
     }
+  }
+
+  /// The longest block this player has protected across their latest runs,
+  /// in minutes. Before the first run it is the 25 minutes the first dispatch
+  /// is set to.
+  ///
+  /// The longest rather than the usual, so a player who mixes short and long
+  /// sessions still gets asked for the long ones they do.
+  static int reach(GuildState g) {
+    final recent = g.log.take(10);
+    if (recent.isEmpty) return 25;
+    return recent.map((r) => r.elapsedMinutes).reduce(max);
   }
 
   /// Advances every contract against a finished run. Returns nothing - the
@@ -117,8 +138,15 @@ class ContractBoard {
   // -- generation ------------------------------------------------------------
 
   static Contract? _generate(GuildState g, Random r) {
-    final open = kSectors.where((s) => g.sectorUnlocked(s.id)).toList();
+    final minutes = reach(g);
+    // Open, and reachable in the time this player works in.
+    final open = kSectors
+        .where((s) => g.sectorUnlocked(s.id) && s.minMinutes <= minutes)
+        .toList();
     if (open.isEmpty) return null;
+    // Where one of their runs gets to the far end.
+    final fullReach =
+        open.where((s) => s.nominalMinutes <= minutes).toList();
 
     // Sectors with record lines still unread. Never named as such.
     final untold = open
@@ -138,7 +166,7 @@ class ContractBoard {
       ContractKind.longRun,
       ContractKind.minutes,
       if (g.roster.isNotEmpty) ContractKind.classRuns,
-      ContractKind.fullDepth,
+      if (fullReach.isNotEmpty) ContractKind.fullDepth,
       if (untold.isNotEmpty) ContractKind.sectorReturn,
       // Only when someone has fallen behind - otherwise it is just "level up".
       if (byLevel.length >= 2 && byLevel.last.level > byLevel.first.level)
@@ -166,14 +194,15 @@ class ContractBoard {
 
       case ContractKind.haul:
         final res = [Res.credits, Res.alloy, Res.intel][r.nextInt(3)];
-        // Ask for roughly what a nominal run there already yields, times the
-        // tier, so it nudges toward a longer run or a better squad.
+        // Ask for roughly what one of their runs there already yields, times
+        // the tier, so it nudges toward a better squad or kit - not a longer
+        // session than they work in.
         final perRun = switch (res) {
           Res.credits => sector.creditsPerMin,
           Res.alloy => sector.alloyPerMin,
           Res.intel => sector.intelPerMin,
         } *
-            sector.nominalMinutes;
+            min(sector.nominalMinutes, minutes);
         if (perRun < 8) return null; // not worth asking for here
         final target = (perRun * (0.8 + 0.35 * tier)).round();
         return _make(g, id, kind, tier,
@@ -183,8 +212,11 @@ class ContractBoard {
         return _make(g, id, kind, tier, target: 1 + tier);
 
       case ContractKind.longRun:
-        final target = [45, 60, 90][tier - 1];
-        return _make(g, id, kind, tier, target: target);
+        // A block as long as their longest recent one, never longer. It
+        // asks them to keep doing what they do, so it pays at the lowest
+        // tier.
+        final target = max(10, minutes ~/ 5 * 5);
+        return _make(g, id, kind, 1, target: target);
 
       case ContractKind.minutes:
         final target = [90, 180, 300][tier - 1];
@@ -195,7 +227,8 @@ class ContractBoard {
         return _make(g, id, kind, tier, classId: cls, target: 1 + tier);
 
       case ContractKind.fullDepth:
-        return _make(g, id, kind, tier, sectorId: sector.id, target: tier);
+        final far = fullReach[r.nextInt(fullReach.length)];
+        return _make(g, id, kind, tier, sectorId: far.id, target: tier);
 
       case ContractKind.sectorReturn:
         final s = untold[r.nextInt(untold.length)];

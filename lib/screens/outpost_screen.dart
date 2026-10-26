@@ -338,7 +338,7 @@ class _RecruitReview extends StatelessWidget {
                 showCampAcknowledgement(
                   root,
                   kicker: 'A NEW HAND',
-                  title: fieldName(member.name),
+                  title: member.name,
                   mark: ClassEmblem(classId: cls.id, color: T.amber, size: 72),
                   lines: [
                     '${fieldName(cls.name)} · ${cls.blurb}',

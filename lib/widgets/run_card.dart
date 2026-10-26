@@ -9,7 +9,6 @@ import 'package:share_plus/share_plus.dart';
 import '../models/models.dart';
 import '../theme/telos_theme.dart';
 import 'camp_controls.dart';
-import 'expedition_widgets.dart';
 import 'management_widgets.dart';
 import 'sector_scene.dart';
 
