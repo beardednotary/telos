@@ -1,10 +1,13 @@
 import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:telos/data/content.dart';
 import 'package:telos/models/guild_state.dart';
 import 'package:telos/models/models.dart';
 import 'package:telos/services/contracts.dart';
+import 'package:telos/services/persistence.dart';
+import 'package:telos/state/guild_controller.dart';
 import 'package:telos/widgets/contract_board.dart';
 
 RunRecord rec({
@@ -396,4 +399,94 @@ void main() {
     expect([back[0].memberId, back[0].partnerId], ['a2', 'a1']);
     expect(back[1].gearDefId, 'scav_cord');
   });
+
+  group('the time they work in', () {
+    List<Contract> boards(GuildState g, int seeds) => [
+          for (var seed = 0; seed < seeds; seed++)
+            ...() {
+              g.contracts.clear();
+              ContractBoard.refill(g, rng: Random(seed));
+              return [...g.contracts];
+            }(),
+        ];
+
+    GuildState working(List<int> minutes) {
+      final g = GuildState.fresh()
+        ..level = 6 // every tier in play
+        ..unlockedSectors.addAll(['blackstone', 'cinder']);
+      g.log.addAll([for (final m in minutes) rec(minutes: m)]);
+      return g;
+    }
+
+    test('a 25-minute player is never asked for more time than they work',
+        () {
+      final g = working(List.filled(10, 25));
+      final seen = boards(g, 300);
+      expect(seen, isNotEmpty);
+      for (final c in seen) {
+        final title = contractTitle(c, g);
+        if (c.kind == ContractKind.longRun) expect(c.target, 25, reason: title);
+        if (c.kind == ContractKind.fullDepth) {
+          expect(sectorById(c.sectorId!).nominalMinutes,
+              lessThanOrEqualTo(25),
+              reason: title);
+        }
+        // The Cinder Archive is open, but its minimum is 40 minutes.
+        expect(c.sectorId, isNot('cinder'), reason: title);
+      }
+    });
+
+    test('longer blocks they already work in are still asked for', () {
+      final g = working([25, 25, 60, 25]);
+      final seen = boards(g, 300);
+      expect(
+          seen.where((c) => c.kind == ContractKind.longRun && c.target == 60),
+          isNotEmpty);
+      expect(
+          seen.where((c) =>
+              c.kind == ContractKind.fullDepth && c.sectorId == 'cinder'),
+          isNotEmpty);
+    });
+
+    test('before any run, a long block means the 25 minutes dispatch offers',
+        () {
+      final g = GuildState.fresh();
+      expect(ContractBoard.reach(g), 25);
+      for (final c in boards(g, 200)) {
+        if (c.kind == ContractKind.longRun) expect(c.target, 25);
+      }
+    });
+  });
+
+  group('setting one aside', () {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    Future<GuildController> boot() async {
+      SharedPreferences.setMockInitialValues({});
+      final c = GuildController(Persistence());
+      await c.boot();
+      return c;
+    }
+
+    test('replaces it with a different order, for nothing', () async {
+      final c = await boot();
+      final before = (c.g.credits, c.g.alloy, c.g.intel, c.g.xp);
+      final gone = c.contracts.first;
+      expect(await c.setAsideContract(gone.id), isTrue);
+      expect(c.contracts.length, ContractBoard.slots);
+      expect(c.contracts.any((k) => k.id == gone.id), isFalse);
+      expect(c.contracts.any((k) => k.sameShapeAs(gone)), isFalse,
+          reason: 'the same order should not come straight back');
+      expect((c.g.credits, c.g.alloy, c.g.intel, c.g.xp), before);
+      c.dispose();
+    });
+
+    test('a finished one is claimed, not set aside', () async {
+      final c = await boot();
+      final done = c.contracts.first..progress = c.contracts.first.target;
+      expect(await c.setAsideContract(done.id), isFalse);
+      expect(c.contracts.contains(done), isTrue);
+      c.dispose();
+    });
+  });
 }
+

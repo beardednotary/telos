@@ -76,13 +76,21 @@ PlanSuggestion? suggestPlan(GuildState g, int minutes) {
 
   final name = _title(project.label);
   final before = min(g.credits / costC, g.alloy / costA).clamp(0.0, 1.0);
+  // Name the supply holding the project back, since that is what decided
+  // the squad. Otherwise a member whose session bonus is not active can be
+  // the pick with nothing on screen saying why.
+  final f = best.forecast;
+  final short = (g.alloy + f.alloy) / costA < (g.credits + f.credits) / costC
+      ? 'alloy'
+      : 'credits';
   final reason = before >= 1
       ? 'You can already afford the $name upgrade, so this is simply the '
           'richest haul you can reach in $minutes minutes.'
       : bestKey.$1 >= 1
           ? 'This run should be enough to pay for the $name upgrade.'
           : 'This gets your $name upgrade furthest: about '
-              '${(bestKey.$1 * 100).round()}% of the way after this run.';
+              '${(bestKey.$1 * 100).round()}% of the way after this run. '
+              'It needs $short most.';
   return PlanSuggestion(
     sector: best.sector,
     squad: best.squad,

@@ -12,6 +12,7 @@ import 'package:telos/screens/log_screen.dart';
 import 'package:telos/screens/outpost_screen.dart';
 import 'package:telos/screens/roster_screen.dart';
 import 'package:telos/services/persistence.dart';
+import 'package:telos/services/plan_suggestion.dart';
 import 'package:telos/state/guild_controller.dart';
 import 'package:telos/theme/telos_theme.dart';
 
@@ -79,10 +80,14 @@ void main() {
     await t.tap(find.byKey(const Key('camp-dispatch')));
     await t.pumpAndSettle();
 
-    // A first plan is ready to send: 25 minutes, the first member.
+    // A first plan is ready to send: 25 minutes and the suggested squad,
+    // with the reason on screen.
+    final plan = suggestPlan(c.g, 25)!;
+    final name = plan.squad.single.name;
     expect(find.text('Your focus'), findsOneWidget);
     expect(find.text('Deploy · 25 minutes'), findsOneWidget);
-    expect(find.text('KAEL · 1/1'), findsOneWidget);
+    expect(find.text('$name · 1/1'), findsOneWidget);
+    expect(find.byKey(const Key('dispatch-notice')), findsOneWidget);
 
     await t.enterText(find.byType(TextField).first, 'Refactor the auth flow');
     await t.tap(find.byKey(const Key('duration-15')));
@@ -105,7 +110,7 @@ void main() {
 
     // Session
     expect(find.text('Mosswood Verge'), findsOneWidget);
-    expect(find.text('KAEL'), findsOneWidget);
+    expect(find.text(name), findsOneWidget);
     expect(find.text('Integrity 100%'), findsOneWidget);
     // Just dispatched, so the way out is still a clean cancel.
     expect(find.byKey(const Key('cancel-dispatch')), findsOneWidget);
@@ -137,6 +142,29 @@ void main() {
     expect(find.byKey(const Key('camp-dispatch')), findsOneWidget);
     expect(c.g.log.length, 1);
 
+    c.dispose();
+  });
+
+  testWidgets('the report says when a contract is ready to claim', (t) async {
+    tallSurface(t);
+    final c = await bootController();
+    await c.startRun(
+        sectorId: 'mosswood', intent: '', squad: ['a1'], minutes: 25);
+    final run = c.active!;
+    c.g.active = ActiveRun(
+        id: run.id,
+        sectorId: run.sectorId,
+        intent: run.intent,
+        squad: run.squad,
+        startedAt: DateTime.now().subtract(const Duration(minutes: 26)),
+        plannedMinutes: 25);
+    // Finished outright, rather than relying on which contracts were drawn.
+    c.g.contracts.first.progress = c.g.contracts.first.target;
+    final rec = (await c.finishRun(recalled: false))!;
+    await t.pumpWidget(wrap(c, DebriefScreen(record: rec)));
+    await t.pumpAndSettle();
+    expect(find.byKey(const Key('debrief-contracts')), findsOneWidget);
+    expect(find.textContaining('ready to claim at camp'), findsOneWidget);
     c.dispose();
   });
 

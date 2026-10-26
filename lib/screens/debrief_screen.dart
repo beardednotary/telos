@@ -160,6 +160,18 @@ class _DebriefScreenState extends State<DebriefScreen>
                             style: T.secondary),
                       ],
                     ))),
+                // Claiming happens at camp, several taps from here, so a
+                // finished order would otherwise go unnoticed.
+                if (c.claimableContracts case final n when n > 0) ...[
+                  const SizedBox(height: 12),
+                  _beat(
+                      3,
+                      Text(
+                          '$n ${n == 1 ? 'contract' : 'contracts'} ready to claim at camp.',
+                          key: const Key('debrief-contracts'),
+                          textAlign: TextAlign.center,
+                          style: T.secondary.copyWith(color: T.amber))),
+                ],
                 const SizedBox(height: 16),
                 _beat(
                     2,

@@ -150,9 +150,25 @@ class _ContractBoardPanelState extends State<ContractBoardPanel> {
                           );
                         },
                       )
-                    else
+                    else ...[
                       Text('Progress is recorded when an expedition returns.',
                           style: T.secondary),
+                      const SizedBox(height: 16),
+                      // Nothing expires, so an order that does not suit the
+                      // player needs a way off the board. It costs nothing.
+                      CampButton(
+                        key: Key('set-aside-${contract.id}'),
+                        label: 'Set aside for another order',
+                        onPressed: () async {
+                          if (!await c.setAsideContract(contract.id) ||
+                              !context.mounted) {
+                            return;
+                          }
+                          setState(() => _open = null);
+                          campNotice(context, 'A new order is on the board.');
+                        },
+                      ),
+                    ],
                   ]),
             ),
           ),
