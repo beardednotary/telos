@@ -1,10 +1,20 @@
-import 'package:flutter/material.dart';
+import 'dart:io';
+import 'dart:ui' as ui;
 
+import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
+
+import '../data/content.dart';
 import '../models/guild_identity.dart';
+import '../models/guild_state.dart';
 import '../models/models.dart';
 import '../theme/telos_theme.dart';
+import 'camp_controls.dart';
 import 'gear_art.dart';
 import 'guild_sigil.dart';
+import 'management_widgets.dart';
 import 'sector_header.dart';
 
 /// The line under every shareable image. The card is seen by people who have
@@ -17,15 +27,21 @@ const kShareTagline = 'Focus Timer RPG';
 const kStorySafeTop = 84.0;
 const kStorySafeBottom = 113.0;
 
-/// One expedition, sized for Stories and Reels: 360×640, exported at 3×.
-/// Task and reflection text never enter it, as with [RunCard].
-class StoryCard extends StatelessWidget {
-  const StoryCard({
+/// Every card is laid out 360 wide and exported at 3x: 1080x1920 for
+/// Stories, Reels and TikTok, 1080x1350 (4:5) for a feed post.
+const kStorySize = Size(360, 640);
+const kPostSize = Size(360, 450);
+
+/// One expedition, as a Story or a feed post. Task and reflection text never
+/// enter it.
+class ExpeditionCard extends StatelessWidget {
+  const ExpeditionCard({
     super.key,
     required this.record,
     required this.sector,
     required this.guildName,
     this.find,
+    this.story = true,
   });
 
   final RunRecord record;
@@ -35,8 +51,9 @@ class StoryCard extends StatelessWidget {
   /// The best piece recovered, if any. The find is the run's big moment in
   /// the app, so it is the card's too.
   final GearDef? find;
+  final bool story;
 
-  static const size = Size(360, 640);
+  Size get size => story ? kStorySize : kPostSize;
 
   @override
   Widget build(BuildContext context) {
@@ -54,11 +71,15 @@ class StoryCard extends StatelessWidget {
                 top: 0,
                 left: 0,
                 right: 0,
-                child: _Art(child: SectorHeader(sector: sector, height: 300))),
+                child: _Art(
+                    height: story ? 300 : 210,
+                    child: SectorHeader(
+                        sector: sector, height: story ? 300 : 210))),
             Positioned.fill(
               child: Padding(
-                padding:
-                    const EdgeInsets.fromLTRB(24, 206, 24, kStorySafeBottom),
+                padding: story
+                    ? const EdgeInsets.fromLTRB(24, 206, 24, kStorySafeBottom)
+                    : const EdgeInsets.fromLTRB(20, 124, 20, 18),
                 child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -79,7 +100,9 @@ class StoryCard extends StatelessWidget {
                               ? '${record.elapsedSeconds}'
                               : '$minutes',
                           style: T.big.copyWith(
-                              fontSize: 84, height: 1, color: T.text)),
+                              fontSize: story ? 84 : 60,
+                              height: 1,
+                              color: T.text)),
                       const SizedBox(height: 4),
                       Text(
                           record.elapsedSeconds < 60
@@ -98,7 +121,7 @@ class StoryCard extends StatelessWidget {
                             style: T.body.copyWith(color: T.dim)),
                       ],
                       if (find case final def?) ...[
-                        const SizedBox(height: 16),
+                        SizedBox(height: story ? 16 : 12),
                         Row(children: [
                           ClipRRect(
                               borderRadius: BorderRadius.circular(2),
@@ -156,9 +179,7 @@ class TotalsCard extends StatelessWidget {
   final DateTime since;
   final bool story;
 
-  static const feedSize = Size(360, 450);
-
-  Size get size => story ? StoryCard.size : feedSize;
+  Size get size => story ? kStorySize : kPostSize;
 
   static const _months = [
     'Jan',
@@ -272,8 +293,11 @@ class _Footer extends StatelessWidget {
         Text('TELOS',
             style: T.label.copyWith(color: T.amber, letterSpacing: 3)),
         const SizedBox(width: 10),
-        Text(kShareTagline, style: T.micro),
-        const Spacer(),
+        // Gives way before the date does, should a font ever run wide.
+        Expanded(
+            child: Text(kShareTagline,
+                style: T.micro, maxLines: 1, overflow: TextOverflow.clip)),
+        const SizedBox(width: 8),
         Text(right, style: T.micro),
       ]);
 }
@@ -310,3 +334,158 @@ class _Figure extends StatelessWidget {
         ],
       ));
 }
+
+/// Preview first; native sharing happens only after an explicit Share tap.
+/// [card] builds the image in either format, so the player can pick where
+/// it is going. [name] becomes the file name.
+Future<void> showSharePreview(
+  BuildContext context, {
+  required Widget Function(bool story) card,
+  required String name,
+}) =>
+    showDialog<void>(
+      context: context,
+      builder: (_) => _SharePreview(card: card, name: name),
+    );
+
+class _SharePreview extends StatefulWidget {
+  const _SharePreview({required this.card, required this.name});
+  final Widget Function(bool story) card;
+  final String name;
+
+  @override
+  State<_SharePreview> createState() => _SharePreviewState();
+}
+
+class _SharePreviewState extends State<_SharePreview> {
+  final _capture = GlobalKey();
+  bool _story = true;
+  String? _error;
+
+  @override
+  Widget build(BuildContext context) => Dialog(
+        backgroundColor: T.black,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          side: const BorderSide(color: T.boundary),
+          borderRadius: BorderRadius.circular(4),
+        ),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            Wrap(spacing: 8, children: [
+              for (final (story, label) in [(true, 'Story'), (false, 'Post')])
+                ChoiceChip(
+                  key: Key('share-${label.toLowerCase()}'),
+                  label: Text(label),
+                  selected: _story == story,
+                  onSelected: (_) => setState(() => _story = story),
+                ),
+            ]),
+            const SizedBox(height: 12),
+            Flexible(
+                child: FittedBox(
+              child:
+                  RepaintBoundary(key: _capture, child: widget.card(_story)),
+            )),
+            const SizedBox(height: 12),
+            Text(
+                _story
+                    ? 'Sized for Stories, Reels and TikTok. Task notes stay private.'
+                    : 'Sized for a feed post. Task notes stay private.',
+                style: T.secondary),
+            if (_error != null) ...[
+              const SizedBox(height: 8),
+              Text(_error!, style: T.secondary),
+            ],
+            const SizedBox(height: 16),
+            Builder(
+                builder: (buttonContext) => CampAction(
+                      key: const Key('share-card'),
+                      label: 'Share',
+                      onPressed: () async {
+                        setState(() => _error = null);
+                        final box =
+                            buttonContext.findRenderObject() as RenderBox?;
+                        try {
+                          await _share(
+                              _capture,
+                              '${widget.name}-${_story ? 'story' : 'post'}',
+                              box == null
+                                  ? null
+                                  : box.localToGlobal(Offset.zero) & box.size);
+                        } catch (_) {
+                          if (mounted) {
+                            setState(() => _error =
+                                'Could not share the image. Please try again.');
+                          }
+                        }
+                      },
+                    )),
+            const SizedBox(height: 8),
+            CampButton(
+                label: 'Close preview',
+                onPressed: () => Navigator.pop(context)),
+          ]),
+        ),
+      );
+}
+
+Future<void> _share(GlobalKey key, String name, Rect? origin) async {
+  final boundary =
+      key.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+  if (boundary == null) return;
+  // 3x whatever the preview's scale: the boundary sits inside the FittedBox,
+  // so it keeps the card's own logical size.
+  final image = await boundary.toImage(pixelRatio: 3);
+  final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+  image.dispose();
+  if (bytes == null) return;
+  final dir = await getTemporaryDirectory();
+  final file = File('${dir.path}/telos-$name.png');
+  await file.writeAsBytes(bytes.buffer.asUint8List());
+  await SharePlus.instance.share(ShareParams(
+    files: [XFile(file.path, mimeType: 'image/png')],
+    sharePositionOrigin: origin,
+  ));
+}
+
+/// The share preview for one expedition, from its report or the Field log.
+/// The find shown is the best piece it recovered that the guild still has.
+Future<void> shareExpedition(BuildContext context, RunRecord r, GuildState g) {
+  final sector = sectorById(r.sectorId);
+  final finds = [
+    for (final uid in r.loot)
+      if (g.gearByUid(uid) case final gear?) gearById(gear.defId),
+  ]..sort((a, b) => b.rarity.index.compareTo(a.rarity.index));
+  return showSharePreview(
+    context,
+    name: '${sector.id}-${r.id}',
+    card: (story) => ExpeditionCard(
+      record: r,
+      sector: sector,
+      guildName: g.guildName,
+      find: finds.firstOrNull,
+      story: story,
+    ),
+  );
+}
+
+/// The share preview for the whole record, from the Field log.
+Future<void> shareRecord(BuildContext context, GuildState g) =>
+    showSharePreview(
+      context,
+      name: 'record',
+      card: (story) => TotalsCard(
+        guildName: g.guildName,
+        sigil: g.guildSigil,
+        focusMinutes: g.totalFocusMinutes,
+        daysWorked: g.daysWorked,
+        expeditions: g.log.length,
+        cleanRuns: g.cleanRuns,
+        // The log is newest first, so its last entry is the first run.
+        since: g.log.isEmpty ? DateTime.now() : g.log.last.startedAt.toLocal(),
+        story: story,
+      ),
+    );

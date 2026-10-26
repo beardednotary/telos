@@ -67,31 +67,32 @@ Future<void> _show(WidgetTester t, Size size, Widget card) async {
 }
 
 void main() {
-  testWidgets('a story card fits with a find and a long guild name',
-      (t) async {
-    await _show(
-        t,
-        StoryCard.size,
-        StoryCard(
-            record: _run(),
-            sector: sectorById('blackstone'),
-            guildName: _longName,
-            find: gearById('ore_sense')));
-    expect(find.text('52'), findsOneWidget);
-    expect(find.text('minutes of focus.'), findsOneWidget);
-    expect(find.text('Not checked once.'), findsOneWidget);
-    expect(find.text('Ore-sense Rig'), findsOneWidget);
-    expect(find.text(kShareTagline), findsOneWidget);
-    expect(find.textContaining('Never on the card'), findsNothing,
-        reason: 'task text stays private');
-  });
+  for (final story in [true, false]) {
+    testWidgets(
+        'a ${story ? 'story' : 'post'} fits with a find and a long guild name',
+        (t) async {
+      final card = ExpeditionCard(
+          record: _run(),
+          sector: sectorById('blackstone'),
+          guildName: _longName,
+          find: gearById('ore_sense'),
+          story: story);
+      await _show(t, card.size, card);
+      expect(find.text('52'), findsOneWidget);
+      expect(find.text('minutes of focus.'), findsOneWidget);
+      expect(find.text('Not checked once.'), findsOneWidget);
+      expect(find.text('Ore-sense Rig'), findsOneWidget);
+      expect(find.text(kShareTagline), findsOneWidget);
+      expect(find.textContaining('Never on the card'), findsNothing,
+          reason: 'task text stays private');
+    });
+  }
 
-  testWidgets('a run that was checked says nothing about Integrity',
-      (t) async {
+  testWidgets('a run that was checked says nothing about Integrity', (t) async {
     await _show(
         t,
-        StoryCard.size,
-        StoryCard(
+        kStorySize,
+        ExpeditionCard(
             record: _run(minutes: 25, integrity: .96),
             sector: sectorById('blackstone'),
             guildName: 'The Silver Lantern'));

@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:telos/data/content.dart';
 import 'package:telos/models/models.dart';
 import 'package:telos/screens/spire_screen.dart';
 import 'package:telos/services/persistence.dart';
@@ -12,7 +11,7 @@ import 'package:telos/state/guild_controller.dart';
 import 'package:telos/theme/telos_theme.dart';
 import 'package:telos/widgets/camp_controls.dart';
 import 'package:telos/widgets/contract_board.dart';
-import 'package:telos/widgets/run_card.dart';
+import 'package:telos/widgets/share_cards.dart';
 
 import 'support/archive_fixtures.dart';
 
@@ -133,14 +132,8 @@ void main() {
       'sharing previews a fixed card without private task or reflection text',
       (t) async {
     final c = await boot();
+    c.g.guildName = 'The Company of the Very Long Guild Name';
     final rec = archiveRecord(recalled: true);
-    final card = RunCard(
-        record: rec,
-        sector: sectorById(rec.sectorId),
-        guildName: 'The Company of the Very Long Guild Name',
-        depths: const [.5, .8, 1],
-        floors: 0,
-        status: 'RECALLED');
     await mount(
         t,
         c,
@@ -149,20 +142,22 @@ void main() {
                 builder: (context) => Center(
                     child: CampButton(
                         label: 'Preview',
-                        onPressed: () => showRunCard(context, card))))));
+                        onPressed: () =>
+                            shareExpedition(context, rec, c.g))))));
     await tap(t, find.text('Preview'));
-    expect(t.getSize(find.byType(RunCard)), RunCard.size);
-    expect(find.text('45s'), findsOneWidget);
-    expect(find.text('Recalled'), findsOneWidget);
+    // A Story first, then a feed post, each at its own fixed size.
+    expect(t.getSize(find.byType(ExpeditionCard)), kStorySize);
+    expect(find.text('45'), findsOneWidget);
+    expect(find.text('seconds of focus.'), findsOneWidget);
     expect(find.text(rec.intent), findsNothing);
     expect(find.text(rec.note!), findsNothing);
-    expect(
-        find.text(
-            'Shares your guild and expedition stats. Task notes stay private.'),
-        findsOneWidget);
+    expect(find.textContaining('Task notes stay private.'), findsOneWidget);
+    await tap(t, find.byKey(const Key('share-post')));
+    expect(t.getSize(find.byType(ExpeditionCard)), kPostSize);
+    expect(find.text(rec.intent), findsNothing);
     expect(t.takeException(), isNull);
     await tap(t, find.text('Close preview'));
-    expect(find.byType(RunCard), findsNothing);
+    expect(find.byType(ExpeditionCard), findsNothing);
     expect(t.takeException(), isNull);
   });
 }

@@ -11,7 +11,7 @@ import '../widgets/guild_sigil.dart';
 import '../widgets/camp_controls.dart';
 import '../widgets/caravan_header.dart';
 import '../widgets/expedition_widgets.dart';
-import '../widgets/run_card.dart';
+import '../widgets/share_cards.dart';
 import '../widgets/sector_scene.dart';
 import '../widgets/terminal.dart';
 import 'caravan_screen.dart';
@@ -82,13 +82,6 @@ class _DebriefScreenState extends State<DebriefScreen>
         if (p.sectorId == r.sectorId && p.id != r.id)
           p.elapsedSeconds / 60 / sector.nominalMinutes,
     ];
-    final status = r.scraps
-        ? 'BELOW SECTOR MINIMUM'
-        : r.recalled
-            ? 'RECALLED EARLY'
-            : r.integrity >= .999
-                ? 'CLEAN RUN'
-                : 'PLANNED ${r.plannedMinutes}m';
     final duration = r.elapsedSeconds < 60
         ? '${r.elapsedSeconds} seconds'
         : '${r.elapsedMinutes} minutes';
@@ -110,10 +103,24 @@ class _DebriefScreenState extends State<DebriefScreen>
                     Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Text(
-                              '$duration · ${(r.integrity * 100).round()}% Integrity',
-                              textAlign: TextAlign.center,
-                              style: T.label),
+                          // Share sits up here, beside the outcome, rather
+                          // than only at the foot of the collapsed report.
+                          Row(children: [
+                            const SizedBox(width: 48),
+                            Expanded(
+                              child: Text(
+                                  '$duration · ${(r.integrity * 100).round()}% Integrity',
+                                  textAlign: TextAlign.center,
+                                  style: T.label),
+                            ),
+                            IconButton(
+                              key: const Key('debrief-share'),
+                              tooltip: 'Share expedition',
+                              onPressed: () => shareExpedition(context, r, g),
+                              icon: const Icon(Icons.ios_share,
+                                  size: 20, color: T.dim),
+                            ),
+                          ]),
                           const SizedBox(height: 12),
                           Text('Back from ${fieldName(sector.name)}.',
                               textAlign: TextAlign.center, style: T.display),
@@ -263,17 +270,8 @@ class _DebriefScreenState extends State<DebriefScreen>
                               const SizedBox(height: 20),
                               CampButton(
                                   label: 'Share expedition',
-                                  onPressed: () => showRunCard(
-                                      context,
-                                      RunCard(
-                                        record: r,
-                                        sector: sector,
-                                        guildName: g.guildName,
-                                        depths: pastDepths,
-                                        floors:
-                                            g.spireComplete ? g.spireFloors : 0,
-                                        status: status,
-                                      ))),
+                                  onPressed: () =>
+                                      shareExpedition(context, r, g)),
                             ],
                           )),
                     )),

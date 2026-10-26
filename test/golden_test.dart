@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:telos/data/content.dart';
+import 'package:telos/models/guild_identity.dart';
 import 'package:telos/models/models.dart';
 import 'package:telos/screens/debrief_screen.dart';
 import 'package:telos/screens/dispatch_screen.dart';
@@ -27,7 +28,7 @@ import 'package:telos/theme/telos_theme.dart';
 import 'package:telos/widgets/camp_controls.dart';
 import 'package:telos/widgets/gear_art.dart';
 import 'package:telos/widgets/contract_board.dart';
-import 'package:telos/widgets/run_card.dart';
+import 'package:telos/widgets/share_cards.dart';
 import 'package:telos/widgets/sector_header.dart';
 import 'package:telos/widgets/sigil.dart';
 
@@ -350,13 +351,10 @@ void main() {
     c.dispose();
   });
 
-  // The share card for the same run, among a few earlier ones, at the size
-  // it is shared (1080 x 1350 once captured at 3x).
-  testWidgets('run card', (t) async {
+  // The share cards at the size they are shared: 1080x1920 for a Story,
+  // 1080x1350 for a feed post, once captured at 3x.
+  testWidgets('share cards', (t) async {
     await frame(t);
-    t.view.physicalSize = RunCard.size * 3;
-    t.view.devicePixelRatio = 3;
-    final sector = sectorById('blackstone');
     final rec = RunRecord(
       id: 'card',
       sectorId: 'blackstone',
@@ -379,25 +377,47 @@ void main() {
       guildLevelUps: 0,
       journal: const [],
     );
-    await t.pumpWidget(MaterialApp(
-      theme: T.theme(),
-      debugShowCheckedModeBanner: false,
-      home: Center(
-        child: RunCard(
+    Future<void> render(Widget card, Size size, String name) async {
+      t.view.physicalSize = size * 3;
+      t.view.devicePixelRatio = 3;
+      await t.pumpWidget(MaterialApp(
+          theme: T.theme(),
+          debugShowCheckedModeBanner: false,
+          home: Center(child: card)));
+      await t.runAsync(() async {
+        for (final a in [
+          SectorHeader.assetFor('blackstone'),
+          GearArt.assetFor('deep_lamp'),
+          'assets/art/camp.webp',
+        ]) {
+          await precacheImage(AssetImage(a), t.element(find.byWidget(card)));
+        }
+      });
+      await t.pumpAndSettle();
+      await expectLater(
+          find.byWidget(card), matchesGoldenFile('goldens/$name.png'));
+    }
+
+    for (final story in [true, false]) {
+      final card = ExpeditionCard(
           record: rec,
-          sector: sector,
-          guildName: 'THE SILVER LANTERN',
-          depths: const [1.0, 0.98, 1.0, 0.6, 1.1, 0.56, 1.0, 0.8],
-          floors: 0,
-          status: 'CLEAN RUN',
-        ),
-      ),
-    ));
-    await t.pumpAndSettle();
-    await expectLater(
-      find.byType(RunCard),
-      matchesGoldenFile('goldens/run_card.png'),
-    );
+          sector: sectorById('blackstone'),
+          guildName: 'The Silver Lantern',
+          find: gearById('deep_lamp'),
+          story: story);
+      await render(card, card.size, story ? 'card-story' : 'card-post');
+      final totals = TotalsCard(
+          guildName: 'The Silver Lantern',
+          sigil: GuildSigil.lantern,
+          focusMinutes: 760,
+          daysWorked: 18,
+          expeditions: 31,
+          cleanRuns: 27,
+          since: DateTime(2026, 9, 19),
+          story: story);
+      await render(
+          totals, totals.size, story ? 'card-record-story' : 'card-record-post');
+    }
   });
 
   // Every mark at the sizes it actually has to survive.
@@ -522,15 +542,8 @@ void main() {
                 builder: (context) => Center(
                     child: CampButton(
                         label: 'Preview',
-                        onPressed: () => showRunCard(
-                            context,
-                            RunCard(
-                                record: rec,
-                                sector: sectorById(rec.sectorId),
-                                guildName: c.g.guildName,
-                                depths: const [.5, .8, 1],
-                                floors: 0,
-                                status: 'CLEAN RUN'))))))));
+                        onPressed: () =>
+                            shareExpedition(context, rec, c.g)))))));
     await tapVisible(t, find.text('Preview'));
     await expectLater(find.byType(MaterialApp),
         matchesGoldenFile('goldens/share-preview.png'));
