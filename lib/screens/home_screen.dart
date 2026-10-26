@@ -143,6 +143,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 Row(children: [
                   Expanded(child: Text('Outpost', style: T.secondary)),
                   Text('Guild ${g.level}', style: T.label),
+                  // Where people look for settings. It used to sit last in
+                  // the stores list, under a heading that did not suggest it.
+                  IconButton(
+                    key: const Key('camp-settings'),
+                    tooltip: 'Settings & backup',
+                    onPressed: () => _visit(const BackupScreen()),
+                    icon: const Icon(Icons.settings_outlined,
+                        size: 20, color: T.dim),
+                  ),
                 ]),
                 const SizedBox(height: 8),
                 Semantics(
@@ -276,6 +285,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       detail: 'Choose gear and review each member.',
                       onTap: () => _visit(const RosterScreen()),
                     ),
+                    CampLink(
+                      title: 'Forge',
+                      detail:
+                          'Craft equipment from the places you have charted.',
+                      onTap: () => _visit(const ForgeScreen()),
+                    ),
                     if (repeats.isNotEmpty) ...[
                       const Divider(height: 1),
                       Padding(
@@ -299,7 +314,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 8),
                 CampDisclosure(
                   key: const Key('stores-disclosure'),
-                  title: 'Stores & facilities',
+                  title: 'Camp & orders',
                   summary:
                       '${g.credits} credits · ${g.alloy} alloy · ${g.intel} intel'
                       '${contracts > 0 ? '\n$contracts ${contracts == 1 ? 'contract' : 'contracts'} ready to claim' : ''}',
@@ -311,12 +326,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       title: 'Facilities & recruiting',
                       detail: 'Upgrade camp, recruit members, open sectors.',
                       onTap: () => _visit(const OutpostScreen()),
-                    ),
-                    CampLink(
-                      title: 'Forge',
-                      detail:
-                          'Craft equipment from the places you have charted.',
-                      onTap: () => _visit(const ForgeScreen()),
                     ),
                     CampLink(
                       title: 'Contracts',
@@ -333,31 +342,44 @@ class _HomeScreenState extends State<HomeScreen> {
                           : caravanSummary(context, g.caravan!),
                       onTap: () => _visit(const CaravanScreen()),
                     ),
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text('Guild ${g.level} · ${g.xp} / ${g.xpToNext} XP',
+                            style: T.secondary),
+                      ),
+                    ),
+                  ]),
+                ),
+                const SizedBox(height: 8),
+                // The record of the work, always one tap away rather than
+                // inside a section about spending.
+                Material(
+                  color: T.card,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(3),
+                    side: const BorderSide(color: T.boundary),
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: Column(children: [
                     CampLink(
+                      key: const Key('camp-log'),
                       title: 'Field log',
                       detail:
-                          '${g.totalFocusMinutes} protected minutes · ${g.daysWorked} ${g.daysWorked == 1 ? 'day' : 'days'} worked',
+                          '${g.totalFocusMinutes} protected minutes · ${g.daysWorked} ${g.daysWorked == 1 ? 'day' : 'days'} worked\n'
+                          '${g.cleanRuns} ${g.cleanRuns == 1 ? 'expedition' : 'expeditions'} at full Integrity',
                       onTap: () => _visit(const LogScreen()),
                     ),
-                    if (g.spireComplete)
+                    if (g.spireComplete) ...[
+                      const Divider(height: 1),
                       CampLink(
                         title: 'The Spire',
                         detail:
                             '${g.spireFloors} floors raised since your arrival',
                         onTap: () => _visit(const SpireScreen()),
                       ),
-                    CampLink(
-                      title: 'Settings & backup',
-                      detail: 'Export, restore, and save tools.',
-                      onTap: () => _visit(const BackupScreen()),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Text(
-                          'Guild ${g.level} · ${g.xp} / ${g.xpToNext} XP\n'
-                          '${g.cleanRuns} expeditions at full Integrity',
-                          style: T.secondary),
-                    ),
+                    ],
                   ]),
                 ),
               ],

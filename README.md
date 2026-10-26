@@ -155,7 +155,7 @@ attribution. The credit is shown in Settings and the licence list anyway.
 
 ## The caravan: an optional punch clock
 
-`lib/models/caravan.dart`, set up under **Stores & facilities → Caravan**. Off
+`lib/models/caravan.dart`, set up under **Camp & orders → Caravan**. Off
 by default. It exists for people whose problem is *starting* at the time they
 said they would, which a focus timer on its own does nothing for.
 

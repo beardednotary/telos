@@ -7,6 +7,7 @@ import 'package:telos/models/guild_identity.dart';
 import 'package:telos/models/guild_state.dart';
 import 'package:telos/models/models.dart';
 import 'package:telos/screens/backup_screen.dart';
+import 'package:telos/screens/caravan_screen.dart';
 import 'package:telos/screens/forge_screen.dart';
 import 'package:telos/screens/home_screen.dart';
 import 'package:telos/screens/log_screen.dart';
@@ -147,7 +148,7 @@ void main() {
     expect(find.text('Roster & equipment'), findsNothing);
     await tapVisible(t, find.text('Squad & equipment'));
     expect(find.text('Roster & equipment'), findsOneWidget);
-    await tapVisible(t, find.text('Stores & facilities'));
+    await tapVisible(t, find.text('Camp & orders'));
     expect(find.text('Roster & equipment'), findsNothing);
     expect(find.text('Facilities & recruiting'), findsOneWidget);
     await tapVisible(t, find.byKey(const Key('change-project')));
@@ -168,22 +169,24 @@ void main() {
       await t.pumpAndSettle();
     }
 
-    await tapVisible(t, find.text('Squad & equipment'));
-    await tapVisible(t, find.text('Roster & equipment'));
-    expect(find.byType(RosterScreen), findsOneWidget);
-    await back();
-    await tapVisible(t, find.text('Stores & facilities'));
-    for (final (label, type) in [
-      ('Facilities & recruiting', OutpostScreen),
-      ('Forge', ForgeScreen),
-      ('Field log', LogScreen),
-      ('The Spire', SpireScreen),
-      ('Settings & backup', BackupScreen),
-    ]) {
+    Future<void> visit(String label, Type type) async {
       await tapVisible(t, find.text(label));
       expect(find.byType(type), findsOneWidget);
       await back();
     }
+
+    await tapVisible(t, find.text('Squad & equipment'));
+    await visit('Roster & equipment', RosterScreen);
+    await visit('Forge', ForgeScreen);
+    // Outside the sections, so always one tap away.
+    await visit('Field log', LogScreen);
+    await visit('The Spire', SpireScreen);
+    await tapVisible(t, find.byKey(const Key('camp-settings')));
+    expect(find.byType(BackupScreen), findsOneWidget);
+    await back();
+    await tapVisible(t, find.text('Camp & orders'));
+    await visit('Facilities & recruiting', OutpostScreen);
+    await visit('Caravan', CaravanScreen);
     await tapVisible(t, find.text('Contracts'));
     expect(find.text('Standing orders.'), findsOneWidget);
     await back();
