@@ -52,6 +52,7 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
 
   Future<void> boot() async {
     _g = await _store.load();
+    _unreadableSave = await _store.unreadableSave();
     await _alerts.init();
     WidgetsBinding.instance.addObserver(this);
     // The app is in the foreground right now; if a run survived a cold start,
@@ -107,6 +108,19 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
     _g.openDays.add(day);
     if (_g.openDays.length > 400) _g.openDays.removeAt(0);
     return true;
+  }
+
+  /// A save that could not be read, set aside by [Persistence] before the
+  /// fresh guild replaced it. Shown before anything else, so a guild that
+  /// vanished is explained rather than greeted with the briefing as if
+  /// nothing had been there.
+  String? _unreadableSave;
+  String? get unreadableSave => _unreadableSave;
+
+  Future<void> dismissUnreadableSave() async {
+    _unreadableSave = null;
+    await _store.dismissUnreadableSave();
+    notifyListeners();
   }
 
   /// Called when the manual is first shown, so bouncing off it is visible.

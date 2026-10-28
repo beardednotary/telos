@@ -112,6 +112,25 @@ class Backup {
     return file.path;
   }
 
+  /// Offers a save Telos could not read to the share sheet, byte for byte as
+  /// it was found, so it can be kept somewhere safe or sent off for repair.
+  static Future<String> exportUnreadable(String raw,
+      {Rect? sharePositionOrigin}) async {
+    final dir = await documents();
+    final name = fileNameFor(DateTime.now())
+        .replaceFirst(_prefix, 'telos-unreadable-save-');
+    final file = File('${dir.path}/$name');
+    await file.writeAsString(raw);
+    await SharePlus.instance.share(
+      ShareParams(
+        files: [XFile(file.path, mimeType: 'application/json')],
+        subject: 'Telos save that could not be opened',
+        sharePositionOrigin: sharePositionOrigin,
+      ),
+    );
+    return file.path;
+  }
+
   /// JSON files anywhere in the app's Documents folder, newest first. The
   /// screen reads each one and shows the ones that are not Telos backups as
   /// unreadable, rather than this guessing from the name.
@@ -147,6 +166,8 @@ class BackupFiles {
   Future<String> read(File file) => file.readAsString();
   Future<String> export(GuildState state, {Rect? sharePositionOrigin}) =>
       Backup.export(state, sharePositionOrigin: sharePositionOrigin);
+  Future<String> exportUnreadable(String raw, {Rect? sharePositionOrigin}) =>
+      Backup.exportUnreadable(raw, sharePositionOrigin: sharePositionOrigin);
   Future<PickedBackup?> pick() => Backup.pick();
 }
 

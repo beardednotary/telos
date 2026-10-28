@@ -10,6 +10,7 @@ import 'screens/home_screen.dart';
 import 'screens/launch_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/session_screen.dart';
+import 'screens/unreadable_save_screen.dart';
 import 'services/alerts.dart';
 import 'services/launch_actions.dart';
 import 'services/lock_screen.dart';
@@ -123,6 +124,8 @@ class _RootState extends State<Root> {
     }
     final (String scene, Widget screen) = !c.ready
         ? ('loading', const Scaffold(body: SizedBox.shrink()))
+        : c.unreadableSave != null
+            ? ('unreadable', const UnreadableSaveScreen())
         : !c.g.onboarded
             ? ('briefing', const OnboardingScreen())
             : c.pendingDebrief != null
