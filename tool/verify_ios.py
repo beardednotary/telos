@@ -94,6 +94,43 @@ def verify():
     for custom_name in set(re.findall(r'\.custom\("([^"]+)"', swift)):
         require(custom_name in names, f"Unregistered SwiftUI font: {custom_name}")
 
+    # Each bundle carries a privacy manifest declaring the required-reason APIs
+    # its own code calls. Apple scans for these at upload, and the plugins'
+    # manifests do not cover Telos's own Swift or Dart.
+    manifests = {
+        "Runner": {
+            "NSPrivacyAccessedAPICategoryUserDefaults": {"CA92.1", "1C8F.1"},
+            "NSPrivacyAccessedAPICategoryFileTimestamp": {"C617.1"},
+        },
+        "ExpeditionWidget": {
+            "NSPrivacyAccessedAPICategoryUserDefaults": {"1C8F.1"},
+        },
+    }
+    targets = {"Runner": "Runner", "ExpeditionWidget": "ExpeditionWidgetExtension"}
+    for folder, reasons in manifests.items():
+        path = f"ios/{folder}/PrivacyInfo.xcprivacy"
+        manifest = plist(path)
+        require(manifest["NSPrivacyTracking"] is False, f"{path} must not declare tracking")
+        declared = {entry["NSPrivacyAccessedAPIType"]: set(entry["NSPrivacyAccessedAPITypeReasons"])
+                    for entry in manifest["NSPrivacyAccessedAPITypes"]}
+        for api, codes in reasons.items():
+            require(codes <= declared.get(api, set()),
+                    f"{path} must declare {api} with {sorted(codes)}")
+        group = re.search(r'isa = PBXGroup;\s*children = \(([^)]*)\);\s*path = '
+                          + re.escape(folder) + ';', project)
+        ref = re.search(r'([A-F0-9]{24}) /\* PrivacyInfo\.xcprivacy \*/', group.group(1))
+        require(ref is not None, f"{path} is not in the Xcode project")
+        build = re.search(r'([A-F0-9]{24}) /\* PrivacyInfo\.xcprivacy in Resources \*/ = '
+                          r'\{isa = PBXBuildFile; fileRef = ' + ref.group(1), project)
+        require(build is not None, f"{path} has no resources build entry")
+        target = re.search(r'/\* ' + re.escape(targets[folder]) +
+                           r' \*/ = \{[^{}]*?isa = PBXNativeTarget;[^{}]*?buildPhases = \(([^)]*)\)',
+                           project)
+        phase = re.search(r'([A-F0-9]{24}) /\* Resources \*/', target.group(1)).group(1)
+        resources = re.search(phase + r' /\* Resources \*/ = \{\s*isa = PBXResourcesBuildPhase;[^}]*',
+                              project).group(0)
+        require(build.group(1) in resources, f"{path} is not copied into {targets[folder]}")
+
     # Plists and storyboards must at least parse before the native build starts.
     for path in (ROOT / "ios").rglob("*.entitlements"):
         with path.open("rb") as source:
@@ -106,7 +143,8 @@ def verify():
         require(all(abs(a - b / 255) < 0.00001 for a, b in zip(actual, (30, 37, 43))),
                 f"{filename} must start on Night Watch charcoal")
 
-    print("iOS source preflight passed: version wiring, App Groups, bundles, fonts, launch screens.")
+    print("iOS source preflight passed: version wiring, App Groups, bundles, fonts, "
+          "privacy manifests, launch screens.")
     print("Xcode compilation, signing, and device behavior still require the macOS build.")
 
 
