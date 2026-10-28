@@ -1,0 +1,43 @@
+Telos privacy policy
+Effective 27 October 2026
+
+Telos is a focus timer. It has no accounts, no ads, no analytics and no tracking, and it makes no network connections of its own. What you put into it stays on your phone unless you choose to send it somewhere.
+
+## What Telos keeps on your phone
+
+- Your guild: its name, members, equipment, resources and progress.
+- Your field log: each expedition's destination, length, times, Integrity and rewards, and the task and reflection notes you write.
+- A little local bookkeeping: when Telos was installed, how many times it has been opened and on which days, and when the field manual was first read. It never leaves your phone unless you export a backup and send it to us.
+- If a save ever becomes unreadable, Telos keeps that copy on your phone instead of deleting it, so it can be repaired.
+
+This is stored in Telos's own storage on your phone. Like other app data, it is included in your phone's iCloud or computer backups if you use them, under Apple's terms.
+
+## What appears outside the app
+
+The home screen widget, the Lock Screen countdown and notifications show your destination, the time left and the names of your squad. They never show your task or reflection notes.
+
+## What leaves your phone, and only when you choose
+
+- Backups. Exporting a backup creates a file of your whole save, notes included. You choose where it goes through the share sheet, such as Files, iCloud Drive or a message, and that service's own privacy terms apply there.
+- Share cards. Sharing an expedition or your record creates an image showing your guild name, its sigil and figures such as focus time. Task and reflection notes are never included.
+- Feedback. If you email telos@dahvio.com, we receive your email address and whatever you send. We use it only to reply and to improve Telos, and we delete it on request.
+
+## What Apple may share with us
+
+If you have chosen in your iPhone's settings to share analytics with app developers, Apple may give us anonymous crash reports and usage figures for Telos. If you test Telos through TestFlight, Apple also passes on the feedback and crash reports you choose to send. Apple and your settings control this, not Telos.
+
+## Deleting your data
+
+Deleting Telos from your phone deletes everything it stores there. Backups you exported, and your phone's own backups, stay until you delete them. To have your emails to us deleted, write to telos@dahvio.com.
+
+## Children
+
+Telos is not directed at children under 13. It collects no personal information from anyone, apart from emails people choose to send us.
+
+## Changes
+
+If this policy changes, the new version will appear in the app and at dahvio.com/telos/privacy with a new effective date. If a future version of Telos ever sends anything off your phone by itself, this policy will say so before that version is released.
+
+## Contact
+
+Questions about privacy go to telos@dahvio.com.

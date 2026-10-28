@@ -1,11 +1,14 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../models/guild_state.dart';
 import '../services/backup.dart';
+import '../services/feedback_mail.dart';
 import '../services/music.dart';
 import '../state/guild_controller.dart';
 import '../theme/telos_theme.dart';
@@ -15,10 +18,16 @@ import '../widgets/guild_sigil.dart';
 import '../widgets/management_widgets.dart';
 import 'guild_identity_sheet.dart';
 import 'onboarding_screen.dart';
+import 'privacy_screen.dart';
 
 class BackupScreen extends StatefulWidget {
-  const BackupScreen({super.key, this.files = const BackupFiles()});
+  const BackupScreen({
+    super.key,
+    this.files = const BackupFiles(),
+    this.openMail = launchUrl,
+  });
   final BackupFiles files;
+  final Future<bool> Function(Uri) openMail;
 
   @override
   State<BackupScreen> createState() => _BackupScreenState();
@@ -105,6 +114,29 @@ class _BackupScreenState extends State<BackupScreen> {
       }
     }
     if (mounted) await _refresh();
+  }
+
+  /// Opens a feedback draft in Mail. With no mail account set up there is
+  /// nothing to open, so the address goes on the clipboard instead.
+  Future<void> _sendFeedback() async {
+    var build = '';
+    try {
+      final info = await PackageInfo.fromPlatform();
+      build = '${info.version} (${info.buildNumber})';
+    } catch (_) {}
+    final os = Platform.isIOS
+        ? 'iOS ${Platform.operatingSystemVersion}'
+        : Platform.operatingSystem;
+    var opened = false;
+    try {
+      opened = await widget.openMail(FeedbackMail.draft(build: build, os: os));
+    } catch (_) {}
+    if (opened || !mounted) return;
+    await Clipboard.setData(const ClipboardData(text: FeedbackMail.address));
+    if (mounted) {
+      campNotice(context,
+          'No mail account is set up. ${FeedbackMail.address} is copied.');
+    }
   }
 
   @override
@@ -253,7 +285,7 @@ class _BackupScreenState extends State<BackupScreen> {
             CampDisclosure(
               key: const Key('help-disclosure'),
               title: 'Help & about',
-              summary: 'Field manual, privacy & licenses',
+              summary: 'Feedback, manual, privacy & licenses',
               icon: Icons.info_outline,
               expanded: _open == 'help',
               onToggle: () =>
@@ -269,12 +301,27 @@ class _BackupScreenState extends State<BackupScreen> {
                           builder: (_) =>
                               const OnboardingScreen(asReview: true))),
                 ),
+                CampLink(
+                  key: const Key('settings-feedback'),
+                  title: 'Send feedback',
+                  detail: 'Email ${FeedbackMail.address}',
+                  onTap: _sendFeedback,
+                ),
                 Padding(
                   padding: const EdgeInsets.all(16),
                   child: Text(
                       'Your task notes and guild stay on this device unless you choose to export or share them. '
                       'Integrity measures time in Telos, not activity in other apps.',
                       style: T.secondary),
+                ),
+                CampLink(
+                  key: const Key('settings-privacy'),
+                  title: 'Privacy policy',
+                  detail: 'What Telos keeps, and what it never sends',
+                  onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const PrivacyScreen())),
                 ),
                 CampLink(
                   key: const Key('settings-licenses'),

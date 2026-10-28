@@ -20,6 +20,7 @@ import 'package:telos/screens/forge_screen.dart';
 import 'package:telos/screens/outpost_screen.dart';
 import 'package:telos/screens/roster_screen.dart';
 import 'package:telos/screens/onboarding_screen.dart';
+import 'package:telos/screens/privacy_screen.dart';
 import 'package:telos/screens/session_screen.dart';
 import 'package:telos/screens/spire_screen.dart';
 import 'package:telos/services/persistence.dart';
@@ -573,6 +574,16 @@ void main() {
         t, find.byKey(const Key('backup-telos-backup-2026-10-11-0900.json')));
     await expectLater(find.byType(MaterialApp),
         matchesGoldenFile('goldens/backup-restore.png'));
+  });
+
+  testWidgets('privacy policy', (t) async {
+    await frame(t);
+    final c = GuildController(Persistence());
+    await c.boot();
+    await t.pumpWidget(_phone(c, const PrivacyScreen()));
+    await t.pumpAndSettle();
+    await expectLater(
+        find.byType(MaterialApp), matchesGoldenFile('goldens/privacy.png'));
   });
 
   testWidgets('manual', (t) async {
