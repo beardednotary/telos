@@ -521,7 +521,7 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
     if (res.record.completedSpire) {
       _g.spireCompletionMinutes = _g.totalFocusMinutes;
     }
-    if (_g.log.length > 500) _g.log.removeRange(500, _g.log.length);
+    _g.trimLog();
 
     _g.active = null;
     _g.pendingDebrief = res.record;

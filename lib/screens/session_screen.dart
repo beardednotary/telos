@@ -113,7 +113,7 @@ class SessionScreen extends StatelessWidget {
                         // Integrity up front, so the first few runs say it
                         // here, where the number is on screen.
                         Text(
-                            c.g.log.length < kIntegrityHintRuns
+                            c.g.expeditions < kIntegrityHintRuns
                                 ? 'Lock your phone. Each time you come back to '
                                     'check, Integrity drops, and so does what '
                                     'they bring home.'

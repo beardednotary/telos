@@ -132,7 +132,7 @@ class _BackupScreenState extends State<BackupScreen> {
                 Text(g.guildName, style: T.title),
                 const SizedBox(height: 6),
                 Text(
-                    'Guild level ${g.level} · ${expeditionCount(g.log.length)} in the log',
+                    'Guild level ${g.level} · ${expeditionCount(g.expeditions)}',
                     style: T.secondary),
                 const SizedBox(height: 16),
                 CampButton(
@@ -322,7 +322,7 @@ class _RestoreReview extends StatelessWidget {
       const SizedBox(height: 8),
       Text(c.g.guildName, style: T.title),
       Text(
-          'Level ${c.g.level} · ${expeditionCount(c.g.log.length)} · '
+          'Level ${c.g.level} · ${expeditionCount(c.g.expeditions)} · '
           '${c.g.totalFocusMinutes ~/ 60}h ${c.g.totalFocusMinutes % 60}m',
           style: T.secondary),
       const Divider(height: 32),

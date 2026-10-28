@@ -43,7 +43,7 @@ class Backup {
       'summary': {
         'guild': g.guildName,
         'level': g.level,
-        'expeditions': g.log.length,
+        'expeditions': g.expeditions,
         'focusMinutes': g.totalFocusMinutes,
         'installedAt': g.installedAt?.toIso8601String(),
         'appOpens': g.appOpens,
@@ -85,7 +85,7 @@ class Backup {
       return BackupInfo(
         guild: state.guildName,
         level: state.level,
-        expeditions: state.log.length,
+        expeditions: state.expeditions,
         focusMinutes: state.totalFocusMinutes,
         exportedAt: DateTime.tryParse(j['exportedAt'] as String? ?? ''),
       );

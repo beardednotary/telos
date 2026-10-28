@@ -482,10 +482,9 @@ Future<void> shareRecord(BuildContext context, GuildState g) =>
         sigil: g.guildSigil,
         focusMinutes: g.totalFocusMinutes,
         daysWorked: g.daysWorked,
-        expeditions: g.log.length,
+        expeditions: g.expeditions,
         cleanRuns: g.cleanRuns,
-        // The log is newest first, so its last entry is the first run.
-        since: g.log.isEmpty ? DateTime.now() : g.log.last.startedAt.toLocal(),
+        since: (g.firstRunAt ?? DateTime.now()).toLocal(),
         story: story,
       ),
     );

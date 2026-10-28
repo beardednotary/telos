@@ -42,7 +42,12 @@ class GuildState {
   /// sectorId -> lines recovered. Advanced by the controller once a run is
   /// banked, so a resolve that never lands cannot burn a line.
   Map<String, int> surveyRead;
+
+  /// The field log, newest first. Holds the latest [kLogLimit] runs in full;
+  /// older ones are folded into [trimmed] as they fall off the end.
   List<RunRecord> log;
+  static const int kLogLimit = 500;
+  LogTally trimmed;
   ActiveRun? active;
 
   /// Debrief waiting to be viewed (set when a run resolves, cleared on dismiss).
@@ -110,6 +115,7 @@ class GuildState {
     this.spireCompletionMinutes = 0,
     this.spireCharterName,
     required this.log,
+    LogTally? trimmed,
     List<Contract>? contracts,
     this.contractCounter = 0,
     this.caravan,
@@ -127,7 +133,8 @@ class GuildState {
     List<String>? openDays,
     this.manualSeenAt,
     this.manualDoneAt,
-  })  : contracts = contracts ?? <Contract>[],
+  })  : trimmed = trimmed ?? LogTally(),
+        contracts = contracts ?? <Contract>[],
         openDays = openDays ?? <String>[];
 
   /// A fresh save: two members, one sector, nothing else.
@@ -201,20 +208,43 @@ class GuildState {
 
   bool sectorUnlocked(String id) => unlockedSectors.contains(id);
 
-  /// Total protected minutes across every logged run - the headline stat.
+  /// Trims the field log to [kLogLimit], oldest first, folding what goes
+  /// into [trimmed] so no total built from the log ever goes down.
+  void trimLog() {
+    while (log.length > kLogLimit) {
+      trimmed.add(log.removeLast());
+    }
+  }
+
+  /// Every expedition ever banked, including those trimmed from the log.
+  int get expeditions => trimmed.runs + log.length;
+
+  /// Total protected minutes across every run - the headline stat.
   int get totalFocusMinutes =>
-      log.fold(0, (sum, r) => sum + r.elapsedSeconds) ~/ 60;
+      (trimmed.seconds + log.fold(0, (sum, r) => sum + r.elapsedSeconds)) ~/
+      60;
+
+  /// Mean Integrity across every run, 0..1. Zero before the first.
+  double get averageIntegrity => expeditions == 0
+      ? 0
+      : (trimmed.integrity + log.fold(0.0, (sum, r) => sum + r.integrity)) /
+          expeditions;
+
+  /// When the first expedition set out. Null before there has been one.
+  DateTime? get firstRunAt =>
+      trimmed.since ?? (log.isEmpty ? null : log.last.startedAt);
 
   /// Days between install and the last day the app was opened. The blunt
   /// retention number for an early test.
   int get daysActive => openDays.length;
 
-  int get cleanRuns => log.where((r) => r.integrity >= 0.999).length;
+  int get cleanRuns =>
+      trimmed.cleanRuns + log.where(LogTally.isClean).length;
 
   /// Departures met at the gate. A record, like [daysWorked]: it only goes
   /// up, and a missed morning takes nothing off it.
   int get caravansMet =>
-      log.where((r) => (r.caravan ?? 0) >= 1 && !r.recalled).length;
+      trimmed.caravansMet + log.where(LogTally.metCaravan).length;
 
   /// The Spire is unfinished. Everyone who worked on it stopped, which is
   /// why nobody knows what it is for. After the player arrives, their own
@@ -240,10 +270,14 @@ class GuildState {
   /// Distinct days with at least one run. Deliberately not a streak: this
   /// only ever goes up, so a day away costs nothing. A record shows what
   /// someone did; a streak threatens what they will lose.
-  int get daysWorked => log
-      .map((r) => DateTime(r.endedAt.year, r.endedAt.month, r.endedAt.day))
-      .toSet()
-      .length;
+  int get daysWorked =>
+      trimmed.daysWorked +
+      log
+          .map((r) => LogTally.dayOf(r.endedAt))
+          // A day the trimmed runs end on may carry on into the log.
+          .where((d) => d != trimmed.lastDay)
+          .toSet()
+          .length;
 
   // -- serialisation ---------------------------------------------------------
 
@@ -266,6 +300,7 @@ class GuildState {
         'spireCompletionMinutes': spireCompletionMinutes,
         'spireCharterName': spireCharterName,
         'log': log.map((r) => r.toJson()).toList(),
+        'trimmed': trimmed.toJson(),
         'contracts': contracts.map((c) => c.toJson()).toList(),
         'contractCounter': contractCounter,
         'caravan': caravan?.toJson(),
@@ -330,6 +365,7 @@ class GuildState {
       log: ((j['log'] as List?) ?? [])
           .map((e) => RunRecord.fromJson(e as Map<String, dynamic>))
           .toList(),
+      trimmed: LogTally.fromJson(j['trimmed']),
       contracts: ((j['contracts'] as List?) ?? [])
           .map((e) => Contract.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -353,6 +389,87 @@ class GuildState {
       openDays: (j['openDays'] as List?)?.cast<String>() ?? <String>[],
       manualSeenAt: DateTime.tryParse(j['manualSeenAt'] as String? ?? ''),
       manualDoneAt: DateTime.tryParse(j['manualDoneAt'] as String? ?? ''),
+    );
+  }
+}
+
+/// What the runs trimmed off the end of the field log added up to.
+///
+/// The log keeps the latest [GuildState.kLogLimit] runs in full. Older ones
+/// are folded in here as they go, so the totals built from the log - focus
+/// time, days worked, the Spire's floors - stay records that only go up,
+/// rather than a window that slides.
+class LogTally {
+  int runs;
+  int seconds;
+
+  /// Summed, for the average.
+  double integrity;
+  int cleanRuns;
+  int caravansMet;
+  int daysWorked;
+
+  /// The day of the newest run folded in, so a day that carries on into the
+  /// log is not counted twice.
+  String? lastDay;
+
+  /// When the very first run set out.
+  DateTime? since;
+
+  LogTally({
+    this.runs = 0,
+    this.seconds = 0,
+    this.integrity = 0,
+    this.cleanRuns = 0,
+    this.caravansMet = 0,
+    this.daysWorked = 0,
+    this.lastDay,
+    this.since,
+  });
+
+  static bool isClean(RunRecord r) => r.integrity >= 0.999;
+  static bool metCaravan(RunRecord r) => (r.caravan ?? 0) >= 1 && !r.recalled;
+  static String dayOf(DateTime t) => '${t.year}-${t.month}-${t.day}';
+
+  /// Folds in [r]. Called oldest first.
+  void add(RunRecord r) {
+    runs++;
+    seconds += r.elapsedSeconds;
+    integrity += r.integrity;
+    if (isClean(r)) cleanRuns++;
+    if (metCaravan(r)) caravansMet++;
+    final day = dayOf(r.endedAt);
+    if (day != lastDay) {
+      daysWorked++;
+      lastDay = day;
+    }
+    since ??= r.startedAt;
+  }
+
+  Map<String, dynamic> toJson() => {
+        'runs': runs,
+        'seconds': seconds,
+        'integrity': integrity,
+        'cleanRuns': cleanRuns,
+        'caravansMet': caravansMet,
+        'daysWorked': daysWorked,
+        'lastDay': lastDay,
+        'since': since?.toIso8601String(),
+      };
+
+  /// Saves from before the log was ever trimmed have none: a zero tally,
+  /// which is exactly right for them.
+  factory LogTally.fromJson(Object? raw) {
+    if (raw is! Map) return LogTally();
+    return LogTally(
+      runs: raw['runs'] as int? ?? 0,
+      seconds: raw['seconds'] as int? ?? 0,
+      integrity: (raw['integrity'] as num?)?.toDouble() ?? 0,
+      cleanRuns: raw['cleanRuns'] as int? ?? 0,
+      caravansMet: raw['caravansMet'] as int? ?? 0,
+      daysWorked: raw['daysWorked'] as int? ?? 0,
+      lastDay: raw['lastDay'] as String?,
+      since: DateTime.tryParse(raw['since'] as String? ?? ''),
     );
   }
 }
