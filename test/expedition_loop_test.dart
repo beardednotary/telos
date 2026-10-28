@@ -260,6 +260,19 @@ void main() {
     expect(t.takeException(), isNull);
   });
 
+  testWidgets('the shortest custom duration can be sent', (t) async {
+    final c = await boot();
+    await mount(t, c, const DispatchScreen());
+    await tap(t, find.byKey(const Key('custom-duration')));
+    expect(find.text('10–180 minutes, in five-minute steps.'), findsOneWidget);
+    await t.drag(find.byType(Slider), const Offset(-800, 0));
+    await t.pumpAndSettle();
+    await tap(t, find.byKey(const Key('confirm-duration')));
+    expect(find.text('Deploy · 10 minutes'), findsOneWidget);
+    expect(find.textContaining('No destination fits'), findsNothing);
+    expect(t.takeException(), isNull);
+  });
+
   testWidgets(
       'small-screen planning and an hours-long timer tolerate larger text',
       (t) async {

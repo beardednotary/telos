@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -140,8 +142,13 @@ class _DispatchScreenState extends State<DispatchScreen> {
     });
   }
 
+  /// The custom picker starts where the shortest destination does, so every
+  /// length it offers can actually be sent.
+  static final _shortest = kSectors.map((s) => s.minMinutes).reduce(min);
+  static const _longest = 180;
+
   Future<void> _custom() async {
-    var value = _minutes.toDouble();
+    var value = _minutes.clamp(_shortest, _longest).toDouble();
     final picked = await showModalBottomSheet<int>(
       context: context,
       isScrollControlled: true,
@@ -159,13 +166,13 @@ class _DispatchScreenState extends State<DispatchScreen> {
                 Slider(
                   key: const Key('custom-duration-slider'),
                   value: value,
-                  min: 5,
-                  max: 180,
-                  divisions: 35,
+                  min: _shortest.toDouble(),
+                  max: _longest.toDouble(),
+                  divisions: (_longest - _shortest) ~/ 5,
                   label: '${value.round()} minutes',
                   onChanged: (v) => setSheet(() => value = v),
                 ),
-                Text('5–180 minutes, in five-minute steps.',
+                Text('$_shortest–$_longest minutes, in five-minute steps.',
                     style: T.secondary),
                 const SizedBox(height: 16),
                 CampButton(
