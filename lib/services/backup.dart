@@ -43,7 +43,7 @@ class Backup {
       'summary': {
         'guild': g.guildName,
         'level': g.level,
-        'expeditions': g.log.length,
+        'expeditions': g.expeditions,
         'focusMinutes': g.totalFocusMinutes,
         'installedAt': g.installedAt?.toIso8601String(),
         'appOpens': g.appOpens,
@@ -85,7 +85,7 @@ class Backup {
       return BackupInfo(
         guild: state.guildName,
         level: state.level,
-        expeditions: state.log.length,
+        expeditions: state.expeditions,
         focusMinutes: state.totalFocusMinutes,
         exportedAt: DateTime.tryParse(j['exportedAt'] as String? ?? ''),
       );
@@ -106,6 +106,25 @@ class Backup {
       ShareParams(
         files: [XFile(file.path, mimeType: 'application/json')],
         subject: 'Telos backup',
+        sharePositionOrigin: sharePositionOrigin,
+      ),
+    );
+    return file.path;
+  }
+
+  /// Offers a save Telos could not read to the share sheet, byte for byte as
+  /// it was found, so it can be kept somewhere safe or sent off for repair.
+  static Future<String> exportUnreadable(String raw,
+      {Rect? sharePositionOrigin}) async {
+    final dir = await documents();
+    final name = fileNameFor(DateTime.now())
+        .replaceFirst(_prefix, 'telos-unreadable-save-');
+    final file = File('${dir.path}/$name');
+    await file.writeAsString(raw);
+    await SharePlus.instance.share(
+      ShareParams(
+        files: [XFile(file.path, mimeType: 'application/json')],
+        subject: 'Telos save that could not be opened',
         sharePositionOrigin: sharePositionOrigin,
       ),
     );
@@ -147,6 +166,8 @@ class BackupFiles {
   Future<String> read(File file) => file.readAsString();
   Future<String> export(GuildState state, {Rect? sharePositionOrigin}) =>
       Backup.export(state, sharePositionOrigin: sharePositionOrigin);
+  Future<String> exportUnreadable(String raw, {Rect? sharePositionOrigin}) =>
+      Backup.exportUnreadable(raw, sharePositionOrigin: sharePositionOrigin);
   Future<PickedBackup?> pick() => Backup.pick();
 }
 

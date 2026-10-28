@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../data/content.dart';
+import '../models/guild_state.dart';
 import '../models/models.dart';
 import '../state/guild_controller.dart';
 import '../theme/telos_theme.dart';
@@ -33,12 +34,8 @@ class LogScreen extends StatelessWidget {
     final g = context.watch<GuildController>().g;
     final log = g.log;
     final minutes = g.totalFocusMinutes;
-    final average = log.isEmpty
-        ? 0
-        : (log.fold<double>(0, (sum, r) => sum + r.integrity) /
-                log.length *
-                100)
-            .round();
+    final runs = g.expeditions;
+    final average = (g.averageIntegrity * 100).round();
     return Scaffold(
       appBar: AppBar(title: const Text('Field log')),
       body: SafeArea(
@@ -72,15 +69,15 @@ class LogScreen extends StatelessWidget {
                           Row(children: [
                             _Total('${g.daysWorked}',
                                 g.daysWorked == 1 ? 'Day worked' : 'Days worked'),
-                            _Total('${log.length}',
-                                log.length == 1 ? 'Expedition' : 'Expeditions'),
+                            _Total('$runs',
+                                runs == 1 ? 'Expedition' : 'Expeditions'),
                             _Total('${g.cleanRuns}',
                                 g.cleanRuns == 1 ? 'Clean run' : 'Clean runs'),
                           ]),
                           if (log.isNotEmpty) ...[
                             const SizedBox(height: 14),
                             Text(
-                                'Average ${minutes ~/ log.length} min · $average% Integrity',
+                                'Average ${minutes ~/ runs} min · $average% Integrity',
                                 style: T.secondary),
                             const SizedBox(height: 16),
                             CampButton(
@@ -94,8 +91,8 @@ class LogScreen extends StatelessWidget {
                       if (log.isNotEmpty) ...[
                         const SizedBox(height: 20),
                         Text(
-                            log.length >= 500
-                                ? 'Your latest 500 expeditions.'
+                            log.length >= GuildState.kLogLimit
+                                ? 'Your latest ${GuildState.kLogLimit} expeditions.'
                                 : 'Most recent first. Tap an entry for its report.',
                             style: T.secondary),
                       ] else ...[
