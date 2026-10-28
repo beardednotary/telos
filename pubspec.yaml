@@ -20,6 +20,7 @@ dependencies:
   share_plus: ^13.3.0
   shared_preferences: ^2.2.2
   timezone: ^0.11.1
+  url_launcher: ^6.3.3
 
 dev_dependencies:
   flutter_test:
@@ -49,6 +50,7 @@ flutter:
     - assets/art/sectors/
     - assets/art/gear/
     - assets/music/
+    - assets/legal/privacy_policy.txt
     - assets/fonts/OFL-IBMPlexSans.txt
     - assets/fonts/OFL-IBMPlexSansCondensed.txt
     - assets/fonts/OFL.txt
