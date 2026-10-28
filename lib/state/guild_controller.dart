@@ -53,7 +53,7 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
   Future<void> boot() async {
     _g = await _store.load();
     _unreadableSave = await _store.unreadableSave();
-    await _alerts.init();
+    await _courtesy(_alerts.init);
     WidgetsBinding.instance.addObserver(this);
     // The app is in the foreground right now; if a run survived a cold start,
     // resume its watch clock.
@@ -64,18 +64,14 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
     // any run that survived the restart.
     final restored = _g.active;
     if (restored != null && !restored.isComplete(DateTime.now())) {
-      await _alerts.scheduleReturn(
-        at: restored.endsAt,
-        sector: sectorById(restored.sectorId).name,
-        squad: _squadLabel(restored.squad),
-      );
+      await _scheduleReturn(restored);
       // Same for the lock screen countdown, which a force stop can take
       // with it.
       await _showLockScreen(restored);
     } else {
       // Nothing live: sweep up any countdown left over from a run that ended
       // while the app was dead.
-      await _lockScreen.clear();
+      await _courtesy(_lockScreen.clear);
     }
     _noteOpen();
     // The board is always full, so there is never a refresh to remember.
@@ -84,7 +80,34 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
     _ready = true;
     _syncTicker();
     notifyListeners();
-    await _launch.listen(launchPick);
+    await _courtesy(() => _launch.listen(launchPick));
+  }
+
+  /// Notifications, the lock screen countdown and the widget are courtesies
+  /// around a run, not the run. A platform that refuses one must not stop a
+  /// squad going out, coming home, or being banked, so failures are logged
+  /// and the caller carries on. Returns whether the call went through.
+  Future<bool> _courtesy(Future<void> Function() call) async {
+    try {
+      await call();
+      return true;
+    } catch (e) {
+      debugPrint('Telos: platform call failed: $e');
+      return false;
+    }
+  }
+
+  Future<void> _scheduleReturn(ActiveRun run) => _courtesy(() =>
+      _alerts.scheduleReturn(
+        at: run.endsAt,
+        sector: sectorById(run.sectorId).name,
+        squad: _squadLabel(run.squad),
+      ));
+
+  /// Clears the return notice and the countdown for a run that is over.
+  Future<void> _clearRunAlerts() async {
+    await _courtesy(_alerts.cancel);
+    await _courtesy(_lockScreen.clear);
   }
 
   /// One line of local bookkeeping per launch: how many times, and on which
@@ -140,7 +163,8 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
 
   Future<void> _save() async {
     await _store.save(_g);
-    await _publishLaunchItems();
+    // Forgotten on failure, so the next save offers it again.
+    if (!await _courtesy(_publishLaunchItems)) _publishedLaunch = null;
   }
 
   // -- launch actions: redeploy from outside the app --------------------------
@@ -297,13 +321,13 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
 
   Future<void> _showLockScreen(ActiveRun run) {
     final sector = sectorById(run.sectorId);
-    return _lockScreen.show(
-      startedAt: run.startedAt,
-      endsAt: run.endsAt,
-      sector: sector.name,
-      designation: sector.designation,
-      accent: sector.accent,
-    );
+    return _courtesy(() => _lockScreen.show(
+          startedAt: run.startedAt,
+          endsAt: run.endsAt,
+          sector: sector.name,
+          designation: sector.designation,
+          accent: sector.accent,
+        ));
   }
 
   Future<void>? _dispatching;
@@ -334,12 +358,12 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
   }) async {
     // Ask before the clock starts, so a permission dialog never eats into the
     // session the user just committed to.
-    await _alerts.requestPermission();
+    await _courtesy(_alerts.requestPermission);
 
     final t = DateTime.now();
     final caravan = caravanAt(t);
     _g.runCounter++;
-    _g.active = ActiveRun(
+    final run = _g.active = ActiveRun(
       id: 'r${_g.runCounter}-${t.millisecondsSinceEpoch}',
       sectorId: sectorId,
       intent: intent.trim(),
@@ -350,16 +374,21 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
       caravan: caravan?.strength,
       caravanDay: caravan?.day,
     );
+    // The run exists once it is saved, and not before: a run only in memory
+    // would vanish with the app. If the save fails, the squad is still at
+    // camp, which is what the dispatch screen tells the player.
+    try {
+      await _save();
+    } catch (_) {
+      _g.active = null;
+      _g.runCounter--;
+      rethrow;
+    }
     now = t;
     _syncTicker();
-    await _alerts.scheduleReturn(
-      at: _g.active!.endsAt,
-      sector: sectorById(sectorId).name,
-      squad: _squadLabel(squad),
-    );
-    await _showLockScreen(_g.active!);
+    await _scheduleReturn(run);
+    await _showLockScreen(run);
     await _armCaravan();
-    await _save();
     notifyListeners();
   }
 
@@ -392,8 +421,7 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
     if (!canCancel(DateTime.now())) return false;
     _g.active = null;
     _g.runCounter--;
-    await _alerts.cancel();
-    await _lockScreen.clear();
+    await _clearRunAlerts();
     // Taken back, so the departure is still there to be met.
     await _armCaravan();
     _syncTicker();
@@ -428,8 +456,7 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
       run.watchingSince = null;
     }
 
-    await _alerts.cancel();
-    await _lockScreen.clear();
+    await _clearRunAlerts();
 
     final res = ExpeditionEngine.resolve(
       run: run,
@@ -581,7 +608,7 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
   /// the gate notice is most of the point.
   Future<void> setCaravan(CaravanSchedule? schedule) async {
     _g.caravan = schedule;
-    if (schedule != null) await _alerts.requestPermission();
+    if (schedule != null) await _courtesy(_alerts.requestPermission);
     await _armCaravan();
     await _save();
     notifyListeners();
@@ -606,7 +633,10 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
     ].join('|');
     if (signature == _armedCaravan) return;
     _armedCaravan = signature;
-    await _alerts.scheduleCaravan(notices);
+    // Forgotten on failure, so the next call tries again.
+    if (!await _courtesy(() => _alerts.scheduleCaravan(notices))) {
+      _armedCaravan = null;
+    }
   }
 
   /// Puts each new find straight on whoever brought it home, if they have
@@ -863,8 +893,7 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
   Future<void> restore(GuildState state) async {
     _ticker?.cancel();
     _ticker = null;
-    await _alerts.cancel();
-    await _lockScreen.clear();
+    await _clearRunAlerts();
     _g = state;
     // A run that was live when the backup was taken is long over; do not
     // resurrect a countdown from another phone.
@@ -878,8 +907,7 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
   Future<void> hardReset() async {
     _ticker?.cancel();
     _ticker = null;
-    await _alerts.cancel();
-    await _lockScreen.clear();
+    await _clearRunAlerts();
     _g = GuildState.fresh();
     await _armCaravan();
     await _store.wipe();
