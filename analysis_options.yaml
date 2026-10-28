@@ -10,6 +10,8 @@
 analyzer:
   exclude:
     - build/**
+    # Records, not app code: the audit probes assert defects since fixed.
+    - docs/**
     - android/**
     - ios/**
     - web/**
