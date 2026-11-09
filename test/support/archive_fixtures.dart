@@ -112,6 +112,18 @@ class MemoryBackupFiles extends BackupFiles {
     return contents[file.path]!;
   }
 
+  bool failKeep = false;
+  int kept = 0;
+
+  @override
+  Future<String> keepBeforeRestore(GuildState state) async {
+    if (failKeep) throw const FileSystemException('Test keep failed');
+    kept++;
+    final name = '${Backup.keptPrefix}2026-10-11-1200-$kept.json';
+    contents['/memory/$name'] = Backup.encode(state);
+    return name;
+  }
+
   @override
   Future<String> export(GuildState state, {Rect? sharePositionOrigin}) async {
     lastSharePositionOrigin = sharePositionOrigin;

@@ -173,6 +173,33 @@ class Backup {
     return file.path;
   }
 
+  /// Writes the guild on this phone into Documents before a restore replaces
+  /// it, and returns the file's name.
+  ///
+  /// No share sheet: this happens on the way into a restore, not as a
+  /// separate export. The copy is an ordinary backup, so it turns up in the
+  /// local list and goes back through the same review as any other. The
+  /// name is never reused, so two restores in one minute cannot leave only
+  /// the copy of the guild that was restored in between.
+  static Future<String> keepBeforeRestore(GuildState g,
+      {DateTime? when, Directory? into}) async {
+    final t = when ?? DateTime.now();
+    final dir = into ?? await documents();
+    await dir.create(recursive: true);
+    final stem = fileNameFor(t)
+        .replaceFirst(_prefix, keptPrefix)
+        .replaceFirst(RegExp(r'\.json$'), '');
+    var name = '$stem.json';
+    for (var n = 2; await File('${dir.path}/$name').exists(); n++) {
+      name = '$stem-$n.json';
+    }
+    await File('${dir.path}/$name')
+        .writeAsString(encode(g, when: t), flush: true);
+    return name;
+  }
+
+  static const keptPrefix = 'telos-before-restore-';
+
   /// Offers a save Telos could not read to the share sheet, byte for byte as
   /// it was found, so it can be kept somewhere safe or sent off for repair.
   static Future<String> exportUnreadable(String raw,
@@ -226,6 +253,8 @@ class BackupFiles {
   Future<String> read(File file) => file.readAsString();
   Future<String> export(GuildState state, {Rect? sharePositionOrigin}) =>
       Backup.export(state, sharePositionOrigin: sharePositionOrigin);
+  Future<String> keepBeforeRestore(GuildState state) =>
+      Backup.keepBeforeRestore(state);
   Future<String> exportUnreadable(String raw, {Rect? sharePositionOrigin}) =>
       Backup.exportUnreadable(raw, sharePositionOrigin: sharePositionOrigin);
   Future<PickedBackup?> pick() => Backup.pick();

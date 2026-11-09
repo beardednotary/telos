@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -164,6 +165,38 @@ void main() {
 
     test('negative resources', () {
       expect(Backup.decode(tampered((s) => s['credits'] = -50)), isNull);
+    });
+  });
+
+  group('the copy kept before a restore', () {
+    late Directory dir;
+    setUp(() => dir = Directory.systemTemp.createTempSync('telos-keep-'));
+    tearDown(() => dir.deleteSync(recursive: true));
+
+    test('is a backup that reads back as the guild it was', () async {
+      final g = loaded();
+      final name = await Backup.keepBeforeRestore(g,
+          when: DateTime(2026, 11, 9, 8, 5), into: dir);
+      expect(name, 'telos-before-restore-2026-11-09-0805.json');
+      final back = Backup.decode(File('${dir.path}/$name').readAsStringSync())!;
+      expect(back.guildName, 'THE LONG WATCH');
+      expect(back.credits, 4210);
+    });
+
+    test('never takes the name of an earlier copy', () async {
+      final when = DateTime(2026, 11, 9, 8, 5);
+      final first = loaded()..guildName = 'FIRST';
+      final second = loaded()..guildName = 'SECOND';
+      final a = await Backup.keepBeforeRestore(first, when: when, into: dir);
+      final b = await Backup.keepBeforeRestore(second, when: when, into: dir);
+      expect(b, isNot(a));
+      expect(
+          Backup.decode(File('${dir.path}/$a').readAsStringSync())!.guildName,
+          'FIRST',
+          reason: 'two restores in one minute keep both guilds');
+      expect(
+          Backup.decode(File('${dir.path}/$b').readAsStringSync())!.guildName,
+          'SECOND');
     });
   });
 

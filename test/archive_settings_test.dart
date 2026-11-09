@@ -136,8 +136,7 @@ void main() {
     expect(t.takeException(), isNull);
   });
 
-  testWidgets(
-      'first-run manual supports back and completion on a small phone',
+  testWidgets('first-run manual supports back and completion on a small phone',
       (t) async {
     final c = await boot();
     c.g.onboarded = false;
@@ -232,8 +231,8 @@ void main() {
       ..credits = 812
       ..onboarded = true;
     final files = MemoryBackupFiles()
-      ..picked = PickedBackup(
-          'my renamed backup.json', Backup.encode(replacement));
+      ..picked =
+          PickedBackup('my renamed backup.json', Backup.encode(replacement));
     await mount(t, c, BackupScreen(files: files), small: true);
     await tap(t, find.text('Save & restore'));
     expect(find.text('No backup files found.'), findsOneWidget,
@@ -248,7 +247,8 @@ void main() {
     expect(t.takeException(), isNull);
   });
 
-  testWidgets('picking something that is not a backup says so and changes nothing',
+  testWidgets(
+      'picking something that is not a backup says so and changes nothing',
       (t) async {
     final c = await boot();
     final before = jsonEncode(c.g.toJson());
@@ -340,5 +340,98 @@ void main() {
     await tap(t, find.byKey(const Key('export-backup')));
     expect(files.exports, 2);
     expect(t.takeException(), isNull);
+  });
+  group('restoring keeps a copy of the guild it replaces', () {
+    /// A guild with a run behind it, and a different one in a backup.
+    Future<(GuildController, MemoryBackupFiles, String)> setUpRestore(
+        {bool withHistory = true}) async {
+      final c = await boot();
+      c.g.guildName = 'The Long Watch';
+      c.g.credits = 4210;
+      if (withHistory) c.g.log.add(archiveRecord());
+      await Persistence().save(c.g);
+      final replacement = GuildState.fresh()
+        ..guildName = 'The Ash Company'
+        ..credits = 812
+        ..onboarded = true;
+      final files = MemoryBackupFiles();
+      const name = 'telos-backup-2026-10-11-0900.json';
+      files.contents['/memory/$name'] = Backup.encode(replacement);
+      return (c, files, name);
+    }
+
+    testWidgets('and the copy restores the guild exactly as it was', (t) async {
+      final (c, files, name) = await setUpRestore();
+      final before = jsonEncode(c.g.toJson());
+      await mount(t, c, BackupScreen(files: files), small: true);
+      await tap(t, find.text('Save & restore'));
+      await tap(t, find.byKey(Key('backup-$name')));
+      expect(find.textContaining('keeps a copy of the current guild'),
+          findsOneWidget);
+      await tap(t, find.byKey(const Key('confirm-restore')));
+      expect(c.g.guildName, 'The Ash Company');
+      expect(files.kept, 1);
+      expect(find.textContaining('The guild it replaced is in Local backups'),
+          findsOneWidget);
+      // The app shows that notice at camp; here it would sit over the list.
+      ScaffoldMessenger.of(t.element(find.byType(BackupScreen)))
+          .removeCurrentSnackBar();
+      await t.pumpAndSettle();
+
+      // The copy is an ordinary backup in the list, and it goes back the
+      // same way any backup does.
+      await tap(t, find.byKey(const Key('refresh-backups')));
+      final copy = files.contents.keys
+          .singleWhere((k) => k.contains(Backup.keptPrefix))
+          .split('/')
+          .last;
+      expect(find.byKey(Key('backup-$copy')), findsOneWidget);
+      await tap(t, find.byKey(Key('backup-$copy')));
+      await tap(t, find.byKey(const Key('confirm-restore')));
+      expect(c.g.guildName, 'The Long Watch');
+      expect(c.g.credits, 4210);
+      expect(jsonEncode(c.g.toJson()), before);
+      expect(t.takeException(), isNull);
+    });
+
+    testWidgets('and if the copy cannot be kept, nothing is replaced',
+        (t) async {
+      final (c, files, name) = await setUpRestore();
+      files.failKeep = true;
+      final before = jsonEncode(c.g.toJson());
+      await mount(t, c, BackupScreen(files: files), small: true);
+      await tap(t, find.text('Save & restore'));
+      await tap(t, find.byKey(Key('backup-$name')));
+      await tap(t, find.byKey(const Key('confirm-restore')));
+      expect(find.byKey(const Key('restore-error')), findsOneWidget);
+      expect(find.textContaining('nothing was replaced'), findsOneWidget);
+      expect(jsonEncode(c.g.toJson()), before);
+      final reloaded = GuildController(Persistence());
+      await reloaded.boot();
+      addTearDown(reloaded.dispose);
+      expect(reloaded.g.guildName, 'The Long Watch',
+          reason: 'the saved guild was not touched either');
+
+      // Once the copy can be kept, the same sheet goes ahead.
+      files.failKeep = false;
+      await tap(t, find.byKey(const Key('confirm-restore')));
+      expect(c.g.guildName, 'The Ash Company');
+      expect(files.kept, 1);
+      expect(t.takeException(), isNull);
+    });
+
+    testWidgets('unless the guild has nothing in it yet', (t) async {
+      final (c, files, name) = await setUpRestore(withHistory: false);
+      await mount(t, c, BackupScreen(files: files), small: true);
+      await tap(t, find.text('Save & restore'));
+      await tap(t, find.byKey(Key('backup-$name')));
+      expect(find.text('Restoring replaces the save on this phone.'),
+          findsOneWidget);
+      await tap(t, find.byKey(const Key('confirm-restore')));
+      expect(c.g.guildName, 'The Ash Company');
+      expect(files.kept, 0);
+      expect(find.text('The Ash Company restored.'), findsOneWidget);
+      expect(t.takeException(), isNull);
+    });
   });
 }
