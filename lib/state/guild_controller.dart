@@ -421,6 +421,7 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
     if (!canCancel(DateTime.now())) return false;
     _g.active = null;
     _g.runCounter--;
+    _g.cancelledRuns++;
     await _clearRunAlerts();
     // Taken back, so the departure is still there to be met.
     await _armCaravan();
@@ -466,6 +467,7 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
     );
 
     // Bank it.
+    if (res.record.recalled) _g.recalledRuns++;
     _g.credits += res.record.credits;
     _g.alloy += res.record.alloy;
     _g.intel += res.record.intel;
@@ -588,6 +590,24 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
 
   Future<void> declineMusic() async {
     _g.musicOffered = true;
+    await _save();
+    notifyListeners();
+  }
+
+  /// Camp asks for feedback once, after the third expedition that ran its
+  /// full time: enough to have an opinion, early enough that someone about
+  /// to drift away is still around to give it. Never alongside the music
+  /// offer, so camp has at most one question on it.
+  bool get offerFeedback =>
+      !_g.feedbackAsked &&
+      _g.completedRuns >= 3 &&
+      _g.active == null &&
+      _g.pendingDebrief == null &&
+      !offerMusic;
+
+  /// Answered or turned down, it does not come back.
+  Future<void> closeFeedbackOffer() async {
+    _g.feedbackAsked = true;
     await _save();
     notifyListeners();
   }
