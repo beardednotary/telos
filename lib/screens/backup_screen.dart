@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -14,6 +13,7 @@ import '../state/guild_controller.dart';
 import '../theme/telos_theme.dart';
 import '../widgets/camp_controls.dart';
 import '../widgets/expedition_widgets.dart';
+import '../widgets/feedback_action.dart';
 import '../widgets/guild_sigil.dart';
 import '../widgets/management_widgets.dart';
 import 'guild_identity_sheet.dart';
@@ -79,15 +79,16 @@ class _BackupScreenState extends State<BackupScreen> {
     try {
       final picked = await widget.files.pick();
       if (picked == null || !mounted) return;
-      final backup = _BackupFile(picked.name, Backup.inspect(picked.text),
-          Backup.decode(picked.text));
+      final backup = _BackupFile(
+          picked.name, Backup.inspect(picked.text), Backup.decode(picked.text));
       if (backup.info == null || backup.state == null) {
         setState(() => _pickError =
             '${picked.name} is not a Telos backup, or it is from a version '
-            'this one cannot read.');
+                'this one cannot read.');
         return;
       }
-      await showCampSheet(context, _RestoreReview(backup: backup));
+      await showCampSheet(
+          context, _RestoreReview(backup: backup, files: widget.files));
     } catch (_) {
       if (mounted) {
         setState(() => _pickError = 'Could not open that file. Try again, or '
@@ -114,29 +115,6 @@ class _BackupScreenState extends State<BackupScreen> {
       }
     }
     if (mounted) await _refresh();
-  }
-
-  /// Opens a feedback draft in Mail. With no mail account set up there is
-  /// nothing to open, so the address goes on the clipboard instead.
-  Future<void> _sendFeedback() async {
-    var build = '';
-    try {
-      final info = await PackageInfo.fromPlatform();
-      build = '${info.version} (${info.buildNumber})';
-    } catch (_) {}
-    final os = Platform.isIOS
-        ? 'iOS ${Platform.operatingSystemVersion}'
-        : Platform.operatingSystem;
-    var opened = false;
-    try {
-      opened = await widget.openMail(FeedbackMail.draft(build: build, os: os));
-    } catch (_) {}
-    if (opened || !mounted) return;
-    await Clipboard.setData(const ClipboardData(text: FeedbackMail.address));
-    if (mounted) {
-      campNotice(context,
-          'No mail account is set up. ${FeedbackMail.address} is copied.');
-    }
   }
 
   @override
@@ -257,7 +235,9 @@ class _BackupScreenState extends State<BackupScreen> {
                             onTap: backup.info == null || backup.state == null
                                 ? null
                                 : () => showCampSheet(
-                                    context, _RestoreReview(backup: backup)),
+                                    context,
+                                    _RestoreReview(
+                                        backup: backup, files: widget.files)),
                           ),
                           const Divider(height: 16),
                         ],
@@ -305,7 +285,8 @@ class _BackupScreenState extends State<BackupScreen> {
                   key: const Key('settings-feedback'),
                   title: 'Send feedback',
                   detail: 'Email ${FeedbackMail.address}',
-                  onTap: _sendFeedback,
+                  onTap: () =>
+                      sendFeedback(context, g, openMail: widget.openMail),
                 ),
                 Padding(
                   padding: const EdgeInsets.all(16),
@@ -318,10 +299,8 @@ class _BackupScreenState extends State<BackupScreen> {
                   key: const Key('settings-privacy'),
                   title: 'Privacy policy',
                   detail: 'What Telos keeps, and what it never sends',
-                  onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) => const PrivacyScreen())),
+                  onTap: () => Navigator.push(context,
+                      MaterialPageRoute(builder: (_) => const PrivacyScreen())),
                 ),
                 CampLink(
                   key: const Key('settings-licenses'),
@@ -349,20 +328,75 @@ class _BackupFile {
   final GuildState? state;
 }
 
-class _RestoreReview extends StatelessWidget {
-  const _RestoreReview({required this.backup});
+class _RestoreReview extends StatefulWidget {
+  const _RestoreReview({required this.backup, required this.files});
   final _BackupFile backup;
+  final BackupFiles files;
+
+  @override
+  State<_RestoreReview> createState() => _RestoreReviewState();
+}
+
+class _RestoreReviewState extends State<_RestoreReview> {
+  bool _busy = false;
+  String? _error;
+
+  /// A guild with no expeditions has nothing in it to lose: a new install
+  /// restoring from an old phone, or the fresh guild started after an
+  /// unreadable save. A copy of it would only be clutter in the list.
+  static bool _worthKeeping(GuildState g) => g.expeditions > 0;
+
+  Future<void> _confirm(GuildController c) async {
+    if (_busy) return;
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    final info = widget.backup.info!;
+    String? kept;
+    if (_worthKeeping(c.g)) {
+      try {
+        kept = await widget.files.keepBeforeRestore(c.g);
+      } catch (_) {
+        // The copy is the promise this screen makes. Without it, the guild
+        // on this phone stays exactly as it is.
+        if (mounted) {
+          setState(() {
+            _busy = false;
+            _error = 'Could not keep a copy of ${c.g.guildName}, so nothing '
+                'was replaced. Try again, or export it first.';
+          });
+        }
+        return;
+      }
+    }
+    await c.restore(widget.backup.state!);
+    if (!mounted) return;
+    Navigator.of(context).popUntil((route) => route.isFirst);
+    campNotice(
+        context,
+        kept == null
+            ? '${info.guild} restored.'
+            : '${info.guild} restored. The guild it replaced is in Local '
+                'backups.');
+  }
 
   @override
   Widget build(BuildContext context) {
     final c = context.watch<GuildController>();
+    final backup = widget.backup;
     final info = backup.info!;
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       const CampSheetHeader(title: 'Review restore'),
       const Text('Replace this guild?', style: T.display),
       const SizedBox(height: 12),
-      const Text(
-          'Restoring replaces the save on this phone. Export your current guild first if you want to keep it.',
+      Text(
+          _worthKeeping(c.g)
+              ? 'Restoring replaces the save on this phone. Telos keeps a '
+                  'copy of the current guild in Local backups first, so you '
+                  'can switch back.'
+              : 'Restoring replaces the save on this phone.',
+          key: const Key('restore-explainer'),
           style: T.body),
       const SizedBox(height: 24),
       Text('ON THIS PHONE', style: T.label),
@@ -397,13 +431,12 @@ class _RestoreReview extends StatelessWidget {
       CampAction(
         key: const Key('confirm-restore'),
         label: 'Replace guild with this backup',
-        onPressed: () async {
-          await c.restore(backup.state!);
-          if (!context.mounted) return;
-          Navigator.of(context).popUntil((route) => route.isFirst);
-          campNotice(context, '${info.guild} restored.');
-        },
+        onPressed: _busy ? null : () => _confirm(c),
       ),
+      if (_error != null) ...[
+        const SizedBox(height: 8),
+        Text(_error!, key: const Key('restore-error'), style: T.secondary),
+      ],
     ]);
   }
 }

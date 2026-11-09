@@ -32,6 +32,11 @@ class _DispatchScreenState extends State<DispatchScreen> {
   final _squad = <String>[];
   String? _open = 'focus';
   String? _notice;
+
+  /// The sentence the last suggested plan put in [_notice], so it can be
+  /// told apart from a destination notice.
+  String? _planNotice;
+  bool get _noticeFromPlan => _notice != null && _notice == _planNotice;
   String? _error;
   bool _initialized = false;
   bool _sending = false;
@@ -63,7 +68,7 @@ class _DispatchScreenState extends State<DispatchScreen> {
     _squad
       ..clear()
       ..addAll(plan.squad.map((m) => m.id));
-    _notice = '${fieldName(plan.sector.name)} with '
+    _notice = _planNotice = '${fieldName(plan.sector.name)} with '
         '${plan.squad.map((m) => m.name).join(' & ')}. ${plan.reason}';
   }
 
@@ -332,10 +337,17 @@ class _DispatchScreenState extends State<DispatchScreen> {
                 CampLink(
                     title: 'Review equipment',
                     detail: 'Changes to worn gear update this forecast.',
-                    onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute<void>(
-                            builder: (_) => const RosterScreen()))),
+                    onTap: () async {
+                      await Navigator.push(
+                          context,
+                          MaterialPageRoute<void>(
+                              builder: (_) => const RosterScreen()));
+                      // The plan's reason can rest on worn gear, which may
+                      // have just changed. A destination notice still holds.
+                      if (mounted && _noticeFromPlan) {
+                        setState(() => _notice = null);
+                      }
+                    }),
                 Padding(
                     padding: const EdgeInsets.all(16),
                     child: CampButton(
@@ -555,6 +567,10 @@ class _DispatchScreenState extends State<DispatchScreen> {
               color: selected ? T.amber : T.dim,
               size: 20),
           onTap: () => setState(() {
+            // A suggested plan names its squad and says why it works. Once
+            // the squad changes, that sentence describes a plan that is no
+            // longer on screen.
+            _notice = null;
             if (_squad.contains(member.id)) {
               _squad.remove(member.id);
             } else {

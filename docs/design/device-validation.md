@@ -2,9 +2,9 @@
 
 Status: **not run**. The Windows Flutter checks and Android debug build do not
 validate iOS execution. The owner uses Codemagic to build and distribute through
-TestFlight; the latest existing build is 23. Use the next signed candidate from
-that workflow for this pass. See the [Codemagic handoff](codemagic-handoff.md).
-No new TestFlight build has been produced by the local preparation.
+TestFlight. Build 33 (October 28) carries the audit's reliability fixes; build 34
+(PR #12) is the submission candidate and the build to run this pass on. See the
+[Codemagic handoff](codemagic-handoff.md).
 
 Record the commit/build, iPhone model, iOS version, text size, notification
 permission, and any enabled Focus mode. Keep an exported copy of an established
@@ -30,7 +30,7 @@ long-term balance of a player who always stays at 25 minutes.
 | First dispatch with notifications denied | The timer still starts and completes; the app does not repeatedly request permission. | Not run |
 | Lock, incoming call, app switch, then resume | Timer uses the stored end time. Integrity follows Telos foreground time and reopens; it does not claim to observe other apps. | Not run |
 | Terminate after backgrounding, reopen before/after the end | The same expedition resumes or resolves once. Its end time and record survive the restart. | Not run |
-| Cancel during the first 30 seconds | Returns to camp without a log entry or rewards; completion alert is cancelled. | Not run |
+| Cancel during the first 30 seconds | Returns to camp without a log entry or rewards; completion alert is cancelled. The next feedback draft's usage line counts it as cancelled. | Not run |
 | Recall after grace but before sector minimum | Confirmation explains scraps; time is recorded, credits only, no gear/alloy/intel. | Not run |
 | Rapid dispatch or receive taps | One active expedition or one banked result. | Not run |
 | Shortcut/quick action from camp or a management sheet | Opens the active session, closes management, and cannot start a second run while one is live. | Not run |
@@ -55,6 +55,18 @@ long-term balance of a player who always stays at 25 minutes.
   widgets, and Live Activity alongside Night Watch. Widget/Live Activity colors
   and fonts and the launch backgrounds are now updated in native source; their
   rendered appearance needs this device check. The existing app icon is retained.
+
+## Added in build 34
+
+| Case | Expected result | Result |
+|---|---|---|
+| Restore a backup over an established guild | The review says a copy is kept first. After confirming, the notice says the replaced guild is in Local backups, and a `telos-before-restore-*.json` file is in On My iPhone › Telos. | Not run |
+| Restore that kept copy | The original guild returns exactly: name, sigil, balances, roster, gear, log. Its own replacement is kept as a second copy. | Not run |
+| Restore over a guild with no expeditions | No copy is kept, and the review doesn't promise one. | Not run |
+| Pick a hand-edited backup naming gear that doesn't exist | Shown as not a Telos backup or unreadable; the current guild is unchanged. | Not run |
+| Accept a suggested plan, then change the squad | The plan sentence above the squad disappears. | Not run |
+| Third full expedition, with the music offer already answered | The feedback card appears at camp once. "No thanks" removes it for good, across relaunches. | Not run |
+| "Write an email" on that card | Mail opens a draft to telos@dahvio.com with the three questions, the build and iOS version, and a usage line of counts only. With no mail account, the address is copied and a notice says so. | Not run |
 
 All items above remain unverified on a physical iPhone. Record failures with the
 screen/route, reproduction steps, expected and actual behavior, and a screenshot

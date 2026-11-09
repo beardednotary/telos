@@ -1,5 +1,5 @@
 Telos privacy policy
-Effective 27 October 2026
+Effective 9 November 2026
 
 Telos is a focus timer. It has no accounts, no ads, no analytics and no tracking, and it makes no network connections of its own. What you put into it stays on your phone unless you choose to send it somewhere.
 
@@ -7,7 +7,7 @@ Telos is a focus timer. It has no accounts, no ads, no analytics and no tracking
 
 - Your guild: its name, members, equipment, resources and progress.
 - Your field log: each expedition's destination, length, times, Integrity and rewards, and the task and reflection notes you write.
-- A little local bookkeeping: when Telos was installed, how many times it has been opened and on which days, and when the field manual was first read. It never leaves your phone unless you export a backup and send it to us.
+- A little local bookkeeping: when Telos was installed, how many times it has been opened and on which days, how many expeditions were called home early or cancelled, and when the field manual was first read. It never leaves your phone unless you send it to us, either in a backup you export or in the usage line at the end of a feedback email. That line is counts only, it's in the email where you can read it, and you can delete it before sending.
 - If a save ever becomes unreadable, Telos keeps that copy on your phone instead of deleting it, so it can be repaired.
 
 This is stored in Telos's own storage on your phone. Like other app data, it is included in your phone's iCloud or computer backups if you use them, under Apple's terms.

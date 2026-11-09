@@ -97,6 +97,19 @@ class GuildState {
   DateTime? manualSeenAt;
   DateTime? manualDoneAt;
 
+  /// Runs taken back in the first 30 seconds. A cancel leaves nothing in the
+  /// log by design, so without this a dispatch abandoned on the spot is
+  /// invisible, and a lot of them would mean the dispatch screen is wrong.
+  int cancelledRuns;
+
+  /// Runs called home early, over the whole life of the guild. The log
+  /// marks these too, but the log is trimmed and this count is not.
+  int recalledRuns;
+
+  /// Camp asks for feedback once, after the third full expedition. Either
+  /// answer settles it; Settings has the link from then on.
+  bool feedbackAsked;
+
   GuildState({
     required this.guildName,
     this.guildSigil = GuildSigil.lantern,
@@ -133,6 +146,9 @@ class GuildState {
     List<String>? openDays,
     this.manualSeenAt,
     this.manualDoneAt,
+    this.cancelledRuns = 0,
+    this.recalledRuns = 0,
+    this.feedbackAsked = false,
   })  : trimmed = trimmed ?? LogTally(),
         contracts = contracts ?? <Contract>[],
         openDays = openDays ?? <String>[];
@@ -218,6 +234,9 @@ class GuildState {
 
   /// Every expedition ever banked, including those trimmed from the log.
   int get expeditions => trimmed.runs + log.length;
+
+  /// Expeditions that ran their full time rather than being called home.
+  int get completedRuns => max(0, expeditions - recalledRuns);
 
   /// Total protected minutes across every run - the headline stat.
   int get totalFocusMinutes =>
@@ -318,6 +337,9 @@ class GuildState {
         'openDays': openDays,
         'manualSeenAt': manualSeenAt?.toIso8601String(),
         'manualDoneAt': manualDoneAt?.toIso8601String(),
+        'cancelledRuns': cancelledRuns,
+        'recalledRuns': recalledRuns,
+        'feedbackAsked': feedbackAsked,
       };
 
   factory GuildState.fromJson(Map<String, dynamic> j) {
@@ -389,6 +411,14 @@ class GuildState {
       openDays: (j['openDays'] as List?)?.cast<String>() ?? <String>[],
       manualSeenAt: DateTime.tryParse(j['manualSeenAt'] as String? ?? ''),
       manualDoneAt: DateTime.tryParse(j['manualDoneAt'] as String? ?? ''),
+      cancelledRuns: j['cancelledRuns'] as int? ?? 0,
+      // Saves from before the count existed have their recalls in the log.
+      // Nobody has reached the trim yet, so the log has all of them.
+      recalledRuns: j['recalledRuns'] as int? ??
+          ((j['log'] as List?) ?? [])
+              .where((r) => r is Map && r['recalled'] == true)
+              .length,
+      feedbackAsked: j['feedbackAsked'] as bool? ?? false,
     );
   }
 }

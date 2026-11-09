@@ -669,8 +669,17 @@ void main() {
       find.byType(HomeScreen),
       matchesGoldenFile('goldens/home-music-offer.png'),
     );
-    // A guild this far along has long since answered.
+    // Music answered, the feedback question comes next: once, after the
+    // third full expedition.
     c.g.musicOffered = true;
+    c.notifyListeners();
+    await t.pumpAndSettle();
+    await expectLater(
+      find.byType(HomeScreen),
+      matchesGoldenFile('goldens/home-feedback-offer.png'),
+    );
+    // A guild this far along has long since answered both.
+    c.g.feedbackAsked = true;
     c.notifyListeners();
     await t.pumpAndSettle();
     await expectLater(
