@@ -8,6 +8,7 @@ import 'package:telos/data/content.dart';
 import 'package:telos/models/guild_state.dart';
 import 'package:telos/models/models.dart';
 import 'package:telos/screens/dispatch_screen.dart';
+import 'package:telos/screens/roster_screen.dart';
 import 'package:telos/services/expedition_engine.dart';
 import 'package:telos/services/persistence.dart';
 import 'package:telos/services/plan_suggestion.dart';
@@ -59,8 +60,8 @@ void main() {
     final best = suggestPlan(g, 45)!;
     final mine = progressAfter(g, best);
     final members = g.roster;
-    for (final sector in kSectors.where(
-        (s) => g.sectorUnlocked(s.id) && s.minMinutes <= 45)) {
+    for (final sector in kSectors
+        .where((s) => g.sectorUnlocked(s.id) && s.minMinutes <= 45)) {
       for (final m in members) {
         final f = ExpeditionEngine.forecast(
             guild: g, sector: sector, members: [m], minutes: 45);
@@ -105,5 +106,69 @@ void main() {
     expect(find.text('Deploy · 25 minutes'), findsOneWidget);
     expect(find.text('KAEL & MIRA · 2/2'), findsOneWidget,
         reason: 'a bigger squad carries more home');
+  });
+
+  group('the plan sentence goes once the plan it describes is changed', () {
+    /// The list builds lazily, so a line scrolled out of view is simply not
+    /// there to find. Bring the spot where the notice sits back first.
+    Future<bool> planShown(WidgetTester t) async {
+      await Scrollable.ensureVisible(
+          t.element(find.byKey(const Key('squad-step'))),
+          alignment: 0.5);
+      await t.pumpAndSettle();
+      return find.textContaining('Mosswood Verge with').evaluate().isNotEmpty;
+    }
+
+    Future<GuildController> suggested(WidgetTester t) async {
+      SharedPreferences.setMockInitialValues({});
+      final c = GuildController(Persistence());
+      await c.boot();
+      c.g.onboarded = true;
+      c.g.level = 3;
+      addTearDown(c.dispose);
+      t.view.physicalSize = const Size(390, 1400);
+      t.view.devicePixelRatio = 1;
+      addTearDown(t.view.resetPhysicalSize);
+      addTearDown(t.view.resetDevicePixelRatio);
+      await t.pumpWidget(ChangeNotifierProvider.value(
+        value: c,
+        child: MaterialApp(theme: T.theme(), home: const DispatchScreen()),
+      ));
+      await t.pumpAndSettle();
+      await t.tap(find.byKey(const Key('suggest-plan')));
+      await t.pumpAndSettle();
+      expect(find.textContaining('Mosswood Verge with'), findsOneWidget);
+      await t.ensureVisible(find.text('The squad'));
+      await t.tap(find.text('The squad'));
+      await t.pumpAndSettle();
+      expect(await planShown(t), isTrue);
+      return c;
+    }
+
+    // The audit's case: the sentence named KAEL and MIRA while only MIRA
+    // was selected.
+    testWidgets('by taking someone out of the squad', (t) async {
+      await suggested(t);
+      await t.ensureVisible(find.byKey(const Key('member-a1')));
+      await t.tap(find.byKey(const Key('member-a1')));
+      await t.pumpAndSettle();
+      expect(await planShown(t), isFalse);
+      expect(find.byKey(const Key('dispatch-notice')), findsNothing);
+    });
+
+    testWidgets('by going to change equipment', (t) async {
+      await suggested(t);
+      // Centred, so the deploy bar along the bottom cannot take the tap.
+      await Scrollable.ensureVisible(t.element(find.text('Review equipment')),
+          alignment: 0.5);
+      await t.pumpAndSettle();
+      await t.tap(find.text('Review equipment'));
+      await t.pumpAndSettle();
+      expect(find.byType(RosterScreen), findsOneWidget);
+      t.state<NavigatorState>(find.byType(Navigator)).pop();
+      await t.pumpAndSettle();
+      expect(find.byType(DispatchScreen), findsOneWidget);
+      expect(await planShown(t), isFalse);
+    });
   });
 }
