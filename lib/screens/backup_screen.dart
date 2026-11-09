@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -14,6 +13,7 @@ import '../state/guild_controller.dart';
 import '../theme/telos_theme.dart';
 import '../widgets/camp_controls.dart';
 import '../widgets/expedition_widgets.dart';
+import '../widgets/feedback_action.dart';
 import '../widgets/guild_sigil.dart';
 import '../widgets/management_widgets.dart';
 import 'guild_identity_sheet.dart';
@@ -115,29 +115,6 @@ class _BackupScreenState extends State<BackupScreen> {
       }
     }
     if (mounted) await _refresh();
-  }
-
-  /// Opens a feedback draft in Mail. With no mail account set up there is
-  /// nothing to open, so the address goes on the clipboard instead.
-  Future<void> _sendFeedback() async {
-    var build = '';
-    try {
-      final info = await PackageInfo.fromPlatform();
-      build = '${info.version} (${info.buildNumber})';
-    } catch (_) {}
-    final os = Platform.isIOS
-        ? 'iOS ${Platform.operatingSystemVersion}'
-        : Platform.operatingSystem;
-    var opened = false;
-    try {
-      opened = await widget.openMail(FeedbackMail.draft(build: build, os: os));
-    } catch (_) {}
-    if (opened || !mounted) return;
-    await Clipboard.setData(const ClipboardData(text: FeedbackMail.address));
-    if (mounted) {
-      campNotice(context,
-          'No mail account is set up. ${FeedbackMail.address} is copied.');
-    }
   }
 
   @override
@@ -308,7 +285,8 @@ class _BackupScreenState extends State<BackupScreen> {
                   key: const Key('settings-feedback'),
                   title: 'Send feedback',
                   detail: 'Email ${FeedbackMail.address}',
-                  onTap: _sendFeedback,
+                  onTap: () =>
+                      sendFeedback(context, g, openMail: widget.openMail),
                 ),
                 Padding(
                   padding: const EdgeInsets.all(16),

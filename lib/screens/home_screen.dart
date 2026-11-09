@@ -12,6 +12,7 @@ import '../theme/telos_theme.dart';
 import '../widgets/camp_controls.dart';
 import '../widgets/contract_board.dart';
 import '../widgets/expedition_widgets.dart';
+import '../widgets/feedback_action.dart';
 import '../widgets/guild_sigil.dart';
 import 'backup_screen.dart';
 import 'caravan_screen.dart';
@@ -205,6 +206,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(height: 16),
                 if (c.offerMusic) const _MusicOffer(),
+                if (c.offerFeedback) const _FeedbackOffer(),
                 CaravanCard(onDispatch: () => _visit(const DispatchScreen())),
                 Material(
                   color: T.card,
@@ -463,6 +465,65 @@ class _MusicOffer extends StatelessWidget {
                       label: 'Play it',
                       primary: true,
                       onPressed: () => c.setMusic(true),
+                    ),
+                  ),
+                ])),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Testers arrive through a public link and cannot be written to, so the
+/// one way to hear from them is to ask in the app. Once, after the third
+/// full expedition; either button settles it. Settings keeps the link.
+class _FeedbackOffer extends StatelessWidget {
+  const _FeedbackOffer();
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.read<GuildController>();
+    return Padding(
+      key: const Key('feedback-offer'),
+      padding: const EdgeInsets.only(bottom: 16),
+      child: ExpeditionPanel(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text('FEEDBACK', style: T.label),
+            const SizedBox(height: 6),
+            Text('Three expeditions in. How is it going?', style: T.title),
+            const SizedBox(height: 6),
+            Text(
+                'Telos is made by one person, and what players say decides '
+                'what gets built next. This opens an email with three short '
+                'questions. Nothing is sent unless you send it.',
+                style: T.secondary),
+            const SizedBox(height: 12),
+            IntrinsicHeight(
+                child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                  Expanded(
+                    child: CampButton(
+                      key: const Key('feedback-offer-no'),
+                      label: 'No thanks',
+                      onPressed: c.closeFeedbackOffer,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: CampButton(
+                      key: const Key('feedback-offer-yes'),
+                      label: 'Write an email',
+                      primary: true,
+                      onPressed: () async {
+                        // Draft first: closing the offer takes this card,
+                        // and the context a notice would need, with it.
+                        await sendFeedback(context, c.g);
+                        await c.closeFeedbackOffer();
+                      },
                     ),
                   ),
                 ])),
