@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -11,8 +12,12 @@ import '../theme/telos_theme.dart';
 /// opens on a blank frame, and it holds the camp music until it lifts, so the
 /// track fades in over camp rather than starting cold.
 ///
-/// The native launch window on both platforms is the same flat [T.black], so
-/// the hand-off from the OS is invisible.
+/// The native launch window is the same [T.black]. On iOS it also draws the
+/// lantern, unlit, where this screen draws it (LaunchScreen.storyboard), so
+/// here the lantern starts already showing and only the glow and the name come
+/// in. The first frame waits for the lantern to decode, so iOS hands over to a
+/// frame that already has it. Android's window is flat, and the lantern fades
+/// in there.
 class LaunchScreen extends StatefulWidget {
   const LaunchScreen({super.key, required this.child});
 
@@ -23,6 +28,13 @@ class LaunchScreen extends StatefulWidget {
 
   /// The intro waits for the lantern to decode, but no longer than this.
   static const decodeGrace = Duration(milliseconds: 250);
+
+  /// Whether the OS launch screen already shows the lantern. These numbers
+  /// are copied into ios/Runner/Base.lproj/LaunchScreen.storyboard: change
+  /// them together.
+  static bool get nativeLantern => defaultTargetPlatform == TargetPlatform.iOS;
+  static const lanternHeight = 120.0;
+  static const nameGap = 8.0;
 
   @override
   State<LaunchScreen> createState() => _LaunchScreenState();
@@ -36,10 +48,15 @@ class _LaunchScreenState extends State<LaunchScreen>
   Timer? _grace;
   bool _lifting = false;
   bool _gone = false;
+  bool _firstFrameHeld = false;
 
   @override
   void initState() {
     super.initState();
+    if (LaunchScreen.nativeLantern) {
+      WidgetsBinding.instance.deferFirstFrame();
+      _firstFrameHeld = true;
+    }
     _c = context.read<GuildController>()..addListener(_maybeLift);
     _intro.addStatusListener((_) => _maybeLift());
     _grace = Timer(LaunchScreen.decodeGrace, _start);
@@ -47,12 +64,19 @@ class _LaunchScreenState extends State<LaunchScreen>
 
   void _start() {
     _grace?.cancel();
+    _releaseFirstFrame();
     if (!mounted || _intro.isAnimating || _intro.value > 0) return;
     if (MediaQuery.disableAnimationsOf(context)) {
       _intro.value = 1;
     } else {
       _intro.forward();
     }
+  }
+
+  void _releaseFirstFrame() {
+    if (!_firstFrameHeld) return;
+    _firstFrameHeld = false;
+    WidgetsBinding.instance.allowFirstFrame();
   }
 
   /// Once the lantern is lit and the save is loaded, whichever is later.
@@ -66,6 +90,7 @@ class _LaunchScreenState extends State<LaunchScreen>
   @override
   void dispose() {
     _grace?.cancel();
+    _releaseFirstFrame();
     _c.removeListener(_maybeLift);
     _intro.dispose();
     super.dispose();
@@ -106,7 +131,9 @@ class _Lantern extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final lantern = _part(0, .6, Curves.easeInOut);
+    final lantern = LaunchScreen.nativeLantern
+        ? kAlwaysCompleteAnimation
+        : _part(0, .6, Curves.easeInOut);
     final glow = _part(.25, .9);
     final name = _part(.5, 1);
     // A Material, not a bare colour: above the Navigator there is no default
@@ -149,7 +176,7 @@ class _Lantern extends StatelessWidget {
                     opacity: lantern,
                     child: Image.asset(
                       'assets/art/lantern.webp',
-                      height: 120,
+                      height: LaunchScreen.lanternHeight,
                       excludeFromSemantics: true,
                       frameBuilder: (context, child, frame, sync) {
                         if (frame != null || sync) {
@@ -163,7 +190,7 @@ class _Lantern extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: LaunchScreen.nameGap),
             FadeTransition(
               opacity: name,
               child: SlideTransition(
