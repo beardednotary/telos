@@ -18,6 +18,7 @@ import 'services/music.dart';
 import 'services/persistence.dart';
 import 'state/guild_controller.dart';
 import 'theme/telos_theme.dart';
+import 'widgets/wide_layout.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -81,6 +82,8 @@ class TelosApp extends StatelessWidget {
       title: 'Telos',
       debugShowCheckedModeBanner: false,
       theme: T.theme(),
+      // The phone layout, centred on an iPad or a phone on its side.
+      builder: WideLayout.builder,
       home: const LaunchScreen(child: Root()),
     );
   }

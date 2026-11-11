@@ -32,6 +32,7 @@ import 'package:telos/widgets/contract_board.dart';
 import 'package:telos/widgets/share_cards.dart';
 import 'package:telos/widgets/sector_header.dart';
 import 'package:telos/widgets/sigil.dart';
+import 'package:telos/widgets/wide_layout.dart';
 
 import 'support/archive_fixtures.dart';
 
@@ -68,6 +69,8 @@ Widget _phone(GuildController c, Widget child) => ChangeNotifierProvider.value(
       child: MaterialApp(
         theme: T.theme(),
         debugShowCheckedModeBanner: false,
+        // As the app has it, so a tablet-sized frame previews the column.
+        builder: WideLayout.builder,
         home: child,
       ),
     );
