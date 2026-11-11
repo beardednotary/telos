@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../models/models.dart';
@@ -25,10 +27,18 @@ class SectorHeader extends StatelessWidget {
 
   static String assetFor(String sectorId) => 'assets/art/sectors/$sectorId.webp';
 
+  /// The height of a full-width illustration: 184 on a phone, 150 on the
+  /// narrowest, and in proportion on a wider column (an iPad), so the crop
+  /// frames the same picture it does on a phone instead of a thin strip.
+  static double heightFor(BuildContext context) {
+    final width = MediaQuery.sizeOf(context).width;
+    if (width <= 340) return 150;
+    return math.max(184, width * 184 / 440);
+  }
+
   @override
   Widget build(BuildContext context) {
-    final h =
-        height ?? (MediaQuery.sizeOf(context).width <= 340 ? 150 : 184);
+    final h = height ?? heightFor(context);
 
     return Image.asset(
       assetFor(sector.id),
