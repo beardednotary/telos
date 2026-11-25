@@ -16,6 +16,7 @@ import '../services/lock_screen.dart';
 import '../services/music.dart';
 import '../services/persistence.dart';
 import '../services/redeploy.dart';
+import '../services/review_prompt.dart';
 import '../models/guild_identity.dart';
 
 /// Owns the save file, the live run, and every mutation the UI can make.
@@ -26,18 +27,21 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
     LockScreen? lockScreen,
     LaunchActions? launchActions,
     Music? music,
+    ReviewPrompt? reviewPrompt,
     bool launchScreen = false,
   })  : _behindLaunchScreen = launchScreen,
         _alerts = alerts ?? NoopAlerts(),
         _lockScreen = lockScreen ?? NoopLockScreen(),
         _launch = launchActions ?? NoopLaunchActions(),
-        _music = music ?? NoopMusic();
+        _music = music ?? NoopMusic(),
+        _review = reviewPrompt ?? NoopReviewPrompt();
 
   final Persistence _store;
   final Alerts _alerts;
   final LockScreen _lockScreen;
   final LaunchActions _launch;
   final Music _music;
+  final ReviewPrompt _review;
 
   GuildState _g = GuildState.fresh();
   GuildState get g => _g;
@@ -750,10 +754,26 @@ class GuildController extends ChangeNotifier with WidgetsBindingObserver {
   }
 
   Future<void> dismissDebrief() async {
+    final record = _g.pendingDebrief;
     _g.pendingDebrief = null;
+    final askForReview = record != null && _reviewDue(record);
+    if (askForReview) _g.reviewPrompts++;
     await _save();
     notifyListeners();
+    if (askForReview) await _courtesy(_review.request);
   }
+
+  /// The full runs after which Telos asks for an App Store rating: the second,
+  /// once someone has seen a squad come home more than once, and the twelfth,
+  /// once they are a regular. Each is asked at most once.
+  static const reviewMilestones = [2, 12];
+
+  /// Only on leaving the report of a run that went its full time, the moment
+  /// the app has most clearly done its job. Never after a recall.
+  bool _reviewDue(RunRecord record) =>
+      !record.recalled &&
+      _g.reviewPrompts < reviewMilestones.length &&
+      _g.completedRuns >= reviewMilestones[_g.reviewPrompts];
 
   // -- roster ----------------------------------------------------------------
 

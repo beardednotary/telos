@@ -16,6 +16,7 @@ import 'services/launch_actions.dart';
 import 'services/lock_screen.dart';
 import 'services/music.dart';
 import 'services/persistence.dart';
+import 'services/review_prompt.dart';
 import 'state/guild_controller.dart';
 import 'theme/telos_theme.dart';
 
@@ -63,6 +64,7 @@ Future<void> main() async {
     lockScreen: SystemLockScreen(),
     launchActions: SystemLaunchActions(),
     music: CampMusic(),
+    reviewPrompt: SystemReviewPrompt(),
     launchScreen: true,
   );
   // The launch screen is up while the save loads underneath it.
