@@ -1,4 +1,5 @@
 import Flutter
+import StoreKit
 import UIKit
 import UserNotifications
 import WidgetKit
@@ -9,6 +10,8 @@ import WidgetKit
   private var liveActivityChannel: FlutterMethodChannel?
   /// Dart side: lib/services/launch_actions.dart.
   private var shortcutsChannel: FlutterMethodChannel?
+  /// Dart side: lib/services/review_prompt.dart.
+  private var reviewChannel: FlutterMethodChannel?
 
   override func application(
     _ application: UIApplication,
@@ -103,6 +106,30 @@ import WidgetKit
       DispatchQueue.main.async { shortcuts?.invokeMethod("pending", arguments: nil) }
     }
     shortcutsChannel = shortcuts
+
+    // The App Store rating prompt, after a full run's report. iOS decides
+    // whether it shows, and caps it at three times a year.
+    let review = FlutterMethodChannel(
+      name: "telos/review", binaryMessenger: registrar.messenger())
+    review.setMethodCallHandler { call, result in
+      guard call.method == "request" else {
+        result(FlutterMethodNotImplemented)
+        return
+      }
+      Task { @MainActor in
+        if let scene = UIApplication.shared.connectedScenes
+          .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene
+        {
+          if #available(iOS 16.0, *) {
+            AppStore.requestReview(in: scene)
+          } else {
+            SKStoreReviewController.requestReview(in: scene)
+          }
+        }
+        result(nil)
+      }
+    }
+    reviewChannel = review
 
     // A tap on the Dispatch widget arrives as a telos://dispatch/ link. It
     // goes through the same relay as Shortcuts, so Dart starts every run the

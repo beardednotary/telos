@@ -110,6 +110,11 @@ class GuildState {
   /// answer settles it; Settings has the link from then on.
   bool feedbackAsked;
 
+  /// How many times Telos has asked the App Store for a rating prompt. It
+  /// asks at the milestones in GuildController.reviewMilestones, after a
+  /// full run's report, and never more than once per milestone.
+  int reviewPrompts;
+
   GuildState({
     required this.guildName,
     this.guildSigil = GuildSigil.lantern,
@@ -149,6 +154,7 @@ class GuildState {
     this.cancelledRuns = 0,
     this.recalledRuns = 0,
     this.feedbackAsked = false,
+    this.reviewPrompts = 0,
   })  : trimmed = trimmed ?? LogTally(),
         contracts = contracts ?? <Contract>[],
         openDays = openDays ?? <String>[];
@@ -340,6 +346,7 @@ class GuildState {
         'cancelledRuns': cancelledRuns,
         'recalledRuns': recalledRuns,
         'feedbackAsked': feedbackAsked,
+        'reviewPrompts': reviewPrompts,
       };
 
   factory GuildState.fromJson(Map<String, dynamic> j) {
@@ -419,6 +426,7 @@ class GuildState {
               .where((r) => r is Map && r['recalled'] == true)
               .length,
       feedbackAsked: j['feedbackAsked'] as bool? ?? false,
+      reviewPrompts: j['reviewPrompts'] as int? ?? 0,
     );
   }
 }
