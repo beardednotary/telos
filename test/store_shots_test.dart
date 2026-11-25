@@ -300,8 +300,8 @@ void main() {
     await frame(t);
     final c = GuildController(Persistence());
     await c.boot();
-    // A player a year past arriving: enough floors to read as a real share
-    // of the structure, nowhere near the centuries below.
+    // A few months of regular use: enough brass to see on the drawing
+    // without reading as a target for someone who hasn't started.
     c.g.spireCompletedAt = DateTime(2026, 3, 1);
     c.g.spireCompletionMinutes = 0;
     c.g.spireCharterName = c.g.guildName;
@@ -313,7 +313,7 @@ void main() {
       startedAt: DateTime(2026, 3, 1),
       endedAt: DateTime(2026, 3, 1),
       plannedMinutes: 0,
-      elapsedSeconds: 240 * 60 * 60,
+      elapsedSeconds: 100 * 60 * 60,
       integrity: 1,
       recalled: false,
       scraps: false,
