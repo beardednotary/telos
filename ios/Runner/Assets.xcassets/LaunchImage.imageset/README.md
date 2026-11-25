@@ -1,5 +1,3 @@
-# Launch Screen Assets
+# Launch image
 
-You can customize the launch screen with your own desired assets by replacing the image files in this directory.
-
-You can also do it by opening your Flutter project's Xcode project with `open ios/Runner.xcworkspace`, selecting `Runner/Assets.xcassets` in the Project Navigator and dropping in the desired images.
+The lantern from assets/art/lantern.webp, unlit, at 82.5 x 120 pt. LaunchScreen.storyboard places it where lib/screens/launch_screen.dart draws it, so the intro starts from it without a blink. If the art or that layout changes, regenerate these from the webp and update both.

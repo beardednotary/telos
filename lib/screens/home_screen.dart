@@ -14,6 +14,7 @@ import '../widgets/contract_board.dart';
 import '../widgets/expedition_widgets.dart';
 import '../widgets/feedback_action.dart';
 import '../widgets/guild_sigil.dart';
+import '../widgets/sector_header.dart';
 import 'backup_screen.dart';
 import 'caravan_screen.dart';
 import 'dispatch_screen.dart';
@@ -182,8 +183,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     // A mood illustration of camp, not the selected squad.
                     Image.asset(
                       'assets/art/camp.webp',
-                      height:
-                          MediaQuery.sizeOf(context).width <= 340 ? 150 : 184,
+                      height: SectorHeader.heightFor(context),
                       width: double.infinity,
                       fit: BoxFit.cover,
                       alignment: const Alignment(0, .15),

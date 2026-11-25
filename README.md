@@ -244,6 +244,12 @@ requirement to every content entry.
 Night Watch is the launch design: charcoal, brass, practical field equipment,
 and clear boundaries around optional detail.
 
+On an iPad, or a phone on its side, the same layout sits in a centred
+640-point column with darker margins (`lib/widgets/wide_layout.dart`). The
+column reports its width as the screen size, so illustrations, sheets and
+dialogs size themselves to it, and full-width illustrations grow in
+proportion so they crop the same scene as on a phone.
+
 - Ground `#1E252B`, panel `#272F35`, boundary `#677A83`, text `#E6EAEB`.
 - Brass `#D3B779` identifies the main action. Secondary controls use neutral
   outlines; color is not the only way to read a state.

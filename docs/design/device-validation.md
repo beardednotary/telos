@@ -68,6 +68,21 @@ long-term balance of a player who always stays at 25 minutes.
 | Third full expedition, with the music offer already answered | The feedback card appears at camp once. "No thanks" removes it for good, across relaunches. | Not run |
 | "Write an email" on that card | Mail opens a draft to telos@dahvio.com with the three questions, the build and iOS version, and a usage line of counts only. With no mail account, the address is copied and a notice says so. | Not run |
 
+## Added for iPad
+
+On an iPad, or a phone on its side, the phone layout sits in a centred
+640-point column with darker margins (`lib/widgets/wide_layout.dart`).
+Check on an iPad, or the iPad simulator if there is no device.
+
+| Case | Expected result | Result |
+|---|---|---|
+| Camp, dispatch, a run and its report, portrait | One centred column; nothing stretches to the edges. The camp and sector illustrations show the whole scene, heads included. | Not run |
+| Rotate to landscape and back, mid-run and at camp | The column stays centred; the timer and its end time are unaffected. | Not run |
+| Split View and Slide Over at each width | Narrow panes use the full pane, as on a phone; wide ones show the column. | Not run |
+| Bottom sheets and dialogs (duration picker, project choice, guild identity, recall) | They open inside the column, not across the whole screen. | Not run |
+| Keyboard while naming the guild or writing an intention | The field stays above the keyboard. | Not run |
+| Share an expedition card from the report | The share sheet points at the share control. | Not run |
+
 All items above remain unverified on a physical iPhone. Record failures with the
 screen/route, reproduction steps, expected and actual behavior, and a screenshot
 or device log. Automated evidence and native previews are in the
