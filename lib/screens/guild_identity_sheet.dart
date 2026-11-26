@@ -4,7 +4,7 @@ import '../models/guild_identity.dart';
 import '../state/guild_controller.dart';
 import '../theme/telos_theme.dart';
 import '../widgets/camp_controls.dart';
-import '../widgets/guild_sigil.dart';
+import '../widgets/mark_plate.dart';
 
 Future<void> showGuildIdentity(
         BuildContext context, GuildController controller) =>
@@ -128,7 +128,10 @@ class _GuildIdentitySheetState extends State<GuildIdentitySheet> {
                               ),
                               child: Column(children: [
                                 ExcludeSemantics(
-                                    child: GuildEmblem(sigil: sigil)),
+                                    child: MarkPlate.guild(
+                                        sigil: sigil,
+                                        color: T.amber,
+                                        size: 64)),
                                 const SizedBox(height: 8),
                                 Text(sigil.label,
                                     style: T.secondary.copyWith(color: T.text)),

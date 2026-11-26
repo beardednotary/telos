@@ -12,6 +12,7 @@ import 'package:telos/state/guild_controller.dart';
 import 'package:telos/theme/telos_theme.dart';
 import 'package:telos/widgets/camp_controls.dart';
 import 'package:telos/widgets/sector_header.dart';
+import 'package:telos/widgets/mark_plate.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -244,12 +245,16 @@ void main() {
     await tap(t, find.text('Recruiting'));
     await tap(t, find.byKey(const Key('recruit-archivist')));
     expect(find.text('Guild level too low'), findsOneWidget);
+    expect(t.widget<MarkPlate>(find.byType(MarkPlate)).size, 64);
     await tap(t, find.byKey(const Key('confirm-recruit')));
     expect(c.g.roster.length, 2);
     await closeSheet(t);
     c.g.level = 2;
     await tap(t, find.byKey(const Key('recruit-archivist')));
     await tap(t, find.byKey(const Key('confirm-recruit')));
+    expect(t.widget<MarkPlate>(find.byType(MarkPlate)).size, 72);
+    expect(t.widget<MarkPlate>(find.byType(MarkPlate)).assetPath,
+        MarkPlate.classAssetFor('archivist'));
     await dismissAcknowledgement(t);
     expect(c.g.roster.length, 3);
     expect(c.g.roster.last.classId, 'archivist');
@@ -265,6 +270,9 @@ void main() {
     await closeSheet(t);
     await tap(t, find.byKey(const Key('access-blackstone')));
     await tap(t, find.byKey(const Key('confirm-unlock')));
+    expect(t.widget<MarkPlate>(find.byType(MarkPlate)).size, 72);
+    expect(t.widget<MarkPlate>(find.byType(MarkPlate)).assetPath,
+        MarkPlate.sectorAssetFor('blackstone'));
     expect(c.g.sectorUnlocked('blackstone'), isTrue);
     expect(c.g.intel, 500 - sectorById('blackstone').intelToUnlock);
   });
@@ -276,9 +284,11 @@ void main() {
     await tap(t, find.text('Sector access'));
     expect(find.byType(SectorHeader), findsNothing,
         reason: 'the sector list has no illustration thumbnails');
+    expect(find.byType(MarkPlate), findsNothing);
     await tap(t, find.byKey(const Key('access-spire')));
     expect(find.byType(SectorHeader), findsNothing,
         reason: 'the locked Spire review must not reveal its illustration');
+    expect(find.byType(MarkPlate), findsNothing);
     await closeSheet(t);
 
     c.g.unlockedSectors.add('spire');

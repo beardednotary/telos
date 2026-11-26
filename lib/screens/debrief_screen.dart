@@ -7,7 +7,7 @@ import '../models/models.dart';
 import '../state/guild_controller.dart';
 import '../theme/telos_theme.dart';
 import '../widgets/gear_art.dart';
-import '../widgets/guild_sigil.dart';
+import '../widgets/mark_plate.dart';
 import '../widgets/camp_controls.dart';
 import '../widgets/caravan_header.dart';
 import '../widgets/expedition_widgets.dart';
@@ -403,7 +403,9 @@ class _DebriefScreenState extends State<DebriefScreen>
             style: T.label.copyWith(color: T.amber)),
         const SizedBox(height: 16),
         if (r.guildLevelUps > 0) ...[
-          Center(child: GuildEmblem(sigil: g.guildSigil, size: 88)),
+          Center(
+              child: MarkPlate.guild(
+                  sigil: g.guildSigil, color: T.amber, size: 88)),
           const SizedBox(height: 18),
           Text('Guild level ${g.level}',
               textAlign: TextAlign.center, style: T.display),

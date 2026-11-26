@@ -1,0 +1,197 @@
+{
+  "generator": "Built-in image_gen tool",
+  "style_lock": "docs/design/camp-study/art-prompt.md",
+  "brief": "docs/design/sigils/prompts.md",
+  "shared_prompt_skeleton": "Use case: stylized-concept. Asset type: a single carved sign for a mobile expedition RPG, square 1:1 composition, the mark centred and filling the central 80% of the frame. Keep the exact silhouette and stroke layout of the attached reference mark. {MARK} Art style: a woodcut or die-struck stamp; confident heavy inked strokes, a few sparse cut hatches, slightly chipped worn edges, as if cut by hand into a printing block. Pure black ink on flat plain off-white paper, no paper texture. Strong silhouette that stays readable at 64 pixels. No colour, no gradient, no glow, no shadow, no background, no frame, no border, no text, typography, numbers, watermark, photorealism, glossy 3D, or decorative fantasy ornament. A single mark; no animation.",
+  "export": {
+    "width": 512,
+    "height": 512,
+    "format": "WebP",
+    "quality": 86,
+    "method": 6,
+    "lossless": false,
+    "resampling": "LANCZOS",
+    "paper_luminance": 220,
+    "ink_luminance": 30,
+    "alpha": "clamp((paper L - pixel L) / (paper L - ink L), 0, 1)",
+    "rgb": [
+      0,
+      0,
+      0
+    ],
+    "max_bytes": 25000,
+    "keying_notes": "Luminance endpoints 220 (paper) and 30 (ink) clip the light paper variations to fully transparent and dark ink to solid. Antialiased edges remain fractional alpha."
+  },
+  "review": {
+    "amber": "#D3B779",
+    "card": "#272F35",
+    "plate_sizes": [
+      64,
+      72,
+      88
+    ],
+    "stroke_sizes": [
+      72,
+      24
+    ],
+    "reference_canvas": 512,
+    "reference_mark_box": [
+      96,
+      96,
+      416,
+      416
+    ],
+    "spoilers": "sectors/spire stays behind an explicit reveal; excluded from marketing and store listings"
+  },
+  "assets": [
+    {
+      "id": "sectors/mosswood",
+      "reference": "current/sector-mosswood.png",
+      "source": "sources/sector-mosswood.png",
+      "asset": "assets/art/marks/sectors/mosswood.webp",
+      "spoiler": false,
+      "prompt": "Use case: stylized-concept. Asset type: a single carved sign for a mobile expedition RPG, square 1:1 composition, the mark centred and filling the central 80% of the frame. Keep the exact silhouette and stroke layout of the attached reference mark. A single conifer as a cut sign: a pointed canopy chevron, a straight trunk to the base, two shorter branch arms lower down. The supplied current/sector-mosswood.png is the required geometry reference: one upright central trunk, one high pointed chevron and one shorter paired set of diagonal branches joined at the trunk. Preserve those exact angles, proportions and open gaps. Scale the reference mark uniformly to occupy about 80% of the square height; do not preserve the reference's extra outer blank margin. Add only a few broad shallow edge chips and sparse cuts that remain legible at 64px. Do not turn this abstract sign into a tree illustration or add branches. Art style: a woodcut or die-struck stamp; confident heavy inked strokes, a few sparse cut hatches, slightly chipped worn edges, as if cut by hand into a printing block. Pure black ink on flat plain off-white paper, no paper texture. Strong silhouette that stays readable at 64 pixels. No colour, no gradient, no glow, no shadow, no background, no frame, no border, no text, typography, numbers, watermark, photorealism, glossy 3D, or decorative fantasy ornament. A single mark; no animation.",
+      "revisions": [],
+      "generated_source": "C:\\Users\\rayro\\.codex\\generated_images\\01a12e43-30c3-7bc3-a3ff-698e10e8ae53\\exec-9d4d92c5-84f1-4332-bb7f-136666ff8478.png"
+    },
+    {
+      "id": "sectors/blackstone",
+      "reference": "current/sector-blackstone.png",
+      "source": "sources/sector-blackstone.png",
+      "asset": "assets/art/marks/sectors/blackstone.webp",
+      "spoiler": false,
+      "prompt": "Use case: stylized-concept. Asset type: a single carved sign for a mobile expedition RPG, square 1:1 composition, the mark centred and filling the central 80% of the frame. Keep the exact silhouette and stroke layout of the attached reference mark. Two stacked downward chevrons above a heavy horizontal floor bar, like a shaft dropping to its bottom. Input image: current/sector-blackstone.png is the required silhouette and stroke-layout reference. Exactly three separate elements: large downward V, smaller downward V nested beneath it without touching, then a detached horizontal floor bar. Preserve the open gaps, relative lengths and angles of the reference. No mine scene or added strata. Scale the entire reference mark uniformly to occupy about 80% of the square height, keeping its proportions; disregard only the extra outer blank margin. Use a few broad shallow chips and sparse cut hatches, matching a hand-inked rulebook mark. Preserve all stroke connections and open spaces. Art style: a woodcut or die-struck stamp; confident heavy inked strokes, a few sparse cut hatches, slightly chipped worn edges, as if cut by hand into a printing block. Pure black ink on flat plain off-white paper, no paper texture. Strong silhouette that stays readable at 64 pixels. No colour, no gradient, no glow, no shadow, no background, no frame, no border, no text, typography, numbers, watermark, photorealism, glossy 3D, or decorative fantasy ornament. A single mark; no animation.",
+      "revisions": [],
+      "generated_source": "C:\\Users\\rayro\\.codex\\generated_images\\01a12e43-30c3-7bc3-a3ff-698e10e8ae53\\exec-c7052e88-043f-4ff4-8ce2-be6d4940a70e.png"
+    },
+    {
+      "id": "sectors/cinder",
+      "reference": "current/sector-cinder.png",
+      "source": "sources/sector-cinder.png",
+      "asset": "assets/art/marks/sectors/cinder.webp",
+      "spoiler": false,
+      "prompt": "Use case: stylized-concept. Asset type: a single carved sign for a mobile expedition RPG, square 1:1 composition, the mark centred and filling the central 80% of the frame. Keep the exact silhouette and stroke layout of the attached reference mark. A closed ledger seen face-on, struck through by one heavy diagonal cut, its edges ragged as if scorched. Keep it reading as a book, not a domino. Input image: current/sector-cinder.png is the required silhouette and stroke-layout reference. Preserve the reference's tall empty rectangular cover outline, the slightly stepped top-left spine join, and the single detached diagonal ink stroke running from lower left toward upper right inside it. Do not fill the cover black. No dots, text, extra page lines or added shapes. Scale the entire reference mark uniformly to occupy about 80% of the square height, keeping its proportions; disregard only the extra outer blank margin. Use a few broad shallow chips and sparse cut hatches, matching a hand-inked rulebook mark. Preserve all stroke connections and open spaces. Art style: a woodcut or die-struck stamp; confident heavy inked strokes, a few sparse cut hatches, slightly chipped worn edges, as if cut by hand into a printing block. Pure black ink on flat plain off-white paper, no paper texture. Strong silhouette that stays readable at 64 pixels. No colour, no gradient, no glow, no shadow, no background, no frame, no border, no text, typography, numbers, watermark, photorealism, glossy 3D, or decorative fantasy ornament. A single mark; no animation.",
+      "revisions": [],
+      "generated_source": "C:\\Users\\rayro\\.codex\\generated_images\\01a12e43-30c3-7bc3-a3ff-698e10e8ae53\\exec-77333e6b-e8aa-40d5-803a-85ae328ae6d4.png"
+    },
+    {
+      "id": "sectors/riftline",
+      "reference": "current/sector-riftline.png",
+      "source": "sources/sector-riftline.png",
+      "asset": "assets/art/marks/sectors/riftline.webp",
+      "spoiler": false,
+      "prompt": "Use case: stylized-concept. Asset type: a single carved sign for a mobile expedition RPG, square 1:1 composition, the mark centred and filling the central 80% of the frame. Keep the exact silhouette and stroke layout of the attached reference mark. A heavy vertical centre line with an angle bracket pulled away on each side, a little cut rock grain on the brackets. Input image: current/sector-riftline.png is the required silhouette and stroke-layout reference. Exactly three detached elements in the reference arrangement: a long straight upright centre bar, a left-pointing angle bracket to its left, a right-pointing angle bracket to its right. The brackets are shorter than the centre bar. Keep both gaps open. No rocks or surrounding scene. Scale the entire reference mark uniformly to occupy about 80% of the square height, keeping its proportions; disregard only the extra outer blank margin. Use a few broad shallow chips and sparse cut hatches, matching a hand-inked rulebook mark. Preserve all stroke connections and open spaces. Art style: a woodcut or die-struck stamp; confident heavy inked strokes, a few sparse cut hatches, slightly chipped worn edges, as if cut by hand into a printing block. Pure black ink on flat plain off-white paper, no paper texture. Strong silhouette that stays readable at 64 pixels. No colour, no gradient, no glow, no shadow, no background, no frame, no border, no text, typography, numbers, watermark, photorealism, glossy 3D, or decorative fantasy ornament. A single mark; no animation.",
+      "revisions": [],
+      "generated_source": "C:\\Users\\rayro\\.codex\\generated_images\\01a12e43-30c3-7bc3-a3ff-698e10e8ae53\\exec-2d108bf3-62e6-4c42-b0d6-b28ba671bdb7.png"
+    },
+    {
+      "id": "sectors/spire",
+      "reference": "current/sector-spire.png",
+      "source": "sources/sector-spire.png",
+      "asset": "assets/art/marks/sectors/spire.webp",
+      "spoiler": true,
+      "prompt": "Use case: stylized-concept. Asset type: a single carved sign for a mobile expedition RPG, square 1:1 composition, the mark centred and filling the central 80% of the frame. Keep the exact silhouette and stroke layout of the attached reference mark. A narrow tapering tower in banded courses, with a pointed cap above the top band. Input image: current/sector-spire.png is the required silhouette and stroke-layout reference. Preserve the reference geometry: two diagonal legs tapering inward toward the apex, two horizontal rungs joining the legs, and one small pointed triangular cap over the top. Keep the spaces between the rungs open and the bottom open. No extra courses, architectural scenery or stars. Scale the entire reference mark uniformly to occupy about 80% of the square height, keeping its proportions; disregard only the extra outer blank margin. Use a few broad shallow chips and sparse cut hatches, matching a hand-inked rulebook mark. Preserve all stroke connections and open spaces. Art style: a woodcut or die-struck stamp; confident heavy inked strokes, a few sparse cut hatches, slightly chipped worn edges, as if cut by hand into a printing block. Pure black ink on flat plain off-white paper, no paper texture. Strong silhouette that stays readable at 64 pixels. No colour, no gradient, no glow, no shadow, no background, no frame, no border, no text, typography, numbers, watermark, photorealism, glossy 3D, or decorative fantasy ornament. A single mark; no animation.",
+      "revisions": [],
+      "generated_source": "C:\\Users\\rayro\\.codex\\generated_images\\01a12e43-30c3-7bc3-a3ff-698e10e8ae53\\exec-f9c7e817-aea6-4fa3-a612-01fad6363b22.png"
+    },
+    {
+      "id": "classes/vanguard",
+      "reference": "current/class-vanguard.png",
+      "source": "sources/class-vanguard.png",
+      "asset": "assets/art/marks/classes/vanguard.webp",
+      "spoiler": false,
+      "prompt": "Use case: stylized-concept. Asset type: a single carved sign for a mobile expedition RPG, square 1:1 composition, the mark centred and filling the central 80% of the frame. Keep the exact silhouette and stroke layout of the attached reference mark. A top bar over a deep V, crossed by a short bar: a shield set in the ground. Input image: current/class-vanguard.png is the required silhouette and stroke-layout reference. Keep the wide level top beam, the two sloping sides converging at a single downward point, and the short horizontal middle crossbar. Keep the upper trapezoidal opening and lower triangular opening empty. No shield perimeter around this abstract sign. Scale the complete mark uniformly to fill about 80% of the square's longer dimension, preserving the reference proportions; disregard only the extra outer blank margin. Add just a few shallow edge chips and sparse broad cut hatches that survive reduction to 64px. Preserve all connections and open spaces. Art style: a woodcut or die-struck stamp; confident heavy inked strokes, a few sparse cut hatches, slightly chipped worn edges, as if cut by hand into a printing block. Pure black ink on flat plain off-white paper, no paper texture. Strong silhouette that stays readable at 64 pixels. No colour, no gradient, no glow, no shadow, no background, no frame, no border, no text, typography, numbers, watermark, photorealism, glossy 3D, or decorative fantasy ornament. A single mark; no animation.",
+      "revisions": [],
+      "generated_source": "C:\\Users\\rayro\\.codex\\generated_images\\01a12e43-30c3-7bc3-a3ff-698e10e8ae53\\exec-73a713da-208f-41b7-8c22-38dc814a5ca8.png"
+    },
+    {
+      "id": "classes/recon",
+      "reference": "current/class-recon.png",
+      "source": "sources/class-recon.png",
+      "asset": "assets/art/marks/classes/recon.webp",
+      "spoiler": false,
+      "prompt": "Use case: stylized-concept. Asset type: a single carved sign for a mobile expedition RPG, square 1:1 composition, the mark centred and filling the central 80% of the frame. Keep the exact silhouette and stroke layout of the attached reference mark. A diagonal arrow rising to the upper right, its head an open corner, two short speed ticks trailing at the lower left. Input image: current/class-recon.png is the required silhouette and stroke-layout reference. Keep one diagonal shaft from lower left to upper right; at its upper-right end one horizontal leftward and one vertical downward head arm forming an open right-angle corner. Keep the two detached short horizontal ticks to the left of the shaft. No third tick, feathering or filled triangular arrowhead. Scale the complete mark uniformly to fill about 80% of the square's longer dimension, preserving the reference proportions; disregard only the extra outer blank margin. Add just a few shallow edge chips and sparse broad cut hatches that survive reduction to 64px. Preserve all connections and open spaces. Art style: a woodcut or die-struck stamp; confident heavy inked strokes, a few sparse cut hatches, slightly chipped worn edges, as if cut by hand into a printing block. Pure black ink on flat plain off-white paper, no paper texture. Strong silhouette that stays readable at 64 pixels. No colour, no gradient, no glow, no shadow, no background, no frame, no border, no text, typography, numbers, watermark, photorealism, glossy 3D, or decorative fantasy ornament. A single mark; no animation.",
+      "revisions": [],
+      "generated_source": "C:\\Users\\rayro\\.codex\\generated_images\\01a12e43-30c3-7bc3-a3ff-698e10e8ae53\\exec-b1729fcb-2c88-47d1-a070-f1e117804f41.png"
+    },
+    {
+      "id": "classes/archivist",
+      "reference": "current/class-archivist.png",
+      "source": "sources/class-archivist.png",
+      "asset": "assets/art/marks/classes/archivist.webp",
+      "spoiler": false,
+      "prompt": "Use case: stylized-concept. Asset type: a single carved sign for a mobile expedition RPG, square 1:1 composition, the mark centred and filling the central 80% of the frame. Keep the exact silhouette and stroke layout of the attached reference mark. An open book standing on its spine, the two covers angled out. Input image: current/class-archivist.png is the required silhouette and stroke-layout reference. Keep the upright central spine, the two empty broad cover panels either side, the upper edges sloping downward outward from the high central spine, and the slightly angled lower edges. Preserve the reference proportions; this is an abstract open-book outline, not a realistic book with pages. No writing, page lines or new gaps. Scale the complete mark uniformly to fill about 80% of the square's longer dimension, preserving the reference proportions; disregard only the extra outer blank margin. Add just a few shallow edge chips and sparse broad cut hatches that survive reduction to 64px. Preserve all connections and open spaces. Art style: a woodcut or die-struck stamp; confident heavy inked strokes, a few sparse cut hatches, slightly chipped worn edges, as if cut by hand into a printing block. Pure black ink on flat plain off-white paper, no paper texture. Strong silhouette that stays readable at 64 pixels. No colour, no gradient, no glow, no shadow, no background, no frame, no border, no text, typography, numbers, watermark, photorealism, glossy 3D, or decorative fantasy ornament. A single mark; no animation.",
+      "revisions": [],
+      "generated_source": "C:\\Users\\rayro\\.codex\\generated_images\\01a12e43-30c3-7bc3-a3ff-698e10e8ae53\\exec-e3615a55-cb1f-4bf3-b93f-e93648cf1859.png"
+    },
+    {
+      "id": "classes/artificer",
+      "reference": "current/class-artificer.png",
+      "source": "sources/class-artificer.png",
+      "asset": "assets/art/marks/classes/artificer.webp",
+      "spoiler": false,
+      "prompt": "Use case: stylized-concept. Asset type: a single carved sign for a mobile expedition RPG, square 1:1 composition, the mark centred and filling the central 80% of the frame. Keep the exact silhouette and stroke layout of the attached reference mark. A small square rivet at the centre, four jaws reaching in to it from the corners. Input image: current/class-artificer.png is the required silhouette and stroke-layout reference. Keep the central square OUTLINE with its empty square centre and exactly four straight diagonal arms joined to its four corners. Do not fill the centre, add jaw teeth, or introduce detached components. Match the reference's X-like silhouette. Scale the complete mark uniformly to fill about 80% of the square's longer dimension, preserving the reference proportions; disregard only the extra outer blank margin. Add just a few shallow edge chips and sparse broad cut hatches that survive reduction to 64px. Preserve all connections and open spaces. Art style: a woodcut or die-struck stamp; confident heavy inked strokes, a few sparse cut hatches, slightly chipped worn edges, as if cut by hand into a printing block. Pure black ink on flat plain off-white paper, no paper texture. Strong silhouette that stays readable at 64 pixels. No colour, no gradient, no glow, no shadow, no background, no frame, no border, no text, typography, numbers, watermark, photorealism, glossy 3D, or decorative fantasy ornament. A single mark; no animation.",
+      "revisions": [],
+      "generated_source": "C:\\Users\\rayro\\.codex\\generated_images\\01a12e43-30c3-7bc3-a3ff-698e10e8ae53\\exec-49993bbc-8397-4ff4-98e9-681ff737a79d.png"
+    },
+    {
+      "id": "classes/quartermaster",
+      "reference": "current/class-quartermaster.png",
+      "source": "sources/class-quartermaster.png",
+      "asset": "assets/art/marks/classes/quartermaster.webp",
+      "spoiler": false,
+      "prompt": "Use case: stylized-concept. Asset type: a single carved sign for a mobile expedition RPG, square 1:1 composition, the mark centred and filling the central 80% of the frame. Keep the exact silhouette and stroke layout of the attached reference mark. A diamond with a level crossbar through its middle. Input image: current/class-quartermaster.png is the required silhouette and stroke-layout reference. Keep the upright diamond outline and the single horizontal crossbar joining its left and right corners; two empty triangular spaces remain. No central vertical line, scales, extra ornament or detached elements. Scale the complete mark uniformly to fill about 80% of the square's longer dimension, preserving the reference proportions; disregard only the extra outer blank margin. Add just a few shallow edge chips and sparse broad cut hatches that survive reduction to 64px. Preserve all connections and open spaces. Art style: a woodcut or die-struck stamp; confident heavy inked strokes, a few sparse cut hatches, slightly chipped worn edges, as if cut by hand into a printing block. Pure black ink on flat plain off-white paper, no paper texture. Strong silhouette that stays readable at 64 pixels. No colour, no gradient, no glow, no shadow, no background, no frame, no border, no text, typography, numbers, watermark, photorealism, glossy 3D, or decorative fantasy ornament. A single mark; no animation.",
+      "revisions": [
+        {
+          "prompt": "Use case: stylized-concept. Edit the first supplied image only: the generated black-ink quartermaster mark. The second supplied image, current/class-quartermaster.png, is the mandatory geometry reference. Keep its diamond outline and single horizontal crossbar, the two open triangular spaces, all cut ink detail and slight edge wear. Correct ONLY the framing and proportions: scale and centre the complete diamond so its bounding box is about 80% of the canvas width and 80% of its height, with roughly 10% clear margin on every side. Keep the diamond's left and right tips level at the mid-height; do not stretch it vertically. Output a square 1:1 canvas, pure black ink on a perfectly flat uniform off-white background, without texture or shading. No new strokes, details, text, ornaments, shadows or other changes.",
+          "references": [
+            "C:\\Users\\rayro\\.codex\\generated_images\\01a12e43-30c3-7bc3-a3ff-698e10e8ae53\\exec-9879350d-a8b3-4bef-897a-f21d3fb01678.png",
+            "docs/design/sigils/current/class-quartermaster.png"
+          ],
+          "generated_source": "C:\\Users\\rayro\\.codex\\generated_images\\01a12e43-30c3-7bc3-a3ff-698e10e8ae53\\exec-21e93cc9-c261-4cbd-b44a-170de3bed1fb.png"
+        }
+      ],
+      "generated_source": "C:\\Users\\rayro\\.codex\\generated_images\\01a12e43-30c3-7bc3-a3ff-698e10e8ae53\\exec-21e93cc9-c261-4cbd-b44a-170de3bed1fb.png"
+    },
+    {
+      "id": "guild/lantern",
+      "reference": "current/guild-lantern.png",
+      "source": "sources/guild-lantern.png",
+      "asset": "assets/art/marks/guild/lantern.webp",
+      "spoiler": false,
+      "prompt": "Use case: stylized-concept. Asset type: a single carved sign for a mobile expedition RPG, square 1:1 composition, the mark centred and filling the central 80% of the frame. Keep the exact silhouette and stroke layout of the attached reference mark. A hooded field lantern with a cross set into its body. Input image: current/guild-lantern.png is the required geometry reference ONLY. Its ochre colour is not part of this output: redraw in pure BLACK ink. Preserve the rounded arched hanging loop, the six-sided hood, the outward-sloping body outline, the flared foot, and the single upright cross inside the body. All enclosed spaces stay empty. Keep the reference's round caps and curved loop. No physical lamp, flame, bulb, colour or light effects. Scale the complete mark uniformly to fill about 80% of the square's longer dimension, preserving its proportions; disregard only the extra outer blank margin. Make the strokes bold enough for 64px while retaining all open gaps and the curved guild-mark character. A few shallow worn chips and sparse broad cut hatches only. Art style: a woodcut or die-struck stamp; confident heavy inked strokes, a few sparse cut hatches, slightly chipped worn edges, as if cut by hand into a printing block. Pure black ink on flat plain off-white paper, no paper texture. Strong silhouette that stays readable at 64 pixels. No colour, no gradient, no glow, no shadow, no background, no frame, no border, no text, typography, numbers, watermark, photorealism, glossy 3D, or decorative fantasy ornament. A single mark; no animation.",
+      "revisions": [],
+      "generated_source": "C:\\Users\\rayro\\.codex\\generated_images\\01a12e43-30c3-7bc3-a3ff-698e10e8ae53\\exec-5303341e-cb01-437c-b7e5-6263e237eea9.png"
+    },
+    {
+      "id": "guild/compass",
+      "reference": "current/guild-compass.png",
+      "source": "sources/guild-compass.png",
+      "asset": "assets/art/marks/guild/compass.webp",
+      "spoiler": false,
+      "prompt": "Use case: stylized-concept. Asset type: a single carved sign for a mobile expedition RPG, square 1:1 composition, the mark centred and filling the central 80% of the frame. Keep the exact silhouette and stroke layout of the attached reference mark. A four-point star with short diagonal ticks between the points. A cut mark, not a navigation instrument. Input image: current/guild-compass.png is the required geometry reference ONLY. Its ochre colour is not part of this output: redraw in pure BLACK ink. Preserve the exact reference arrangement: a tall narrow EMPTY diamond outline with its top and bottom points upright, one short horizontal arm extending left and right from the side vertices, and four detached short diagonal ticks. Rounded line ends and curved joins as in the reference. No circle, instrument housing, extra points or filled star. Scale the complete mark uniformly to fill about 80% of the square's longer dimension, preserving its proportions; disregard only the extra outer blank margin. Make the strokes bold enough for 64px while retaining all open gaps and the curved guild-mark character. A few shallow worn chips and sparse broad cut hatches only. Art style: a woodcut or die-struck stamp; confident heavy inked strokes, a few sparse cut hatches, slightly chipped worn edges, as if cut by hand into a printing block. Pure black ink on flat plain off-white paper, no paper texture. Strong silhouette that stays readable at 64 pixels. No colour, no gradient, no glow, no shadow, no background, no frame, no border, no text, typography, numbers, watermark, photorealism, glossy 3D, or decorative fantasy ornament. A single mark; no animation.",
+      "revisions": [],
+      "generated_source": "C:\\Users\\rayro\\.codex\\generated_images\\01a12e43-30c3-7bc3-a3ff-698e10e8ae53\\exec-be13dce3-bc84-4c83-b5d2-3bf1d221ab43.png"
+    },
+    {
+      "id": "guild/branch",
+      "reference": "current/guild-branch.png",
+      "source": "sources/guild-branch.png",
+      "asset": "assets/art/marks/guild/branch.webp",
+      "spoiler": false,
+      "prompt": "Use case: stylized-concept. Asset type: a single carved sign for a mobile expedition RPG, square 1:1 composition, the mark centred and filling the central 80% of the frame. Keep the exact silhouette and stroke layout of the attached reference mark. A rising stem with curling leaf strokes, as in the attached mark. Input image: current/guild-branch.png is the required geometry reference ONLY. Its ochre colour is not part of this output: redraw in pure BLACK ink. The attached reference is authoritative: it shows THREE curling leaf strokes on a gently curving diagonal stem rising from lower left toward upper right. Preserve the top curl to the LEFT, the middle curl to the RIGHT, and the bottom curl to the LEFT, with their exact open tips and connections to the stem. Keep their generous interior negative spaces, rounded ends and curves. Do not reduce the leaf count to two, close the open curls, add leaves or naturalistic veins. Scale the complete mark uniformly to fill about 80% of the square's longer dimension, preserving its proportions; disregard only the extra outer blank margin. Make the strokes bold enough for 64px while retaining all open gaps and the curved guild-mark character. A few shallow worn chips and sparse broad cut hatches only. Art style: a woodcut or die-struck stamp; confident heavy inked strokes, a few sparse cut hatches, slightly chipped worn edges, as if cut by hand into a printing block. Pure black ink on flat plain off-white paper, no paper texture. Strong silhouette that stays readable at 64 pixels. No colour, no gradient, no glow, no shadow, no background, no frame, no border, no text, typography, numbers, watermark, photorealism, glossy 3D, or decorative fantasy ornament. A single mark; no animation.",
+      "revisions": [],
+      "generated_source": "C:\\Users\\rayro\\.codex\\generated_images\\01a12e43-30c3-7bc3-a3ff-698e10e8ae53\\exec-c0dfdbda-9a29-4381-a317-96f1cc0b9f4b.png"
+    },
+    {
+      "id": "guild/anvil",
+      "reference": "current/guild-anvil.png",
+      "source": "sources/guild-anvil.png",
+      "asset": "assets/art/marks/guild/anvil.webp",
+      "spoiler": false,
+      "prompt": "Use case: stylized-concept. Asset type: a single carved sign for a mobile expedition RPG, square 1:1 composition, the mark centred and filling the central 80% of the frame. Keep the exact silhouette and stroke layout of the attached reference mark. An anvil on a narrow waist and a flared foot. Input image: current/guild-anvil.png is the required geometry reference ONLY. Its ochre colour is not part of this output: redraw in pure BLACK ink. Preserve the reference's empty anvil outline: wide level top, angled shoulders stepping inward to a narrow vertical waist and a flared flat foot. Above the top keep the separate short horizontal stroke that turns down at its right end to meet the anvil top. Preserve those open spaces, rounded caps and joins. No hammer, realistic metal object, scene, filled silhouette or extra working parts. Scale the complete mark uniformly to fill about 80% of the square's longer dimension, preserving its proportions; disregard only the extra outer blank margin. Make the strokes bold enough for 64px while retaining all open gaps and the curved guild-mark character. A few shallow worn chips and sparse broad cut hatches only. Art style: a woodcut or die-struck stamp; confident heavy inked strokes, a few sparse cut hatches, slightly chipped worn edges, as if cut by hand into a printing block. Pure black ink on flat plain off-white paper, no paper texture. Strong silhouette that stays readable at 64 pixels. No colour, no gradient, no glow, no shadow, no background, no frame, no border, no text, typography, numbers, watermark, photorealism, glossy 3D, or decorative fantasy ornament. A single mark; no animation.",
+      "revisions": [],
+      "generated_source": "C:\\Users\\rayro\\.codex\\generated_images\\01a12e43-30c3-7bc3-a3ff-698e10e8ae53\\exec-473f23c4-fdb3-43fc-ad8b-0acf82a0ff90.png"
+    }
+  ]
+}

@@ -11,6 +11,7 @@ import '../widgets/camp_controls.dart';
 import '../widgets/expedition_widgets.dart';
 import '../widgets/camp_acknowledgement.dart';
 import '../widgets/management_widgets.dart';
+import '../widgets/mark_plate.dart';
 import '../widgets/sector_scene.dart';
 import '../widgets/sigil.dart';
 import 'backup_screen.dart';
@@ -298,7 +299,7 @@ class _RecruitReview extends StatelessWidget {
     final locked = c.g.level < cls.unlockGuildLevel;
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       const CampSheetHeader(title: 'Meet a recruit'),
-      ClassEmblem(classId: cls.id, color: T.amber, size: 64),
+      MarkPlate.classEmblem(classId: cls.id, color: T.amber, size: 64),
       const SizedBox(height: 16),
       Text(fieldName(cls.name), style: T.display),
       const SizedBox(height: 8),
@@ -339,7 +340,8 @@ class _RecruitReview extends StatelessWidget {
                   root,
                   kicker: 'A NEW HAND',
                   title: member.name,
-                  mark: ClassEmblem(classId: cls.id, color: T.amber, size: 72),
+                  mark: MarkPlate.classEmblem(
+                      classId: cls.id, color: T.amber, size: 72),
                   lines: [
                     '${fieldName(cls.name)} · ${cls.blurb}',
                     'Ready to send out.',
@@ -408,7 +410,8 @@ class _SectorReview extends StatelessWidget {
                     root,
                     kicker: 'THE WAY IS OPEN',
                     title: fieldName(sector.name),
-                    mark: Sigil(sectorId: sector.id, color: T.amber, size: 72),
+                    mark: MarkPlate.sector(
+                        sectorId: sector.id, color: T.amber, size: 72),
                     lines: [
                       sector.blurb,
                       'Expeditions of ${sector.minMinutes} minutes or more '

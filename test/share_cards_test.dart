@@ -6,6 +6,8 @@ import 'package:telos/models/guild_identity.dart';
 import 'package:telos/models/models.dart';
 import 'package:telos/theme/telos_theme.dart';
 import 'package:telos/widgets/share_cards.dart';
+import 'package:telos/widgets/guild_sigil.dart';
+import 'package:telos/widgets/mark_plate.dart';
 
 RunRecord _run({int minutes = 52, double integrity = 1}) => RunRecord(
       id: 'card',
@@ -116,6 +118,8 @@ void main() {
       expect(find.text('1666h 40m'), findsOneWidget);
       expect(find.text('Clean runs'), findsOneWidget);
       expect(find.text('Since Sep 2026'), findsOneWidget);
+      expect(find.byType(MarkPlate), findsNothing);
+      expect(t.widget<GuildEmblem>(find.byType(GuildEmblem)).size, 26);
     });
   }
 }
