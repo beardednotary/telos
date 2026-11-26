@@ -101,8 +101,8 @@ class _ContractBoardPanelState extends State<ContractBoardPanel> {
                 ? 'Complete · Ready to claim'
                 : contractProgress(contract),
             icon: contract.done
-                ? Icons.check_circle_outline
-                : Icons.assignment_outlined,
+                ? CampMark.done
+                : CampMark.contract,
             leading: contract.done
                 ? null
                 : contract.sectorId != null

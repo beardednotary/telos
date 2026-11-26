@@ -24,6 +24,7 @@ import 'log_screen.dart';
 import 'outpost_screen.dart';
 import 'roster_screen.dart';
 import 'spire_screen.dart';
+import '../widgets/sigil.dart';
 
 String _facilityName(Facility f) => switch (f) {
       Facility.forge => 'Forge',
@@ -278,7 +279,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   title: 'Squad & equipment',
                   summary:
                       '${g.roster.length} members · ${g.squadSlots} squad ${g.squadSlots == 1 ? 'slot' : 'slots'}',
-                  icon: Icons.people_outline,
+                  icon: CampMark.squad,
                   expanded: _open == 'squad',
                   onToggle: () => _toggle('squad'),
                   child: Column(children: [
@@ -320,7 +321,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   summary:
                       '${g.credits} credits · ${g.alloy} alloy · ${g.intel} intel'
                       '${contracts > 0 ? '\n$contracts ${contracts == 1 ? 'contract' : 'contracts'} ready to claim' : ''}',
-                  icon: Icons.inventory_2_outlined,
+                  icon: CampMark.crate,
                   expanded: _open == 'stores',
                   onToggle: () => _toggle('stores'),
                   child: Column(children: [

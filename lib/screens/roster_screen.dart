@@ -49,7 +49,7 @@ class _RosterScreenState extends State<RosterScreen> {
                 title: member.name,
                 summary: '${fieldName(kClasses[member.classId]!.name)} · '
                     'Level ${member.level} · ${member.equipped.length}/$kGearSlots equipped',
-                icon: Icons.person_outline,
+                icon: CampMark.person,
                 leading: ClassEmblem(
                     classId: member.classId, color: T.amber, size: 32),
                 expanded: _open == member.id,
@@ -62,7 +62,7 @@ class _RosterScreenState extends State<RosterScreen> {
               key: const Key('vault-disclosure'),
               title: 'The vault',
               summary: '${spare.length} unassigned · ${g.vault.length} owned',
-              icon: Icons.inventory_2_outlined,
+              icon: CampMark.crate,
               expanded: _open == 'vault',
               onToggle: () => _toggle('vault'),
               child: Column(children: [

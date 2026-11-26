@@ -60,9 +60,9 @@ class _OutpostScreenState extends State<OutpostScreen> {
                 summary: 'Level ${g.facilities[facility]}'
                     '${g.campProject == facility ? ' · Camp project' : ''}',
                 icon: switch (facility) {
-                  Facility.barracks => Icons.cabin_outlined,
-                  Facility.forge => Icons.handyman_outlined,
-                  Facility.archive => Icons.menu_book_outlined,
+                  Facility.barracks => CampMark.barracks,
+                  Facility.forge => CampMark.forge,
+                  Facility.archive => CampMark.archive,
                 },
                 expanded: _open == facility.name,
                 onToggle: () => _toggle(facility.name),
@@ -75,7 +75,7 @@ class _OutpostScreenState extends State<OutpostScreen> {
               title: 'Recruiting',
               summary:
                   '${g.roster.length}/${g.rosterSlots} places filled · Guild level ${g.level}',
-              icon: Icons.person_add_alt_outlined,
+              icon: CampMark.recruit,
               expanded: _open == 'recruiting',
               onToggle: () => _toggle('recruiting'),
               child: Column(children: [
@@ -103,7 +103,7 @@ class _OutpostScreenState extends State<OutpostScreen> {
               key: const Key('sectors-disclosure'),
               title: 'Sector access',
               summary: '${g.unlockedSectors.length} of ${kSectors.length} open',
-              icon: Icons.explore_outlined,
+              icon: CampMark.route,
               expanded: _open == 'sectors',
               onToggle: () => _toggle('sectors'),
               child: Column(children: [
@@ -124,7 +124,7 @@ class _OutpostScreenState extends State<OutpostScreen> {
               key: const Key('camp-reference'),
               title: 'Camp reference',
               summary: 'Field manual, backups & build information',
-              icon: Icons.info_outline,
+              icon: CampMark.reference,
               expanded: _open == 'reference',
               onToggle: () => _toggle('reference'),
               child: Column(children: [

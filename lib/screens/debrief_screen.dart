@@ -15,6 +15,7 @@ import '../widgets/share_cards.dart';
 import '../widgets/sector_scene.dart';
 import '../widgets/terminal.dart';
 import 'caravan_screen.dart';
+import '../widgets/sigil.dart';
 
 class DebriefScreen extends StatefulWidget {
   const DebriefScreen({super.key, required this.record});
@@ -188,7 +189,7 @@ class _DebriefScreenState extends State<DebriefScreen>
                       summary:
                           '+${r.credits} credits · +${r.alloy} alloy · +${r.intel} intel'
                           '${r.guildLevelUps > 0 ? '\nGuild level ${g.level} reached' : r.levelUps.isNotEmpty ? '\n${r.levelUps.length} ${r.levelUps.length == 1 ? 'member' : 'members'} levelled up' : ''}',
-                      icon: Icons.receipt_long_outlined,
+                      icon: CampMark.ledger,
                       expanded: _open == 'report',
                       onToggle: () => _toggle('report'),
                       child: Padding(
@@ -285,7 +286,7 @@ class _DebriefScreenState extends State<DebriefScreen>
                         summary: _progress == null
                             ? r.intent
                             : '${r.intent}\nProgress: ${fieldName(_progress!)}',
-                        icon: Icons.edit_note_outlined,
+                        icon: CampMark.hourglass,
                         expanded: _open == 'reflection',
                         onToggle: () => _toggle('reflection'),
                         child: Padding(

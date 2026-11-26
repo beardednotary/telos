@@ -236,7 +236,7 @@ class _DispatchScreenState extends State<DispatchScreen> {
               title: 'Your focus',
               summary:
                   '$_minutes minutes · ${_intent.text.trim().isEmpty ? 'Set an intention, if you like' : _intent.text.trim()}',
-              icon: Icons.schedule_outlined,
+              icon: CampMark.hourglass,
               expanded: _open == 'focus',
               onToggle: () => _toggle('focus'),
               child: Padding(
@@ -288,7 +288,7 @@ class _DispatchScreenState extends State<DispatchScreen> {
               summary: sector == null
                   ? 'No destination fits $_minutes minutes'
                   : fieldName(sector.name),
-              icon: Icons.explore_outlined,
+              icon: CampMark.route,
               expanded: _open == 'destination',
               onToggle: () => _toggle('destination'),
               child: Column(children: [
@@ -324,7 +324,7 @@ class _DispatchScreenState extends State<DispatchScreen> {
               summary: members.isEmpty
                   ? 'Choose up to ${g.squadSlots} · Nobody selected'
                   : '${members.map((m) => m.name).join(' & ')} · ${members.length}/${g.squadSlots}',
-              icon: Icons.people_outline,
+              icon: CampMark.squad,
               expanded: _open == 'squad',
               onToggle: () => _toggle('squad'),
               child: Column(children: [

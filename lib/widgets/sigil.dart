@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-/// Carved marks: one per sector (a place) and one per class (a person).
+/// Carved marks: one per sector (a place), one per class (a person), and one
+/// per thing the camp keeps (a [CampMark]: the barracks, the vault, a report).
 ///
 /// Every mark is a handful of strokes in a unit square, built as a [Path] so
 /// it can be drawn progressively - the reveal animation and the static icon
@@ -9,7 +10,8 @@ import 'package:flutter/material.dart';
 ///
 /// Colour carries two different channels deliberately: a sector's own colour
 /// says *where*, and a class emblem stays monochrome and says *who*. Tinting
-/// both would collapse the distinction.
+/// both would collapse the distinction. Camp marks are monochrome too: they
+/// label a section, and say nothing about where or who.
 
 // ---------------------------------------------------------------------------
 // GEOMETRY
@@ -131,6 +133,175 @@ Path emblemPath(String classId, double s) {
       ]);
   }
 }
+
+/// The things a section of the camp is about. These replace the stock
+/// Material outlines on section headers, which were the one place the app
+/// still looked like any other app. Not interchangeable with the guild
+/// emblems: no hammer is an anvil and no route is a compass, so a guild's
+/// chosen emblem never reads as a menu item.
+enum CampMark {
+  /// Where the roster sleeps: a ridge tent.
+  barracks,
+
+  /// A hammer, head up.
+  forge,
+
+  /// Volumes on a shelf, one leaning.
+  archive,
+
+  /// One member.
+  person,
+
+  /// A member, and a place for another.
+  recruit,
+
+  /// Two members, one behind the other.
+  squad,
+
+  /// A braced crate: stores, the vault.
+  crate,
+
+  /// A survey stake at the end of a road: a destination, sector access.
+  route,
+
+  /// The focus session itself.
+  hourglass,
+
+  /// A ruled sheet with its corner turned: the expedition report.
+  ledger,
+
+  /// A strapped field journal.
+  journal,
+
+  /// A crucible: melting gear back to alloy.
+  crucible,
+
+  /// A sheet and its copy: save and restore.
+  copy,
+
+  /// A set plate with a mark: reference, help.
+  reference,
+
+  /// A plumb line: Integrity, keeping true.
+  plumb,
+
+  /// A rolled charter.
+  charter,
+
+  /// A sealed order: a contract still open.
+  contract,
+
+  /// Cut once, cleanly: a contract met.
+  done,
+}
+
+/// A mark for a part of camp. Drawn for 20-24px, where every one lives.
+Path campMarkPath(CampMark mark, double s) => _p(s, switch (mark) {
+      CampMark.barracks => [
+          [0.06, 0.84, 0.94, 0.84],
+          [0.12, 0.84, 0.50, 0.18, 0.88, 0.84],
+          [0.40, 0.84, 0.50, 0.58, 0.60, 0.84],
+        ],
+      // Tilted mid-swing: upright, it reads as a letter T.
+      CampMark.forge => [
+          [0.52, 0.14, 0.90, 0.44, 0.80, 0.57, 0.42, 0.27, 0.52, 0.14],
+          [0.61, 0.42, 0.22, 0.90],
+        ],
+      CampMark.archive => [
+          [0.08, 0.86, 0.92, 0.86],
+          [0.14, 0.86, 0.14, 0.24, 0.30, 0.24, 0.30, 0.86],
+          [0.30, 0.34, 0.46, 0.34, 0.46, 0.86],
+          [0.52, 0.81, 0.66, 0.86, 0.85, 0.33, 0.71, 0.28, 0.52, 0.81],
+        ],
+      CampMark.person => [
+          [0.50, 0.10, 0.64, 0.24, 0.50, 0.38, 0.36, 0.24, 0.50, 0.10],
+          [0.18, 0.88, 0.24, 0.58, 0.50, 0.48, 0.76, 0.58, 0.82, 0.88],
+        ],
+      CampMark.recruit => [
+          [0.40, 0.14, 0.52, 0.26, 0.40, 0.38, 0.28, 0.26, 0.40, 0.14],
+          [0.12, 0.88, 0.18, 0.60, 0.40, 0.50, 0.62, 0.60, 0.68, 0.88],
+          [0.80, 0.14, 0.80, 0.42],
+          [0.66, 0.28, 0.94, 0.28],
+        ],
+      CampMark.squad => [
+          [0.34, 0.28, 0.45, 0.39, 0.34, 0.50, 0.23, 0.39, 0.34, 0.28],
+          [0.10, 0.90, 0.15, 0.68, 0.34, 0.60, 0.53, 0.68, 0.58, 0.90],
+          [0.66, 0.12, 0.77, 0.23, 0.66, 0.34, 0.55, 0.23, 0.66, 0.12],
+          [0.58, 0.48, 0.66, 0.44, 0.85, 0.52, 0.90, 0.80],
+        ],
+      CampMark.crate => [
+          [0.12, 0.28, 0.88, 0.28, 0.88, 0.86, 0.12, 0.86, 0.12, 0.28],
+          [0.12, 0.42, 0.88, 0.42],
+          [0.18, 0.80, 0.82, 0.48],
+        ],
+      // A near stake and a far one on rising ground: a line of them is a
+      // route without drawing the road, which at this size reads as a crack.
+      CampMark.route => [
+          [0.06, 0.86, 0.94, 0.66],
+          [0.22, 0.81, 0.22, 0.26, 0.30, 0.14, 0.38, 0.26, 0.38, 0.78],
+          [0.66, 0.72, 0.66, 0.46, 0.71, 0.38, 0.76, 0.46, 0.76, 0.70],
+        ],
+      CampMark.hourglass => [
+          [0.20, 0.10, 0.80, 0.10],
+          [0.20, 0.90, 0.80, 0.90],
+          [0.28, 0.10, 0.50, 0.50, 0.72, 0.10],
+          [0.28, 0.90, 0.50, 0.50, 0.72, 0.90],
+          [0.38, 0.90, 0.50, 0.76, 0.62, 0.90],
+        ],
+      CampMark.ledger => [
+          [0.20, 0.10, 0.64, 0.10, 0.80, 0.26, 0.80, 0.90, 0.20, 0.90, 0.20, 0.10],
+          [0.64, 0.10, 0.64, 0.26, 0.80, 0.26],
+          [0.32, 0.42, 0.68, 0.42],
+          [0.32, 0.56, 0.68, 0.56],
+          [0.32, 0.70, 0.54, 0.70],
+        ],
+      CampMark.journal => [
+          [0.22, 0.10, 0.78, 0.10, 0.78, 0.90, 0.22, 0.90, 0.22, 0.10],
+          [0.34, 0.10, 0.34, 0.90],
+          [0.34, 0.48, 0.88, 0.48, 0.88, 0.62, 0.34, 0.62],
+        ],
+      CampMark.crucible => [
+          [0.12, 0.38, 0.88, 0.38],
+          [0.20, 0.38, 0.30, 0.86, 0.70, 0.86, 0.80, 0.38],
+          [0.25, 0.60, 0.75, 0.60],
+          [0.40, 0.10, 0.40, 0.24],
+          [0.60, 0.10, 0.60, 0.24],
+        ],
+      CampMark.copy => [
+          [0.34, 0.10, 0.84, 0.10, 0.84, 0.72],
+          [0.16, 0.28, 0.66, 0.28, 0.66, 0.90, 0.16, 0.90, 0.16, 0.28],
+          [0.28, 0.50, 0.54, 0.50],
+          [0.28, 0.66, 0.54, 0.66],
+        ],
+      CampMark.reference => [
+          [0.16, 0.16, 0.84, 0.16, 0.84, 0.84, 0.16, 0.84, 0.16, 0.16],
+          [0.50, 0.28, 0.50, 0.38],
+          [0.50, 0.46, 0.50, 0.72],
+          [0.40, 0.72, 0.60, 0.72],
+        ],
+      CampMark.plumb => [
+          [0.22, 0.10, 0.78, 0.10],
+          [0.50, 0.10, 0.50, 0.52],
+          [0.50, 0.52, 0.64, 0.70, 0.50, 0.90, 0.36, 0.70, 0.50, 0.52],
+        ],
+      CampMark.charter => [
+          [0.14, 0.12, 0.86, 0.12, 0.86, 0.24, 0.14, 0.24, 0.14, 0.12],
+          [0.22, 0.24, 0.22, 0.76],
+          [0.78, 0.24, 0.78, 0.76],
+          [0.14, 0.76, 0.86, 0.76, 0.86, 0.88, 0.14, 0.88, 0.14, 0.76],
+          [0.34, 0.42, 0.66, 0.42],
+          [0.34, 0.58, 0.66, 0.58],
+        ],
+      CampMark.contract => [
+          [0.20, 0.10, 0.80, 0.10, 0.80, 0.90, 0.20, 0.90, 0.20, 0.10],
+          [0.32, 0.28, 0.68, 0.28],
+          [0.32, 0.42, 0.68, 0.42],
+          [0.60, 0.56, 0.70, 0.68, 0.60, 0.80, 0.50, 0.68, 0.60, 0.56],
+        ],
+      CampMark.done => [
+          [0.16, 0.52, 0.40, 0.76, 0.84, 0.24],
+        ],
+    });
 
 // ---------------------------------------------------------------------------
 // PAINTING
@@ -268,6 +439,27 @@ class ClassEmblem extends StatelessWidget {
         // Emblems live small, so they need a touch more weight to hold up.
         strokeScale: size < 24 ? 1.25 : 1.0,
         animate: animate,
+      );
+}
+
+/// The mark for a part of camp, at section-header size. Never animated: a
+/// header is read, not revealed.
+class CampMarkIcon extends StatelessWidget {
+  const CampMarkIcon(this.mark, {super.key, required this.color, this.size = 23});
+
+  final CampMark mark;
+  final Color color;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) => _Mark(
+        path: campMarkPath(mark, size),
+        color: color,
+        size: size,
+        // About the weight of the outlined icons these replace, so a header
+        // row keeps its balance against the text beside it.
+        strokeScale: 1.15,
+        animate: false,
       );
 }
 

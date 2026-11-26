@@ -7,6 +7,7 @@ import '../theme/telos_theme.dart';
 import '../widgets/camp_controls.dart';
 import '../widgets/expedition_widgets.dart';
 import '../widgets/spire_drawing.dart';
+import '../widgets/sigil.dart';
 
 /// A record of contributions, with no deadline or next-floor countdown.
 class SpireScreen extends StatefulWidget {
@@ -81,7 +82,7 @@ class _SpireScreenState extends State<SpireScreen> {
               key: const Key('spire-charter'),
               title: 'The Last Charter',
               summary: g.spireCharterName ?? 'No charter signed yet',
-              icon: Icons.history_edu_outlined,
+              icon: CampMark.charter,
               expanded: _charterOpen,
               onToggle: () => setState(() => _charterOpen = !_charterOpen),
               child: Padding(

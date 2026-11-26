@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../theme/telos_theme.dart';
+import 'sigil.dart';
 
 class CampButton extends StatelessWidget {
   const CampButton({
@@ -51,7 +52,7 @@ class CampDisclosure extends StatelessWidget {
   });
   final String title;
   final String summary;
-  final IconData icon;
+  final CampMark icon;
   final bool expanded;
   final VoidCallback onToggle;
   final Widget child;
@@ -75,7 +76,7 @@ class CampDisclosure extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Row(children: [
-                    leading ?? Icon(icon, size: 23, color: T.text),
+                    leading ?? CampMarkIcon(icon, color: T.text),
                     const SizedBox(width: 12),
                     Expanded(
                         child: Column(

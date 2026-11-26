@@ -11,6 +11,7 @@ import '../widgets/expedition_widgets.dart';
 import '../widgets/management_widgets.dart';
 import '../widgets/sector_scene.dart';
 import '../widgets/share_cards.dart';
+import '../widgets/sigil.dart';
 
 String _duration(int seconds) => seconds < 60
     ? '$seconds sec'
@@ -293,7 +294,7 @@ class _ExpeditionRecordScreenState extends State<ExpeditionRecordScreen> {
               title: 'Field journal',
               summary:
                   '${r.journal.length} entries${r.priorSurvey != null ? ' · Prior record recovered' : ''}',
-              icon: Icons.menu_book_outlined,
+              icon: CampMark.journal,
               expanded: _open == 'journal',
               onToggle: () =>
                   setState(() => _open = _open == 'journal' ? null : 'journal'),
@@ -330,7 +331,7 @@ class _ExpeditionRecordScreenState extends State<ExpeditionRecordScreen> {
               title: 'Squad & equipment',
               summary:
                   '${r.squad.length} deployed · ${r.loot.length} pieces recovered',
-              icon: Icons.groups_outlined,
+              icon: CampMark.squad,
               expanded: _open == 'squad',
               onToggle: () =>
                   setState(() => _open = _open == 'squad' ? null : 'squad'),
