@@ -1,2 +1,3 @@
 # Tinted copies of assets/art/marks; build.py regenerates them.
 renders/marks/
+renders/before/

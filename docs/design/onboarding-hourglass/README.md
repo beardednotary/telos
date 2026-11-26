@@ -1,7 +1,7 @@
 # Onboarding hourglass
 
 Delivered asset: `assets/art/onboarding-hourglass.webp`, **1290 x 726,
-WebP quality 86**, 209,384 bytes. The full landscape frame is approximately
+WebP quality 86**, 208,792 bytes. The full landscape frame is approximately
 16:9, with the hourglass and empty stool held in the central band.
 
 A plain wooden-framed hourglass stands on an upturned supply crate. Its

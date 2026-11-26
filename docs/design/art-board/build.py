@@ -311,6 +311,43 @@ def scene_options(sector):
     return f'<div class="grid">{a}{b}{c}</div>'
 
 
+def grade_section():
+    """Before and after the colour grade (docs/design/grade.py), if the
+    pre-grade exports were kept in renders/before/."""
+    before = RENDERS / "before"
+    if not before.exists():
+        return ""
+    camp = measure(ART / "camp.webp")["paper"]
+    pairs = [(s, ART / "sectors" / f"{s}.webp") for s in SECTORS]
+    pairs += [("caravan", ART / "caravan.webp"),
+              ("onboarding-hourglass", ART / "onboarding-hourglass.webp")]
+    shown, hidden = [], []
+    for name, after in pairs:
+        old = before / after.name
+        if not old.exists():
+            continue
+        mb, ma = measure(old), measure(after)
+        cap = (f"{name} · paper ΔE to camp {delta_e(mb['paper'], camp):.1f} → "
+               f"{delta_e(ma['paper'], camp):.1f} · warm {mb['warm'] * 100:.0f}% → "
+               f"{ma['warm'] * 100:.0f}%")
+        row = (f'<div class="cell"><div class="pair">'
+               f'{img(f"renders/before/{old.name}", 358, 150, "cover")}'
+               f'{img(rel(after), 358, 150, "cover")}</div>'
+               f'<div class="cap">{html.escape(cap)}</div></div>')
+        (hidden if name == "spire" else shown).append(row)
+    camp_cell = cell(img(rel(ART / "camp.webp"), 358, 150, "cover"),
+                     "camp · the target, not graded")
+    return f"""
+<h2>Colour pass: before and after</h2>
+<p>Left as generated, right as shipped. Each scene's paper is matched to the camp
+illustration's and, for Cinder, Blackstone and the hourglass, warm colour pulled down to
+the camp's level. Ink is left where it is. See <code>docs/design/grade.py</code>.</p>
+<div class="grid">{camp_cell}</div>
+<div class="grid" style="margin-top:20px">{''.join(shown)}</div>
+<details><summary>Show the Spire (spoiler)</summary><div class="grid">{''.join(hidden)}</div></details>
+"""
+
+
 def build():
     rows = []
 
@@ -379,6 +416,8 @@ of clearly ochre-to-amber pixels; the lock allows a tiny accent.</p>
 {set_summary(rows)}
 <h3>Every image</h3>
 {measurements_table(rows)}
+
+{grade_section()}
 
 <h2>2 · Camp and story</h2>
 <div class="grid">{''.join(camp)}</div>

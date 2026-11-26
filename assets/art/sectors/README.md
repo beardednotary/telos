@@ -8,14 +8,14 @@ crops around 2.3:1. The full images retain their approximately 16:9 framing
 
 | File | Bytes |
 | --- | ---: |
-| `mosswood.webp` | 231,198 |
-| `blackstone.webp` | 183,796 |
-| `cinder.webp` | 228,142 |
-| `riftline.webp` | 166,194 |
-| `spire.webp` | 103,676 |
+| `mosswood.webp` | 228,668 |
+| `blackstone.webp` | 181,580 |
+| `cinder.webp` | 229,914 |
+| `riftline.webp` | 165,346 |
+| `spire.webp` | 103,828 |
 
-The complete set is 913,006 bytes. All files fit the approximate 230 KB
-per-image budget (largest: 225.8 KiB).
+The complete set is 909,336 bytes. All files fit the approximate 230 KB
+per-image budget (largest: 224.5 KiB).
 
 The existing `SectorHeader` widget loads these automatically. Missing art
 still collapses without a placeholder.
@@ -35,4 +35,6 @@ Design resources in `docs/design/sector-headers/`:
 
 Run `python docs/design/sector-headers/export.py` from the repo root to
 re-export. All illustration edits were made with the built-in image_gen
-tool; the export script only resizes and encodes.
+tool; the export script grades, resizes and encodes. The grade
+(`docs/design/grade.py`) matches each header's paper and warmth to the camp
+illustration, so the five read as one printing.
