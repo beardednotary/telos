@@ -12,9 +12,15 @@ import 'gear_mark.dart';
 ///
 /// Deliberately not used in lists. The design direction's test is that each
 /// illustration answers a question: a drawn rig at the reveal answers "what
-/// did we find", while the same drawing in a comparison row answers nothing
-/// the numbers were not already saying and makes the row slower to read.
-/// [GearMark] stays wherever equipment is being scanned or compared.
+/// did we find", and the detail sheet (and onboarding's one example piece)
+/// answers "what is this". The same drawing in a list or comparison row
+/// answers nothing the numbers were not already saying and makes the row
+/// slower to read, so [GearMark] stays wherever equipment is being scanned
+/// or compared.
+///
+/// The three Spire pieces only reach a detail sheet once the Spire is open
+/// (the forge lists a sector's pool from its unlock), the same gate as the
+/// Spire's header, so a plate here is never a spoiler.
 class GearArt extends StatelessWidget {
   const GearArt({super.key, required this.id, this.size = 88});
 

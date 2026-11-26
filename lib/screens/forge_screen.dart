@@ -9,6 +9,7 @@ import '../theme/telos_theme.dart';
 import '../widgets/camp_controls.dart';
 import '../widgets/management_widgets.dart';
 import 'roster_screen.dart';
+import '../widgets/sigil.dart';
 
 class ForgeScreen extends StatefulWidget {
   const ForgeScreen({super.key});
@@ -54,7 +55,7 @@ class _ForgeScreenState extends State<ForgeScreen> {
                           final n => '$n recipes',
                         }
                       : 'Requires forge level ${kForgeLevelFor[rarity]}',
-                  icon: Icons.handyman_outlined,
+                  icon: CampMark.forge,
                   expanded: _open == rarity.name,
                   onToggle: () => _toggle(rarity.name),
                   child: Column(children: [
@@ -80,7 +81,7 @@ class _ForgeScreenState extends State<ForgeScreen> {
               key: const Key('melt-disclosure'),
               title: 'Melt spare gear',
               summary: '${spare.length} unassigned pieces · Recover alloy',
-              icon: Icons.recycling_outlined,
+              icon: CampMark.crucible,
               expanded: _open == 'melt',
               onToggle: () => _toggle('melt'),
               child: Column(children: [

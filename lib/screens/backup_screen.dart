@@ -19,6 +19,7 @@ import '../widgets/management_widgets.dart';
 import 'guild_identity_sheet.dart';
 import 'onboarding_screen.dart';
 import 'privacy_screen.dart';
+import '../widgets/sigil.dart';
 
 class BackupScreen extends StatefulWidget {
   const BackupScreen({
@@ -178,7 +179,7 @@ class _BackupScreenState extends State<BackupScreen> {
               key: const Key('backup-disclosure'),
               title: 'Save & restore',
               summary: 'Export a copy or review a local backup',
-              icon: Icons.save_outlined,
+              icon: CampMark.copy,
               expanded: _open == 'backup',
               onToggle: () {
                 setState(() => _open = _open == 'backup' ? null : 'backup');
@@ -266,7 +267,7 @@ class _BackupScreenState extends State<BackupScreen> {
               key: const Key('help-disclosure'),
               title: 'Help & about',
               summary: 'Feedback, manual, privacy & licenses',
-              icon: Icons.info_outline,
+              icon: CampMark.reference,
               expanded: _open == 'help',
               onToggle: () =>
                   setState(() => _open = _open == 'help' ? null : 'help'),

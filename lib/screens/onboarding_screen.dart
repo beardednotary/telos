@@ -4,9 +4,10 @@ import 'package:provider/provider.dart';
 
 import '../state/guild_controller.dart';
 import '../theme/telos_theme.dart';
-import '../widgets/gear_mark.dart';
+import '../widgets/gear_art.dart';
 import '../widgets/camp_controls.dart';
 import '../widgets/expedition_widgets.dart';
+import '../widgets/sigil.dart';
 
 /// The first-launch briefing, and the full field manual under Settings.
 ///
@@ -287,7 +288,7 @@ class _PanelViewState extends State<_PanelView> {
                         : const SizedBox(height: 160),
                   )),
         if (p.gear) ...[
-          const Center(child: GearMark(id: 'deep_lamp', size: 72)),
+          const Center(child: GearArt(id: 'deep_lamp', size: 72)),
           const SizedBox(height: 24),
         ],
         for (final line in p.body)
@@ -303,7 +304,7 @@ class _PanelViewState extends State<_PanelView> {
             summary: p.integrity
                 ? 'Grace period, screen time & rewards'
                 : 'Optional detail',
-            icon: p.integrity ? Icons.shield_outlined : Icons.info_outline,
+            icon: p.integrity ? CampMark.plumb : CampMark.reference,
             expanded: _expanded,
             onToggle: () => setState(() => _expanded = !_expanded),
             child: Padding(

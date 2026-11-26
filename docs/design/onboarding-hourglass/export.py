@@ -1,16 +1,21 @@
 """Export the selected generated masters. Requires Pillow with WebP support.
 
 Run from any directory: python docs/design/onboarding-hourglass/export.py
-Only resizes and encodes; all illustration and reframing used image_gen.
+Grades, resizes and encodes; all illustration and reframing used image_gen.
+The grade (../grade.py) matches paper and warmth to the camp illustration.
 """
 
 import json
+import sys
 from pathlib import Path
 
 from PIL import Image
 
 
 study = Path(__file__).resolve().parent
+sys.path.insert(0, str(study.parent))
+import grade  # noqa: E402
+
 root = study.parents[2]
 manifest = json.loads((study / "generation.json").read_text(encoding="utf-8"))
 settings = manifest["export"]
@@ -22,7 +27,8 @@ for asset in manifest["assets"]:
     with Image.open(source) as master:
         if abs(master.width / master.height - 16 / 9) > 0.005:
             raise ValueError(f"Expected a 16:9 master: {source}")
-        exported = master.convert("RGB").resize(
+        graded = grade.apply(asset["asset"], master.convert("RGB"))
+        exported = graded.resize(
             size, getattr(Image.Resampling, settings["resampling"])
         )
         exported.save(

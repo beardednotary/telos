@@ -49,6 +49,9 @@ flutter:
     - assets/art/
     - assets/art/sectors/
     - assets/art/gear/
+    - assets/art/marks/sectors/
+    - assets/art/marks/classes/
+    - assets/art/marks/guild/
     - assets/music/
     - assets/legal/privacy_policy.txt
     - assets/fonts/OFL-IBMPlexSans.txt

@@ -11,6 +11,7 @@ import '../widgets/camp_controls.dart';
 import '../widgets/expedition_widgets.dart';
 import '../widgets/camp_acknowledgement.dart';
 import '../widgets/management_widgets.dart';
+import '../widgets/mark_plate.dart';
 import '../widgets/sector_scene.dart';
 import '../widgets/sigil.dart';
 import 'backup_screen.dart';
@@ -60,9 +61,9 @@ class _OutpostScreenState extends State<OutpostScreen> {
                 summary: 'Level ${g.facilities[facility]}'
                     '${g.campProject == facility ? ' · Camp project' : ''}',
                 icon: switch (facility) {
-                  Facility.barracks => Icons.cabin_outlined,
-                  Facility.forge => Icons.handyman_outlined,
-                  Facility.archive => Icons.menu_book_outlined,
+                  Facility.barracks => CampMark.barracks,
+                  Facility.forge => CampMark.forge,
+                  Facility.archive => CampMark.archive,
                 },
                 expanded: _open == facility.name,
                 onToggle: () => _toggle(facility.name),
@@ -75,7 +76,7 @@ class _OutpostScreenState extends State<OutpostScreen> {
               title: 'Recruiting',
               summary:
                   '${g.roster.length}/${g.rosterSlots} places filled · Guild level ${g.level}',
-              icon: Icons.person_add_alt_outlined,
+              icon: CampMark.recruit,
               expanded: _open == 'recruiting',
               onToggle: () => _toggle('recruiting'),
               child: Column(children: [
@@ -103,7 +104,7 @@ class _OutpostScreenState extends State<OutpostScreen> {
               key: const Key('sectors-disclosure'),
               title: 'Sector access',
               summary: '${g.unlockedSectors.length} of ${kSectors.length} open',
-              icon: Icons.explore_outlined,
+              icon: CampMark.route,
               expanded: _open == 'sectors',
               onToggle: () => _toggle('sectors'),
               child: Column(children: [
@@ -124,7 +125,7 @@ class _OutpostScreenState extends State<OutpostScreen> {
               key: const Key('camp-reference'),
               title: 'Camp reference',
               summary: 'Field manual, backups & build information',
-              icon: Icons.info_outline,
+              icon: CampMark.reference,
               expanded: _open == 'reference',
               onToggle: () => _toggle('reference'),
               child: Column(children: [
@@ -298,7 +299,7 @@ class _RecruitReview extends StatelessWidget {
     final locked = c.g.level < cls.unlockGuildLevel;
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       const CampSheetHeader(title: 'Meet a recruit'),
-      ClassEmblem(classId: cls.id, color: T.amber, size: 64),
+      MarkPlate.classEmblem(classId: cls.id, color: T.amber, size: 64),
       const SizedBox(height: 16),
       Text(fieldName(cls.name), style: T.display),
       const SizedBox(height: 8),
@@ -339,7 +340,8 @@ class _RecruitReview extends StatelessWidget {
                   root,
                   kicker: 'A NEW HAND',
                   title: member.name,
-                  mark: ClassEmblem(classId: cls.id, color: T.amber, size: 72),
+                  mark: MarkPlate.classEmblem(
+                      classId: cls.id, color: T.amber, size: 72),
                   lines: [
                     '${fieldName(cls.name)} · ${cls.blurb}',
                     'Ready to send out.',
@@ -408,7 +410,8 @@ class _SectorReview extends StatelessWidget {
                     root,
                     kicker: 'THE WAY IS OPEN',
                     title: fieldName(sector.name),
-                    mark: Sigil(sectorId: sector.id, color: T.amber, size: 72),
+                    mark: MarkPlate.sector(
+                        sectorId: sector.id, color: T.amber, size: 72),
                     lines: [
                       sector.blurb,
                       'Expeditions of ${sector.minMinutes} minutes or more '

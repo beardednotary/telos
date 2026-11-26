@@ -28,6 +28,7 @@ import 'package:telos/state/guild_controller.dart';
 import 'package:telos/theme/telos_theme.dart';
 import 'package:telos/widgets/camp_controls.dart';
 import 'package:telos/widgets/gear_art.dart';
+import 'package:telos/widgets/mark_plate.dart';
 import 'package:telos/widgets/contract_board.dart';
 import 'package:telos/widgets/share_cards.dart';
 import 'package:telos/widgets/sector_header.dart';
@@ -328,6 +329,14 @@ void main() {
       find.byType(DebriefScreen),
       matchesGoldenFile('goldens/debrief.png'),
     );
+    await t.ensureVisible(find.text('THE GUILD HAS RISEN'));
+    await t.runAsync(() => precacheImage(
+        AssetImage(MarkPlate.guildAssetFor(c.g.guildSigil)),
+        t.element(find.byType(DebriefScreen))));
+    await t.pumpAndSettle();
+    expect(t.widget<MarkPlate>(find.byType(MarkPlate)).size, 88);
+    await expectLater(find.byType(DebriefScreen),
+        matchesGoldenFile('goldens/debrief-guild.png'));
     final plain = RunRecord.fromJson(rec.toJson()
       ..['loot'] = []
       ..['priorSurvey'] = null
@@ -690,6 +699,13 @@ void main() {
       matchesGoldenFile('goldens/home.png'),
     );
     await t.tap(find.byKey(const Key('edit-guild')));
+    await t.pumpAndSettle();
+    await t.runAsync(() async {
+      for (final sigil in GuildSigil.values) {
+        await precacheImage(AssetImage(MarkPlate.guildAssetFor(sigil)),
+            t.element(find.byKey(const Key('save-guild'))));
+      }
+    });
     await t.pumpAndSettle();
     await expectLater(
       find.byType(Navigator),

@@ -37,7 +37,8 @@ void main() {
     expect(t.takeException(), isNull);
   });
 
-  testWidgets('all gear lists and comparisons keep their engravings', (t) async {
+  testWidgets('gear lists keep their engravings; the detail sheet shows the plate',
+      (t) async {
     for (final def in kGear.values) {
       await t.pumpWidget(MaterialApp(
         theme: T.theme(),
@@ -49,9 +50,16 @@ void main() {
         ),
       ));
       await t.pumpAndSettle();
-      expect(find.byType(GearArt), findsNothing,
-          reason: '${def.id} belongs only in the salvage reveal');
-      expect(find.byType(GearMark), findsNWidgets(2));
+      expect(
+          find.descendant(
+              of: find.byType(GearEntry), matching: find.byType(GearArt)),
+          findsNothing,
+          reason: '${def.id} is scanned in a list, not looked at');
+      expect(
+          find.descendant(
+              of: find.byType(GearDetail), matching: find.byType(GearArt)),
+          findsOneWidget,
+          reason: '${def.id} is looked at in its detail sheet');
       expect(t.takeException(), isNull);
     }
   });

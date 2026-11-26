@@ -7,7 +7,7 @@ import '../models/models.dart';
 import '../state/guild_controller.dart';
 import '../theme/telos_theme.dart';
 import '../widgets/gear_art.dart';
-import '../widgets/guild_sigil.dart';
+import '../widgets/mark_plate.dart';
 import '../widgets/camp_controls.dart';
 import '../widgets/caravan_header.dart';
 import '../widgets/expedition_widgets.dart';
@@ -15,6 +15,7 @@ import '../widgets/share_cards.dart';
 import '../widgets/sector_scene.dart';
 import '../widgets/terminal.dart';
 import 'caravan_screen.dart';
+import '../widgets/sigil.dart';
 
 class DebriefScreen extends StatefulWidget {
   const DebriefScreen({super.key, required this.record});
@@ -188,7 +189,7 @@ class _DebriefScreenState extends State<DebriefScreen>
                       summary:
                           '+${r.credits} credits · +${r.alloy} alloy · +${r.intel} intel'
                           '${r.guildLevelUps > 0 ? '\nGuild level ${g.level} reached' : r.levelUps.isNotEmpty ? '\n${r.levelUps.length} ${r.levelUps.length == 1 ? 'member' : 'members'} levelled up' : ''}',
-                      icon: Icons.receipt_long_outlined,
+                      icon: CampMark.ledger,
                       expanded: _open == 'report',
                       onToggle: () => _toggle('report'),
                       child: Padding(
@@ -285,7 +286,7 @@ class _DebriefScreenState extends State<DebriefScreen>
                         summary: _progress == null
                             ? r.intent
                             : '${r.intent}\nProgress: ${fieldName(_progress!)}',
-                        icon: Icons.edit_note_outlined,
+                        icon: CampMark.hourglass,
                         expanded: _open == 'reflection',
                         onToggle: () => _toggle('reflection'),
                         child: Padding(
@@ -402,7 +403,9 @@ class _DebriefScreenState extends State<DebriefScreen>
             style: T.label.copyWith(color: T.amber)),
         const SizedBox(height: 16),
         if (r.guildLevelUps > 0) ...[
-          Center(child: GuildEmblem(sigil: g.guildSigil, size: 88)),
+          Center(
+              child: MarkPlate.guild(
+                  sigil: g.guildSigil, color: T.amber, size: 88)),
           const SizedBox(height: 18),
           Text('Guild level ${g.level}',
               textAlign: TextAlign.center, style: T.display),

@@ -1,7 +1,7 @@
 # Caravan header
 
 Delivered asset: `assets/art/caravan.webp`, **1290 x 726, WebP q86**,
-199,264 bytes. The master is approximately 16:9; the intended display is
+205,148 bytes. The master is approximately 16:9; the intended display is
 a centred 2.3:1 cover crop, matching the sector-header treatment.
 
 Three covered freight wagons halt at the timber gate on Mosswood's old
