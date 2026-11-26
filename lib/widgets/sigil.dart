@@ -17,13 +17,19 @@ import 'package:flutter/material.dart';
 // GEOMETRY
 // ---------------------------------------------------------------------------
 
+/// Each segment is a polyline. One that ends where it began is closed, so
+/// its first corner gets a proper join: drawn open, the start and the end
+/// are two loose stroke ends, and a notch is cut out of that corner.
 Path _p(double s, List<List<double>> segments) {
   final path = Path();
   for (final seg in segments) {
+    final n = seg.length;
+    final closed = n >= 6 && seg[0] == seg[n - 2] && seg[1] == seg[n - 1];
     path.moveTo(seg[0] * s, seg[1] * s);
-    for (var i = 2; i < seg.length; i += 2) {
+    for (var i = 2; i < (closed ? n - 2 : n); i += 2) {
       path.lineTo(seg[i] * s, seg[i + 1] * s);
     }
+    if (closed) path.close();
   }
   return path;
 }
@@ -36,8 +42,7 @@ Path sigilPath(String sectorId, double s) {
       return _p(s, [
         [0.14, 0.52, 0.5, 0.10, 0.86, 0.52],
         [0.5, 0.10, 0.5, 0.92],
-        [0.26, 0.64, 0.5, 0.44],
-        [0.74, 0.64, 0.5, 0.44],
+        [0.26, 0.64, 0.5, 0.44, 0.74, 0.64],
       ]);
 
     // BLACKSTONE HOLLOW - a descent: wedges dropping to a floor.
@@ -67,10 +72,10 @@ Path sigilPath(String sectorId, double s) {
     // THE SPIRE OF TELOS - a banded tower with something at the top.
     case 'spire':
       return _p(s, [
-        [0.5, 0.10, 0.24, 0.94],
-        [0.5, 0.10, 0.76, 0.94],
-        [0.33, 0.54, 0.67, 0.54],
-        [0.28, 0.74, 0.72, 0.74],
+        [0.24, 0.94, 0.5, 0.10, 0.76, 0.94],
+        // Bands end on the walls' centre lines rather than overshooting them.
+        [0.364, 0.54, 0.636, 0.54],
+        [0.302, 0.74, 0.698, 0.74],
         [0.42, 0.20, 0.5, 0.06, 0.58, 0.20, 0.42, 0.20],
       ]);
 
@@ -104,9 +109,9 @@ Path emblemPath(String classId, double s) {
     // ARCHIVIST - an open volume on its spine.
     case 'archivist':
       return _p(s, [
+        [0.5, 0.24, 0.86, 0.34, 0.86, 0.80, 0.5, 0.84, 0.14, 0.80, 0.14, 0.34,
+            0.5, 0.24],
         [0.5, 0.24, 0.5, 0.84],
-        [0.5, 0.24, 0.14, 0.34, 0.14, 0.80, 0.5, 0.84],
-        [0.5, 0.24, 0.86, 0.34, 0.86, 0.80, 0.5, 0.84],
       ]);
 
     // ARTIFICER - a clamp on a rivet. Strips things for parts.
@@ -123,7 +128,7 @@ Path emblemPath(String classId, double s) {
     case 'quartermaster':
       return _p(s, [
         [0.5, 0.10, 0.86, 0.5, 0.5, 0.90, 0.14, 0.5, 0.5, 0.10],
-        [0.2, 0.5, 0.8, 0.5],
+        [0.14, 0.5, 0.86, 0.5],
       ]);
 
     default:
@@ -211,7 +216,9 @@ Path campMarkPath(CampMark mark, double s) => _p(s, switch (mark) {
           [0.08, 0.86, 0.92, 0.86],
           [0.14, 0.86, 0.14, 0.24, 0.30, 0.24, 0.30, 0.86],
           [0.30, 0.34, 0.46, 0.34, 0.46, 0.86],
-          [0.52, 0.81, 0.66, 0.86, 0.85, 0.33, 0.71, 0.28, 0.52, 0.81],
+          // Resting a little high: its lowest corner's mitre would
+          // otherwise poke through the underside of the shelf.
+          [0.52, 0.79, 0.66, 0.84, 0.85, 0.31, 0.71, 0.26, 0.52, 0.79],
         ],
       CampMark.person => [
           [0.50, 0.10, 0.64, 0.24, 0.50, 0.38, 0.36, 0.24, 0.50, 0.10],
@@ -232,7 +239,7 @@ Path campMarkPath(CampMark mark, double s) => _p(s, switch (mark) {
       CampMark.crate => [
           [0.12, 0.28, 0.88, 0.28, 0.88, 0.86, 0.12, 0.86, 0.12, 0.28],
           [0.12, 0.42, 0.88, 0.42],
-          [0.18, 0.80, 0.82, 0.48],
+          [0.12, 0.86, 0.88, 0.42],
         ],
       // A near stake and a far one on rising ground: a line of them is a
       // route without drawing the road, which at this size reads as a crack.
@@ -246,11 +253,10 @@ Path campMarkPath(CampMark mark, double s) => _p(s, switch (mark) {
           [0.20, 0.90, 0.80, 0.90],
           [0.28, 0.10, 0.50, 0.50, 0.72, 0.10],
           [0.28, 0.90, 0.50, 0.50, 0.72, 0.90],
-          [0.38, 0.90, 0.50, 0.76, 0.62, 0.90],
         ],
       CampMark.ledger => [
-          [0.20, 0.10, 0.64, 0.10, 0.80, 0.26, 0.80, 0.90, 0.20, 0.90, 0.20, 0.10],
-          [0.64, 0.10, 0.64, 0.26, 0.80, 0.26],
+          [0.20, 0.10, 0.58, 0.10, 0.80, 0.32, 0.80, 0.90, 0.20, 0.90, 0.20, 0.10],
+          [0.58, 0.10, 0.58, 0.32, 0.80, 0.32],
           [0.32, 0.42, 0.68, 0.42],
           [0.32, 0.56, 0.68, 0.56],
           [0.32, 0.70, 0.54, 0.70],
@@ -258,7 +264,7 @@ Path campMarkPath(CampMark mark, double s) => _p(s, switch (mark) {
       CampMark.journal => [
           [0.22, 0.10, 0.78, 0.10, 0.78, 0.90, 0.22, 0.90, 0.22, 0.10],
           [0.34, 0.10, 0.34, 0.90],
-          [0.34, 0.48, 0.88, 0.48, 0.88, 0.62, 0.34, 0.62],
+          [0.34, 0.55, 0.90, 0.55],
         ],
       CampMark.crucible => [
           [0.12, 0.38, 0.88, 0.38],
@@ -296,7 +302,7 @@ Path campMarkPath(CampMark mark, double s) => _p(s, switch (mark) {
           [0.20, 0.10, 0.80, 0.10, 0.80, 0.90, 0.20, 0.90, 0.20, 0.10],
           [0.32, 0.28, 0.68, 0.28],
           [0.32, 0.42, 0.68, 0.42],
-          [0.60, 0.56, 0.70, 0.68, 0.60, 0.80, 0.50, 0.68, 0.60, 0.56],
+          [0.56, 0.54, 0.66, 0.64, 0.56, 0.74, 0.46, 0.64, 0.56, 0.54],
         ],
       CampMark.done => [
           [0.16, 0.52, 0.40, 0.76, 0.84, 0.24],
@@ -321,6 +327,10 @@ class _MarkPainter extends CustomPainter {
       ..color = color
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeWidth
+      // Butt ends: a square cap would poke a nub out wherever a stroke ends
+      // against an angled one. Joints are closed by the geometry instead -
+      // outlines are closed paths, and strokes that meet at a point are one
+      // polyline, so the point is a join rather than two ends.
       ..strokeCap = StrokeCap.butt
       ..strokeJoin = StrokeJoin.miter;
 
